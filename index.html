@@ -1,0 +1,3044 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Simulador de Carga - CEMIG</title>
+
+    <!-- Chart.js para plot da curva -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      :root {
+        --cemig-blue: #008000;
+        --cemig-accent: #008000;
+        --black: #000000;
+        --muted: #000000;
+        --bg: #faf4fb;
+        --card: #ffffff;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: "Segoe UI", Roboto, Arial, sans-serif;
+        font-size: 20px;
+        background: var(--bg);
+        color: #122028;
+      }
+
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 98%;
+        height: 50px;
+        /* aumente um pouco a altura */
+        background: linear-gradient(
+          90deg,
+          var(--cemig-blue),
+          var(--cemig-accent)
+        );
+        color: #fff;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        /* centraliza verticalmente */
+        justify-content: space-between;
+        padding: 0 22px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        z-index: 1000;
+      }
+
+      .header img {
+        max-height: 90%;
+        /* ocupa até 70% da altura do header */
+        height: auto;
+        /* mantém proporção */
+        width: auto;
+        /* mantém proporção */
+      }
+
+      .wrap {
+        max-width: 1100px;
+        margin: 20px auto;
+        padding: 18px;
+      }
+
+      .page-layout {
+        display: grid;
+        grid-template-columns: 1fr 600px;
+        gap: 5px;
+        align-items: start;
+        padding-top: 22px;
+        padding-left: 100px;
+        padding-right: 15px;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+      }
+
+      h2 {
+        margin: 10 0 8px;
+        font-size: 18px;
+        color: var(--black);
+      }
+
+      p.lead {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 60px;
+        align-self: start;
+        height: fit-content;
+      }
+
+      /* Linha Qtd | Disjuntor (aparece como um row) */
+      .row {
+        display: grid;
+        grid-template-columns: 50px 160px;
+        /* Qtd. fixo, Disjuntor ocupa o restante */
+        gap: 8px;
+        align-items: center;
+      }
+
+      .row .qtd {
+        width: 50px;
+      }
+
+      .row .dq {
+        flex: 1;
+      }
+
+      label {
+        font-size: 13px;
+        color: #000000;
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      input[type="number"],
+      input[type="text"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #000000;
+        background: #ffffff;
+        font-size: 12px;
+        color: #000000;
+        box-sizing: border-box;
+      }
+
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        background: var(--cemig-blue);
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 0;
+        cursor: pointer;
+        font-weight: 700;
+        box-shadow: 0 6px 18px lab(33.8% 21.3 -58.01 / 0.12);
+      }
+
+      button.secondary {
+        background: var(--cemig-blue);
+        color: var(#fff);
+        box-shadow: none;
+        border: 1px solid var(--cemig-blue);
+      }
+
+      .result {
+        white-space: pre-line;
+        background: linear-gradient(180deg, #fff, #fff);
+        padding: 14px;
+        border-radius: 8px;
+        border: 1px solid #000000;
+        margin-top: 12px;
+        color: #000000;
+        font-size: 12px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 700px;
+        gap: 18px;
+      }
+
+      canvas {
+        background: #fff;
+        border-radius: 8px;
+        padding: 8px;
+      }
+
+      .muted-note {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      footer {
+        font-size: 12px;
+        color: var(--muted);
+        text-align: center;
+        padding: 12px 0;
+      }
+
+      #fixed-actions {
+        position: fixed;
+        top: 60px;
+        left: 18px;
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #fixed-actions button {
+        width: 80px;
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+
+      #fixed-actions button:disabled {
+        background: #a0bfa0;
+        cursor: not-allowed;
+        box-shadow: none;
+        opacity: 0.65;
+      }
+
+      @media (max-width: 900px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .row .qtd {
+          width: 50px;
+        }
+      }
+
+      .three-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        /* três colunas */
+        gap: 18px;
+      }
+
+      /* Layout 2 colunas para formulários (Local de atend. / Dados do Trafo) */
+      .form-two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        align-items: start;
+      }
+
+      @media (max-width: 900px) {
+        .form-two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 1200px) {
+        .three-col {
+          grid-template-columns: 1fr 1fr;
+          /* duas colunas em telas médias */
+        }
+      }
+
+      @media (max-width: 900px) {
+        .three-col {
+          grid-template-columns: 1fr;
+          /* uma coluna em telas pequenas */
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="header">
+      Simulador de Carga
+      <img src="logo.png" alt="Logo" />
+    </div>
+    <!-- Botões fixos no canto superior esquerdo -->
+    <div id="fixed-actions">
+      <button
+        id="btnCalc"
+        disabled
+        title="Preencha a Zona e o Município para calcular"
+      >
+        Calcular
+      </button>
+      <button id="btnReset" class="secondary">Limpar</button>
+    </div>
+
+    <div class="page-layout">
+      <div class="wrap">
+        <!-- Top - Transformador / Meta -->
+        <div class="card">
+          <h2>Dados do Transformador</h2>
+          <div class="form-two-col" style="margin-top: 8px">
+            <!-- Coluna 1: identificação + demandas -->
+            <div>
+              <label>Transformador</label>
+              <input id="trafo" type="text" placeholder="Ex: 18759-3-45" />
+              <label style="margin-top: 16px">Demanda residencial</label>
+              <input
+                id="demanda_residencial"
+                type="number"
+                value=""
+                step="0.01"
+              />
+              <label>Demanda comercial</label>
+              <input
+                id="demanda_comercial"
+                type="number"
+                value=""
+                step="0.01"
+              />
+              <label>Demanda industrial</label>
+              <input
+                id="demanda_industrial"
+                type="number"
+                value=""
+                step="0.01"
+              />
+              <label>Demanda rural</label>
+              <input id="demanda_rural" type="number" value="" step="0.01" />
+              <label>Demanda outros</label>
+              <input id="demanda_outros" type="number" value="" step="0.01" />
+              <label>Demanda Iluminação Pública</label>
+              <input
+                id="demanda_iluminação"
+                type="number"
+                value=""
+                step="0.01"
+              />
+            </div>
+
+            <!-- Coluna 2: potência + consumidores + tipo + queda -->
+            <div>
+              <label>Potência do transformador (kVA)</label>
+              <input id="pottr" type="number" value="" step="1" readonly />
+
+              <label style="margin-top: 16px">Consumidores residenciais</label>
+              <input id="uc_residencial" type="number" value="" />
+              <label>Consumidores comerciais</label>
+              <input id="uc_comercial" type="number" value="" />
+              <label>Consumidores industriais</label>
+              <input id="uc_industrial" type="number" value="" />
+              <label>Consumidores rurais</label>
+              <input id="uc_rural" type="number" value="" />
+              <label>Consumidores outros</label>
+              <input id="uc_outros" type="number" value="" />
+
+              <label>Tipo de Transformador</label>
+              <select id="tipo_TRF">
+                <option value="">Convencional</option>
+                <option value="1">Autoprotegido</option>
+              </select>
+
+              <label style="margin-top: 14px">Queda de tensão (%)</label>
+              <input
+                id="queda_tensao"
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                placeholder="Ex: 4.5"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Local de atendimento</h2>
+          <div class="form-two-col" style="margin-top: 8px">
+            <!-- Coluna 1: localização + coordenadas do ponto -->
+            <div>
+              <label>Zona</label>
+              <select id="zona">
+                <option value="urbana">Área Urbana</option>
+                <option value="rural">Área Rural</option>
+              </select>
+
+              <label style="margin-top: 12px">Município</label>
+              <select id="municipio">
+                <option value=""></option>
+              </select>
+
+              <label style="margin-top: 12px">Formato das coordenadas</label>
+              <select id="coord_format">
+                <option value="decimal">Graus decimais (ex: -19.924501)</option>
+                <option value="gms">
+                  Graus, minutos e segundos (ex: 19°55'28.2"S)
+                </option>
+              </select>
+
+              <label style="margin-top: 12px">Latitude</label>
+              <input id="lat_input" type="text" placeholder="-19.924501" />
+              <span class="muted-note" id="lat_hint"
+                >Formato decimal: -90 a +90</span
+              >
+
+              <label style="margin-top: 8px">Longitude</label>
+              <input id="lon_input" type="text" placeholder="-43.935238" />
+              <span class="muted-note" id="lon_hint"
+                >Formato decimal: -180 a +180</span
+              >
+
+              <script>
+                function normalizarEntrada(id) {
+                  const campo = document.getElementById(id);
+                  campo.addEventListener("input", () => {
+                    campo.value = campo.value.replace(",", ".");
+                  });
+                }
+
+                normalizarEntrada("lat_input");
+                normalizarEntrada("lon_input");
+              </script>
+
+              <label style="margin-top: 12px">UTM (automático)</label>
+              <input
+                id="utm_output"
+                type="text"
+                readonly
+                placeholder="Preencha lat/long"
+                style="background: #f0f4f0; color: #333"
+              />
+              <span class="muted-note">Calculado automaticamente</span>
+            </div>
+
+            <!-- Coluna 2: extensão de rede -->
+            <div>
+              <div
+                style="
+                  padding: 12px;
+                  background: #f7fdf7;
+                  border-radius: 8px;
+                  border: 1px solid #c8e6c9;
+                  height: 100%;
+                  box-sizing: border-box;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    id="chk_extensao"
+                    style="width: 18px; height: 18px; cursor: pointer"
+                  />
+                  <label
+                    for="chk_extensao"
+                    style="
+                      margin: 0;
+                      font-size: 14px;
+                      font-weight: 700;
+                      cursor: pointer;
+                      color: #1b5e20;
+                    "
+                  >
+                    📏 Necessita extensão de rede
+                  </label>
+                </div>
+                <div id="extensao_fields" style="display: none">
+                  <label>Latitude da rede mais próxima</label>
+                  <input
+                    id="lat_rede"
+                    type="text"
+                    placeholder="Mesmo formato acima"
+                  />
+
+                  <label style="margin-top: 8px"
+                    >Longitude da rede mais próxima</label
+                  >
+                  <input
+                    id="lon_rede"
+                    type="text"
+                    placeholder="Mesmo formato acima"
+                  />
+
+                  <script>
+                    function normalizarEntrada(id) {
+                      const campo = document.getElementById(id);
+                      campo.addEventListener("input", () => {
+                        campo.value = campo.value.replace(",", ".");
+                      });
+                    }
+
+                    normalizarEntrada("lat_rede");
+                    normalizarEntrada("lon_rede");
+                  </script>
+
+                  <label style="margin-top: 8px"
+                    >UTM da rede (automático)</label
+                  >
+                  <input
+                    id="utm_rede"
+                    type="text"
+                    readonly
+                    placeholder="Preencha lat/long da rede"
+                    style="background: #f0f4f0; color: #333"
+                  />
+                  <span class="muted-note">Calculado automaticamente</span>
+
+                  <label style="margin-top: 8px">Distância calculada</label>
+                  <input
+                    id="distancia_rede"
+                    type="text"
+                    readonly
+                    placeholder="—"
+                    style="background: #f0f4f0; color: #333; font-weight: 700"
+                  />
+                  <span class="muted-note"
+                    >Calculada automaticamente (metros)</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Consumidores: Residencial / Comercial / Industrial -->
+        <div class="card">
+          <h2>Novos Consumidores</h2>
+          <div class="three-col">
+            <div>
+              <label>Qtd.</label>
+              <input id="qtd_geral" type="number" value="" min="-999" />
+            </div>
+            <div>
+              <label>Disjuntor Geral</label>
+              <select id="disj_geral"></select>
+            </div>
+          </div>
+          <div class="three-col">
+            <div>
+              <h3 style="color: var(--black); margin: 10 0 8px">Residencial</h3>
+              <div style="margin-top: 10px">
+                <div class="row">
+                  <div>
+                    <label>Qtd.</label>
+                    <input
+                      class="qtd"
+                      id="res1"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <label>Disjuntor</label>
+                    <select id="dres1"></select>
+                  </div>
+                </div>
+
+                <div class="row" style="margin-top: 2px">
+                  <div>
+                    <input
+                      class="qtd"
+                      id="res2"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <select id="dres2"></select>
+                  </div>
+                </div>
+
+                <div class="row" style="margin-top: 2px">
+                  <div>
+                    <input
+                      class="qtd"
+                      id="res3"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <select id="dres3"></select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 style="color: var(--black); margin: 10 0 8px">Comercial</h3>
+              <div style="margin-top: 10px">
+                <div class="row">
+                  <div>
+                    <label>Qtd.</label>
+                    <input
+                      class="qtd"
+                      id="com1"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <label>Disjuntor</label>
+                    <select id="dcom1"></select>
+                  </div>
+                </div>
+
+                <div class="row" style="margin-top: 2px">
+                  <div>
+                    <input
+                      class="qtd"
+                      id="com2"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <select id="dcom2"></select>
+                  </div>
+                </div>
+
+                <div class="row" style="margin-top: 2px">
+                  <div>
+                    <input
+                      class="qtd"
+                      id="com3"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <select id="dcom3"></select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 style="color: var(--black); margin: 10 0 8px">Industrial</h3>
+              <div style="margin-top: 10px">
+                <div class="row">
+                  <div>
+                    <label>Qtd.</label>
+                    <input
+                      class="qtd"
+                      id="ind1"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <label>Disjuntor</label>
+                    <select id="dind1"></select>
+                  </div>
+                </div>
+
+                <div class="row" style="margin-top: 2px">
+                  <div>
+                    <input
+                      class="qtd"
+                      id="ind2"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <select id="dind2"></select>
+                  </div>
+                </div>
+
+                <div class="row" style="margin-top: 2px">
+                  <div>
+                    <input
+                      class="qtd"
+                      id="ind3"
+                      type="number"
+                      value=""
+                      min="-999"
+                    />
+                  </div>
+                  <div class="dq">
+                    <select id="dind3"></select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ajustes e Botões removidos daqui -->
+
+        <footer>Simulador de Carga CEMIG - PE/EM</footer>
+      </div>
+
+      <!-- Gráfico e resumo — coluna lateral do page-layout -->
+      <div class="sidebar">
+        <div class="card">
+          <h2>Resultado</h2>
+          <div
+            id="msg"
+            class="result"
+            style="margin-top: 14px; margin-bottom: 20px"
+          ></div>
+          <div>
+            <canvas id="chart" height="230"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ======================= Dados (31 disjuntores, fatores, perfis) ======================= */
+
+      // Habilitar/desabilitar botão Calcular conforme zona e município
+      function atualizarBtnCalc() {
+        const zona = document.getElementById("zona").value;
+        const municipio = document.getElementById("municipio").value;
+        const trafo = document.getElementById("trafo").value;
+        const btn = document.getElementById("btnCalc");
+        const ok = zona && municipio && trafo;
+        btn.disabled = !ok;
+        btn.title = ok ? "" : "Preencha a Zona e o Município para calcular";
+      }
+      document
+        .getElementById("zona")
+        .addEventListener("change", atualizarBtnCalc);
+      document
+        .getElementById("municipio")
+        .addEventListener("change", atualizarBtnCalc);
+      document
+        .getElementById("trafo")
+        .addEventListener("change", atualizarBtnCalc);
+      const DISJUNTORES = [
+        ["", 0, 0.0],
+        ["A1/G1-MONO 40 A", 1, 5.0],
+        ["A2/G2-MONO 50 A", 2, 6.5],
+        ["A3/G3-MONO 63 A", 3, 10.0],
+        ["B1/H1-BI 40 A", 4, 10.0],
+        ["B2/H2-BI 63 A", 5, 15.0],
+        ["H3-BI 100 A", 6, 20.0],
+        ["H4-BI 125 A", 7, 30.0],
+        ["H5-BI 150 A", 8, 36.0],
+        ["H6-BI 200 A", 9, 50.0],
+        ["C1-TRI 40", 10, 15.0],
+        ["C2-TRI 63 A", 11, 23.0],
+        ["C3-TRI 80 A", 12, 27.0],
+        ["C4-TRI 100 A", 13, 38.0],
+        ["C5-TRI 125 A", 14, 47.0],
+        ["C6-TRI 150 A", 15, 57.0],
+        ["C7-TRI 175 A", 16, 66.0],
+        ["C8-TRI 200 A", 17, 75.0],
+        ["F1-TRI 225 A", 18, 86.0],
+        ["F2-TRI 250", 19, 95.0],
+        ["F3-TRI 300/315/320 A", 20, 114.0],
+        ["F4-TRI 400 A", 21, 152.0],
+        ["F5-TRI 450 A", 22, 171.0],
+        ["F6-TRI 500 A", 23, 188.0],
+        ["F7-TRI 600/630 A", 24, 228.0],
+        ["F8-TRI 700 A", 25, 266.0],
+        ["F9-TRI 800 A", 26, 304.0],
+        ["TRI 1000 A", 27, 342.0],
+        ["TRI 1200 A", 28, 456.0],
+        ["TRI 1500 A", 29, 570.0],
+        ["TRI 1800 A", 30, 685.0],
+        ["TRI 2100 A", 31, 800.0],
+      ];
+      const municipios = [
+        "Abadia dos Dourados",
+        "Abaete",
+        "Abre Campo",
+        "Acaiaca",
+        "Acucena",
+        "Agua Boa",
+        "Agua Comprida",
+        "Aguanil",
+        "Aguas Formosas",
+        "Aguas Vermelhas",
+        "Aimores",
+        "Aiuruoca",
+        "Alagoa",
+        "Albertina",
+        "Alem Paraiba",
+        "Alfenas",
+        "Alfredo Vasconcelos",
+        "Almenara",
+        "Alpercata",
+        "Alpinopolis",
+        "Alterosa",
+        "Alto Caparao",
+        "Alto Jequitiba",
+        "Alto Rio Doce",
+        "Alvarenga",
+        "Alvinopolis",
+        "Alvorada de Minas",
+        "Amparo do Serra",
+        "Andradas",
+        "Andrelandia",
+        "Angelandia",
+        "Antônio Carlos",
+        "Antônio Dias",
+        "Antônio Prado de Minas",
+        "Aracai",
+        "Aracitaba",
+        "Aracuai",
+        "Araguari",
+        "Arantina",
+        "Araponga",
+        "Arapora",
+        "Arapua",
+        "Araujos",
+        "Araxa",
+        "Arceburgo",
+        "Arcos",
+        "Areado",
+        "Argirita",
+        "Aricanduva",
+        "Arinos",
+        "Astolfo Dutra",
+        "Ataleia",
+        "Augusto de Lima",
+        "Baependi",
+        "Baldim",
+        "Bambui",
+        "Bandeira",
+        "Bandeira do Sul",
+        "Barao de Cocais",
+        "Barao de Monte Alto",
+        "Barbacena",
+        "Barra Longa",
+        "Barroso",
+        "Bela Vista de Minas",
+        "Belmiro Braga",
+        "Belo Horizonte",
+        "Belo Oriente",
+        "Belo Vale",
+        "Berilo",
+        "Berizal",
+        "Bertopolis",
+        "Betim",
+        "Bias Fortes",
+        "Bicas",
+        "Biquinhas",
+        "Boa Esperanca",
+        "Bocaina de Minas",
+        "Bocaiuva",
+        "Bom Despacho",
+        "Bom Jardim de Minas",
+        "Bom Jesus da Penha",
+        "Bom Jesus do Amparo",
+        "Bom Jesus do Galho",
+        "Bom Repouso",
+        "Bom Sucesso",
+        "Bonfim",
+        "Bonfinopolis de Minas",
+        "Bonito de Minas",
+        "Borda da Mata",
+        "Botelhos",
+        "Botumirim",
+        "Bras Pires",
+        "Brasilandia de Minas",
+        "Brasilia de Minas",
+        "Brasopolis",
+        "Braunas",
+        "Brumadinho",
+        "Bueno Brandao",
+        "Buenopolis",
+        "Bugre",
+        "Buritis",
+        "Buritizeiro",
+        "Cabeceira Grande",
+        "Cabo Verde",
+        "Cachoeira da Prata",
+        "Cachoeira de Minas",
+        "Cachoeira de Pajeu",
+        "Cachoeira Dourada",
+        "Caetanopolis",
+        "Caete",
+        "Caiana",
+        "Cajuri",
+        "Caldas",
+        "Camacho",
+        "Camanducaia",
+        "Cambui",
+        "Cambuquira",
+        "Campanario",
+        "Campanha",
+        "Campestre",
+        "Campina Verde",
+        "Campo Azul",
+        "Campo Belo",
+        "Campo do Meio",
+        "Campo Florido",
+        "Campos Altos",
+        "Campos Gerais",
+        "Cana Verde",
+        "Canaa",
+        "Canapolis",
+        "Candeias",
+        "Cantagalo",
+        "Caparao",
+        "Capela Nova",
+        "Capelinha",
+        "Capetinga",
+        "Capim Branco",
+        "Capinopolis",
+        "Capitao Andrade",
+        "Capitao Eneas",
+        "Capitolio",
+        "Caputira",
+        "Carai",
+        "Caranaiba",
+        "Carandai",
+        "Carangola",
+        "Caratinga",
+        "Carbonita",
+        "Careacu",
+        "Carlos Chagas",
+        "Carmesia",
+        "Carmo da Cachoeira",
+        "Carmo da Mata",
+        "Carmo de Minas",
+        "Carmo do Cajuru",
+        "Carmo do Paranaiba",
+        "Carmo do Rio Claro",
+        "Carmopolis de Minas",
+        "Carneirinho",
+        "Carrancas",
+        "Carvalhopolis",
+        "Carvalhos",
+        "Casa Grande",
+        "Cascalho Rico",
+        "Cassia",
+        "Cataguases",
+        "Catas Altas",
+        "Catas Altas da Noruega",
+        "Catuji",
+        "Catuti",
+        "Caxambu",
+        "Cedro do Abaete",
+        "Central de Minas",
+        "Centralina",
+        "Chacara",
+        "Chale",
+        "Chapada do Norte",
+        "Chapada Gaucha",
+        "Chiador",
+        "Cipotanea",
+        "Claraval",
+        "Claro dos Pocoes",
+        "Claudio",
+        "Coimbra",
+        "Coluna",
+        "Comendador Gomes",
+        "Comercinho",
+        "Conceicao da Aparecida",
+        "Conceicao da Barra de Minas",
+        "Conceicao das Alagoas",
+        "Conceicao das Pedras",
+        "Conceicao de Ipanema",
+        "Conceicao do Mato Dentro",
+        "Conceicao do Para",
+        "Conceicao do Rio Verde",
+        "Conceicao dos Ouros",
+        "Cônego Marinho",
+        "Confins",
+        "Congonhal",
+        "Congonhas",
+        "Congonhas do Norte",
+        "Conquista",
+        "Conselheiro Lafaiete",
+        "Conselheiro Pena",
+        "Consolacao",
+        "Contagem",
+        "Coqueiral",
+        "Coracao de Jesus",
+        "Cordisburgo",
+        "Cordislandia",
+        "Corinto",
+        "Coroaci",
+        "Coromandel",
+        "Coronel Fabriciano",
+        "Coronel Murta",
+        "Coronel Pacheco",
+        "Coronel Xavier Chaves",
+        "Corrego Danta",
+        "Corrego do Bom Jesus",
+        "Corrego Fundo",
+        "Corrego Novo",
+        "Couto de Magalhaes de Minas",
+        "Crisolita",
+        "Cristais",
+        "Cristalia",
+        "Cristiano Otoni",
+        "Cristina",
+        "Crucilandia",
+        "Cruzeiro da Fortaleza",
+        "Cruzilia",
+        "Cuparaque",
+        "Curral de Dentro",
+        "Curvelo",
+        "Datas",
+        "Delfim Moreira",
+        "Delfinopolis",
+        "Delta",
+        "Descoberto",
+        "Desterro de Entre Rios",
+        "Desterro do Melo",
+        "Diamantina",
+        "Diogo de Vasconcelos",
+        "Dionisio",
+        "Divinesia",
+        "Divino",
+        "Divino das Laranjeiras",
+        "Divinolandia de Minas",
+        "Divinopolis",
+        "Divisa Alegre",
+        "Divisa Nova",
+        "Divisopolis",
+        "Dom Bosco",
+        "Dom Cavati",
+        "Dom Joaquim",
+        "Dom Silverio",
+        "Dom Vicoso",
+        "Dona Eusebia",
+        "Dores de Campos",
+        "Dores de Guanhaes",
+        "Dores do Indaia",
+        "Dores do Turvo",
+        "Doresopolis",
+        "Douradoquara",
+        "Durande",
+        "Eloi Mendes",
+        "Engenheiro Caldas",
+        "Engenheiro Navarro",
+        "Entre Folhas",
+        "Entre Rios de Minas",
+        "Ervalia",
+        "Esmeraldas",
+        "Espera Feliz",
+        "Espinosa",
+        "Espirito Santo do Douro",
+        "Estiva",
+        "Estrela Dalva",
+        "Estrela do Indaia",
+        "Estrela do Sul",
+        "Eugenopolis",
+        "Ewbank da Camara",
+        "Extrema",
+        "Fama",
+        "Faria Lemos",
+        "Felicio dos Santos",
+        "Felisburgo",
+        "Felixlandia",
+        "Fernandes Tourinho",
+        "Ferros",
+        "Fervedouro",
+        "Florestal",
+        "Formiga",
+        "Formoso",
+        "Fortaleza de Minas",
+        "Fortuna de Minas",
+        "Francisco Badaro",
+        "Francisco Dumont",
+        "Francisco Sa",
+        "Franciscopolis",
+        "Frei Gaspar",
+        "Frei Inocencio",
+        "Frei Lagonegro",
+        "Fronteira",
+        "Fronteira dos Vales",
+        "Fruta de Leite",
+        "Frutal",
+        "Funilandia",
+        "Galileia",
+        "Gameleiras",
+        "Glaucilandia",
+        "Goiabeira",
+        "Goiana",
+        "Goncalves",
+        "Gonzaga",
+        "Gouveia",
+        "Governador Valadares",
+        "Grao Mogol",
+        "Grupiara",
+        "Guanhaes",
+        "Guape",
+        "Guaraciaba",
+        "Guaraciama",
+        "Guaranesia",
+        "Guarani",
+        "Guarara",
+        "Guarda-Mor",
+        "Guaxupe",
+        "Guidoval",
+        "Guimarania",
+        "Guiricema",
+        "Gurinhata",
+        "Heliodora",
+        "Iapu",
+        "Ibertioga",
+        "Ibia",
+        "Ibiai",
+        "Ibiracatu",
+        "Ibiraci",
+        "Ibirite",
+        "Ibitiura de Minas",
+        "Ibituruna",
+        "Icarai de Minas",
+        "Igarape",
+        "Igaratinga",
+        "Iguatama",
+        "Ijaci",
+        "Ilicinea",
+        "Imbe de Minas",
+        "Inconfidentes",
+        "Indaiabira",
+        "Indianopolis",
+        "Ingai",
+        "Inhapim",
+        "Inhauma",
+        "Inimutaba",
+        "Ipaba",
+        "Ipanema",
+        "Ipatinga",
+        "Ipiacu",
+        "Ipuiuna",
+        "Irai de Minas",
+        "Itabira",
+        "Itabirinha",
+        "Itabirito",
+        "Itacambira",
+        "Itacarambi",
+        "Itaguara",
+        "Itaipe",
+        "Itajuba",
+        "Itamarandiba",
+        "Itamarati de Minas",
+        "Itambacuri",
+        "Itambe do Mato Dentro",
+        "Itamogi",
+        "Itamonte",
+        "Itanhandu",
+        "Itanhomi",
+        "Itaobim",
+        "Itapagipe",
+        "Itapecerica",
+        "Itapeva",
+        "Itatiaiucu",
+        "Itau de Minas",
+        "Itauna",
+        "Itaverava",
+        "Itinga",
+        "Itueta",
+        "Ituiutaba",
+        "Itumirim",
+        "Iturama",
+        "Itutinga",
+        "Jaboticatubas",
+        "Jacinto",
+        "Jacui",
+        "Jacutinga",
+        "Jaguaracu",
+        "Jaiba",
+        "Jampruca",
+        "Janauba",
+        "Januaria",
+        "Japaraiba",
+        "Japonvar",
+        "Jeceaba",
+        "Jenipapo de Minas",
+        "Jequeri",
+        "Jequitai",
+        "Jequitiba",
+        "Jequitinhonha",
+        "Jesuania",
+        "Joaima",
+        "Joanesia",
+        "Joao Monlevade",
+        "Joao Pinheiro",
+        "Joaquim Felicio",
+        "Jordania",
+        "Jose Goncalves de Minas",
+        "Jose Raydan",
+        "Josenopolis",
+        "Juatuba",
+        "Juiz de Fora",
+        "Juramento",
+        "Juruaia",
+        "Juvenilia",
+        "Ladainha",
+        "Lagamar",
+        "Lagoa da Prata",
+        "Lagoa dos Patos",
+        "Lagoa Dourada",
+        "Lagoa Formosa",
+        "Lagoa Grande",
+        "Lagoa Santa",
+        "Lajinha",
+        "Lambari",
+        "Lamim",
+        "Laranjal",
+        "Lassance",
+        "Lavras",
+        "Leandro Ferreira",
+        "Leme do Prado",
+        "Leopoldina",
+        "Liberdade",
+        "Lima Duarte",
+        "Limeira do Oeste",
+        "Lontra",
+        "Luisburgo",
+        "Luislandia",
+        "Luminarias",
+        "Luz",
+        "Machacalis",
+        "Machado",
+        "Madre de Deus de Minas",
+        "Malacacheta",
+        "Mamonas",
+        "Manga",
+        "Manhuacu",
+        "Manhumirim",
+        "Mantena",
+        "Mar de Espanha",
+        "Maravilhas",
+        "Maria da Fe",
+        "Mariana",
+        "Marilac",
+        "Mario Campos",
+        "Maripa de Minas",
+        "Marlieria",
+        "Marmelopolis",
+        "Martinho Campos",
+        "Martins Soares",
+        "Mata Verde",
+        "Materlandia",
+        "Mateus Leme",
+        "Mathias Lobato",
+        "Matias Barbosa",
+        "Matias Cardoso",
+        "Matipo",
+        "Mato Verde",
+        "Matozinhos",
+        "Matutina",
+        "Medeiros",
+        "Medina",
+        "Mendes Pimentel",
+        "Merces",
+        "Mesquita",
+        "Minas Novais",
+        "Minduri",
+        "Mirabela",
+        "Miradouro",
+        "Mirai",
+        "Miravania",
+        "Moeda",
+        "Moema",
+        "Monjolos",
+        "Monsenhor Paulo",
+        "Montalvania",
+        "Monte Alegre de Minas",
+        "Monte Azul",
+        "Monte Belo",
+        "Monte Carmelo",
+        "Monte Formoso",
+        "Monte Santo de Minas",
+        "Monte Siao",
+        "Montes Claros",
+        "Montezuma",
+        "Morada Nova de Minas",
+        "Morro da Garca",
+        "Morro do Pilar",
+        "Munhoz",
+        "Muriae",
+        "Mutum",
+        "Muzambinho",
+        "Nacip Raydan",
+        "Nanuque",
+        "Naque",
+        "Natalandia",
+        "Natercia",
+        "Nazareno",
+        "Nepomuceno",
+        "Ninheira",
+        "Nova Belem",
+        "Nova Era",
+        "Nova Lima",
+        "Nova Modica",
+        "Nova Ponte",
+        "Nova Porteirinha",
+        "Nova Resende",
+        "Nova Serrana",
+        "Nova Uniao",
+        "Novo Cruzeiro",
+        "Novo Oriente de Minas",
+        "Novorizonte",
+        "Olaria",
+        "Olhos-d'Agua",
+        "Olimpio Noronha",
+        "Oliveira",
+        "Oliveira Fortes",
+        "Onca de Pitangui",
+        "Oratorios",
+        "Orizania",
+        "Ouro Branco",
+        "Ouro Fino",
+        "Ouro Preto",
+        "Ouro Verde de Minas",
+        "Padre Carvalho",
+        "Padre Paraiso",
+        "Pai Pedro",
+        "Paineiras",
+        "Pains",
+        "Paiva",
+        "Palma",
+        "Palmopolis",
+        "Papagaios",
+        "Para de Minas",
+        "Paracatu",
+        "Paraguacu",
+        "Paraisopolis",
+        "Paraopeba",
+        "Passa Quatro",
+        "Passa Tempo",
+        "Passa-Vinte",
+        "Passabem",
+        "Passos",
+        "Patis",
+        "Patos de Minas",
+        "Patrocinio",
+        "Patrocinio do Muriae",
+        "Paula Candido",
+        "Paulistas",
+        "Pavao",
+        "Pecanha",
+        "Pedra Azul",
+        "Pedra Bonita",
+        "Pedra do Anta",
+        "Pedra do Indaia",
+        "Pedra Dourada",
+        "Pedralva",
+        "Pedras de Maria da Cruz",
+        "Pedrinopolis",
+        "Pedro Leopoldo",
+        "Pedro Teixeira",
+        "Pequeri",
+        "Pequi",
+        "Perdigao",
+        "Perdizes",
+        "Perdoes",
+        "Periquito",
+        "Pescador",
+        "Piau",
+        "Piedade de Caratinga",
+        "Piedade de Ponte Nova",
+        "Piedade do Rio Grande",
+        "Piedade dos Gerais",
+        "Pimenta",
+        "Pingo-d'Agua",
+        "Pintopolis",
+        "Piracema",
+        "Pirajuba",
+        "Piranga",
+        "Pirangucu",
+        "Piranguinho",
+        "Pirapetinga",
+        "Pirapora",
+        "Pirauba",
+        "Pitangui",
+        "Piumhi",
+        "Planura",
+        "Poco Fundo",
+        "Pocos de Caldas",
+        "Pocrane",
+        "Pompeu",
+        "Ponte Nova",
+        "Ponto Chique",
+        "Ponto dos Volantes",
+        "Porteirinha",
+        "Porto Firme",
+        "Pote",
+        "Pouso Alegre",
+        "Pouso Alto",
+        "Prados",
+        "Prata",
+        "Pratapolis",
+        "Pratinha",
+        "Presidente Bernardes",
+        "Presidente Juscelino",
+        "Presidente Kubitschek",
+        "Presidente Olegario",
+        "Prudente de Morais",
+        "Quartel Geral",
+        "Queluzito",
+        "Raposos",
+        "Raul Soares",
+        "Recreio",
+        "Reduto",
+        "Resende Costa",
+        "Resplendor",
+        "Ressaquinha",
+        "Riachinho",
+        "Riacho dos Machados",
+        "Ribeirao das Neves",
+        "Ribeirao Vermelho",
+        "Rio Acima",
+        "Rio Casca",
+        "Rio do Prado",
+        "Rio Doce",
+        "Rio Espera",
+        "Rio Manso",
+        "Rio Novo",
+        "Rio Paranaiba",
+        "Rio Pardo de Minas",
+        "Rio Piracicaba",
+        "Rio Pomba",
+        "Rio Preto",
+        "Rio Vermelho",
+        "Ritapolis",
+        "Rochedo de Minas",
+        "Rodeiro",
+        "Romaria",
+        "Rosario da Limeira",
+        "Rubelita",
+        "Rubim",
+        "Sabara",
+        "Sabinopolis",
+        "Sacramento",
+        "Salinas",
+        "Salto da Divisa",
+        "Santa Barbara",
+        "Santa Barbara do Leste",
+        "Santa Barbara do Monte Verde",
+        "Santa Barbara do Tugurio",
+        "Santa Cruz de Minas",
+        "Santa Cruz de Salinas",
+        "Santa Cruz do Escalvado",
+        "Santa Efigenia de Minas",
+        "Santa Fe de Minas",
+        "Santa Helena de Minas",
+        "Santa Juliana",
+        "Santa Luzia",
+        "Santa Margarida",
+        "Santa Maria de Itabira",
+        "Santa Maria do Salto",
+        "Santa Maria do Suacui",
+        "Santa Rita de Caldas",
+        "Santa Rita de Ibitipoca",
+        "Santa Rita de Jacutinga",
+        "Santa Rita de Minas",
+        "Santa Rita do Itueto",
+        "Santa Rita do Sapucai",
+        "Santa Rosa da Serra",
+        "Santa Vitoria",
+        "Santana da Vargem",
+        "Santana de Cataguases",
+        "Santana de Pirapama",
+        "Santana do Deserto",
+        "Santana do Garambeu",
+        "Santana do Jacare",
+        "Santana do Manhuacu",
+        "Santana do Paraiso",
+        "Santana do Riacho",
+        "Santana dos Montes",
+        "Santo Antônio do Amparo",
+        "Santo Antônio do Aventureiro",
+        "Santo Antônio do Grama",
+        "Santo Antônio do Itambe",
+        "Santo Antônio do Jacinto",
+        "Santo Antônio do Monte",
+        "Santo Antônio do Retiro",
+        "Santo Antônio do Rio Abaixo",
+        "Santo Hipolito",
+        "Santos Dumont",
+        "Sao Bento Abade",
+        "Sao Bras do Suacui",
+        "Sao Domingos das Dores",
+        "Sao Domingos do Prata",
+        "Sao Felix de Minas",
+        "Sao Francisco",
+        "Sao Francisco de Paula",
+        "Sao Francisco de Sales",
+        "Sao Francisco do Gloria",
+        "Sao Geraldo",
+        "Sao Geraldo da Piedade",
+        "Sao Geraldo do Baixio",
+        "Sao Goncalo do Abaete",
+        "Sao Goncalo do Para",
+        "Sao Goncalo do Rio Abaixo",
+        "Sao Goncalo do Rio Preto",
+        "Sao Goncalo do Sapucai",
+        "Sao Gotardo",
+        "Sao Joao Batista do Gloria",
+        "Sao Joao da Lagoa",
+        "Sao Joao da Mata",
+        "Sao Joao da Ponte",
+        "Sao Joao das Missoes",
+        "Sao Joao del Rei",
+        "Sao Joao do Manhuacu",
+        "Sao Joao do Manteninha",
+        "Sao Joao do Oriente",
+        "Sao Joao do Pacui",
+        "Sao Joao do Paraiso",
+        "Sao Joao Evangelista",
+        "Sao Joao Nepomuceno",
+        "Sao Joaquim de Bicas",
+        "Sao Jose da Barra",
+        "Sao Jose da Lapa",
+        "Sao Jose da Safira",
+        "Sao Jose da Varginha",
+        "Sao Jose do Alegre",
+        "Sao Jose do Divino",
+        "Sao Jose do Goiabal",
+        "Sao Jose do Jacuri",
+        "Sao Jose do Mantimento",
+        "Sao Lourenco",
+        "Sao Miguel do Anta",
+        "Sao Pedro da Uniao",
+        "Sao Pedro do Suacui",
+        "Sao Pedro dos Ferros",
+        "Sao Romao",
+        "Sao Roque de Minas",
+        "Sao Sebastiao da Bela Vista",
+        "Sao Sebastiao da Vargem Alegre",
+        "Sao Sebastiao do Anta",
+        "Sao Sebastiao do Maranhao",
+        "Sao Sebastiao do Oeste",
+        "Sao Sebastiao do Paraiso",
+        "Sao Sebastiao do Rio Preto",
+        "Sao Sebastiao do Rio Verde",
+        "Sao Thome das Letras",
+        "Sao Tiago",
+        "Sao Tomas de Aquino",
+        "Sao Vicente de Minas",
+        "Sapucai-Mirim",
+        "Sardoa",
+        "Sarzedo",
+        "Sem-Peixe",
+        "Senador Amaral",
+        "Senador Cortes",
+        "Senador Firmino",
+        "Senador Jose Bento",
+        "Senador Modestino Goncalves",
+        "Senhora de Oliveira",
+        "Senhora do Porto",
+        "Senhora dos Remedios",
+        "Sericita",
+        "Seritinga",
+        "Serra Azul de Minas",
+        "Serra da Saudade",
+        "Serra do Salitre",
+        "Serra dos Aimores",
+        "Serrania",
+        "Serranopolis de Minas",
+        "Serranos",
+        "Serro",
+        "Sete Lagoas",
+        "Setubinha",
+        "Silveirania",
+        "Silvianopolis",
+        "Simao Pereira",
+        "Simonesia",
+        "Sobralia",
+        "Soledade de Minas",
+        "Tabuleiro",
+        "Taiobeiras",
+        "Taparuba",
+        "Tapira",
+        "Tapirai",
+        "Taquaracu de Minas",
+        "Tarumirim",
+        "Teixeiras",
+        "Teofilo Otoni",
+        "Timoteo",
+        "Tiradentes",
+        "Tiros",
+        "Tocantins",
+        "Tocos do Moji",
+        "Toledo",
+        "Tombos",
+        "Tres Coracoes",
+        "Tres Marias",
+        "Tres Pontas",
+        "Tumiritinga",
+        "Tupaciguara",
+        "Turmalina",
+        "Turvolandia",
+        "Uba",
+        "Ubai",
+        "Ubaporanga",
+        "Uberaba",
+        "Uberlandia",
+        "Umburatiba",
+        "Unai",
+        "Uniao de Minas",
+        "Uruana de Minas",
+        "Urucania",
+        "Urucuia",
+        "Vargem Alegre",
+        "Vargem Bonita",
+        "Vargem Grande do Rio Pardo",
+        "Vargem",
+        "Varginha",
+        "Varjao de Minas",
+        "Varzea da Palma",
+        "Varzelandia",
+        "Vazante",
+        "Verdelandia",
+        "Veredinha",
+        "Verissimo",
+        "Vermelho Novo",
+        "Vespasiano",
+        "Vicosa",
+        "Vieiras",
+        "Virgem da Lapa",
+        "Virginia",
+        "Virginopolis",
+        "Virgolandia",
+        "Visconde do Rio Branco",
+        "Volta Grande",
+        "Wenceslau Braz",
+      ];
+      const CIDADE_100_25 = [
+        "Itapecerica",
+        "Pedra do Indaia",
+        "Sao Sebastiao do Oeste",
+      ];
+      const CIDADE_50_50 = [
+        "Tres Marias",
+        "Jequitai",
+        "Pirapora",
+        "Paracatu",
+        "Guarda-Mor",
+        "Patos de Minas",
+        "Monte Carmelo",
+        "Arinos",
+        "Bonfindopolis de Minas",
+        "Brasilandia de Minas",
+        "Buritis",
+        "Cabeceira Grande",
+        "Dom Bosco",
+        "Formoso",
+        "Joao Pinheiro",
+        "Natalandia",
+        "Riachinho",
+        "Santa Fe de Minas",
+        "Unai",
+        "Uruana de Minas",
+        "Urucuia",
+      ];
+      const DEMAIS = "";
+
+      const select = document.getElementById("municipio");
+      municipios.forEach((mun) => {
+        const option = document.createElement("option");
+        option.value = mun.toLowerCase().replace(/\s+/g, "_");
+        option.textContent = mun;
+        select.appendChild(option);
+      });
+
+      const selects = [
+        "dres1",
+        "dres2",
+        "dres3",
+        "dcom1",
+        "dcom2",
+        "dcom3",
+        "dind1",
+        "dind2",
+        "dind3",
+        "disj_geral",
+      ];
+      for (const id of selects) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        // empty option
+        el.innerHTML = '<option value=""></option>';
+        DISJUNTORES.slice(1).forEach((d) => {
+          const opt = document.createElement("option");
+          opt.value = d[0];
+          opt.text = d[0];
+          el.appendChild(opt);
+        });
+      }
+
+      // fator diversidade tabela (n, a, b)
+      const fator_diversidade = [
+        [0, 0.0, 0.0],
+        [1, 0.821, 0.85],
+        [2, 0.72, 0.79],
+        [3, 0.615, 0.72],
+        [4, 0.505, 0.67],
+        [5, 0.4, 0.62],
+        [6, 0.335, 0.57],
+        [7, 0.285, 0.53],
+        [8, 0.25, 0.5],
+        [9, 0.22, 0.48],
+        [10, 0.19, 0.46],
+        [11, 0.16, 0.44],
+        [12, 0.141, 0.42],
+        [13, 0.125, 0.4],
+        [14, 0.11, 0.385],
+        [15, 0.1, 0.37],
+        [16, 0.0977, 0.365],
+        [17, 0.0955, 0.36],
+        [18, 0.0948, 0.355],
+        [19, 0.093, 0.35],
+        [20, 0.0915, 0.348],
+        [21, 0.09, 0.346],
+        [22, 0.089, 0.344],
+        [23, 0.088, 0.342],
+        [24, 0.087, 0.34],
+        [25, 0.0865, 0.338],
+        [26, 0.086, 0.336],
+        [27, 0.0855, 0.334],
+        [28, 0.085, 0.332],
+        [29, 0.084, 0.33],
+        [30, 0.083, 0.328],
+        [31, 0.0825, 0.326],
+        [32, 0.082, 0.324],
+        [33, 0.0815, 0.322],
+        [34, 0.081, 0.32],
+        [35, 0.0805, 0.318],
+        [36, 0.08, 0.316],
+        [37, 0.0795, 0.314],
+        [38, 0.079, 0.312],
+        [39, 0.078, 0.31],
+        [40, 0.078, 0.308],
+      ];
+      // mapping quick access
+      const fatorA_by_n = {};
+      const fatorB_by_n = {};
+      for (const [n, a, b] of fator_diversidade) {
+        fatorA_by_n[n] = a;
+        fatorB_by_n[n] = b;
+      }
+
+      // perfis horários (mesma ordem do Python)
+      const Hora = [
+        "01:00",
+        "02:00",
+        "03:00",
+        "04:00",
+        "05:00",
+        "06:00",
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+        "20:00",
+        "21:00",
+        "22:00",
+        "23:00",
+        "00:00",
+      ];
+      const ip = [
+        1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+      ];
+      const consumidorRes = [
+        0.39, 0.362, 0.363, 0.346, 0.351, 0.406, 0.469, 0.497, 0.553, 0.573,
+        0.566, 0.631, 0.589, 0.604, 0.617, 0.611, 0.661, 0.717, 1.0, 0.902,
+        0.862, 0.791, 0.703, 0.48,
+      ];
+      const consumidorComerc = [
+        0.35, 0.26, 0.28, 0.24, 0.25, 0.25, 0.33, 0.49, 0.71, 0.81, 0.8, 0.77,
+        0.73, 0.85, 0.96, 1.0, 0.95, 0.87, 0.82, 0.66, 0.64, 0.53, 0.45, 0.38,
+      ];
+      const consumidorIndustrial = [
+        0.24, 0.24, 0.24, 0.28, 0.32, 0.39, 0.42, 0.79, 0.93, 0.95, 0.96, 0.74,
+        0.73, 0.95, 1.0, 0.96, 0.9, 0.71, 0.55, 0.47, 0.38, 0.36, 0.29, 0.28,
+      ];
+
+      // util
+      function norm(s) {
+        return (s || "").toString().trim().toLowerCase();
+      }
+      function findDisjByName(name) {
+        if (!name) return null;
+        const n = DISJUNTORES.find((d) => d[0] === name);
+        return n || null;
+      }
+
+      /* get_fator_diversidadeR (residencial) */
+      function get_fator_diversidadeR(indice_disjuntor, quantidade) {
+        let idx = Math.max(1, Math.min(parseInt(indice_disjuntor) || 0, 40));
+        if (1 <= idx && idx <= 13) {
+          const max_chave = Math.max(
+            ...Object.keys(fatorA_by_n).map((x) => +x),
+          );
+          const chave = Math.min(quantidade, max_chave);
+          return parseFloat(fatorA_by_n[chave] ?? fatorA_by_n[max_chave]);
+        } else {
+          const max_chave = Math.max(
+            ...Object.keys(fatorB_by_n).map((x) => +x),
+          );
+          let chave =
+            quantidade === 1
+              ? quantidade
+              : Math.max(1, Math.floor(quantidade / 2));
+          chave = Math.min(chave, max_chave);
+          return parseFloat(fatorB_by_n[chave] ?? fatorB_by_n[max_chave]);
+        }
+      }
+
+      /* get_fator_diversidade (com/ind) */
+      function get_fator_diversidade(indice_disjuntor, quantidade) {
+        let idx = Math.max(1, Math.min(parseInt(indice_disjuntor) || 0, 40));
+        if (1 <= idx && idx <= 9) {
+          const max_chave = Math.max(
+            ...Object.keys(fatorA_by_n).map((x) => +x),
+          );
+          const chave = Math.min(quantidade, max_chave);
+          return parseFloat(fatorA_by_n[chave] ?? fatorA_by_n[max_chave]);
+        } else {
+          const max_chave = Math.max(
+            ...Object.keys(fatorB_by_n).map((x) => +x),
+          );
+          let chave =
+            quantidade === 1
+              ? quantidade
+              : Math.max(1, Math.floor(quantidade / 2));
+          chave = Math.min(chave, max_chave);
+          return parseFloat(fatorB_by_n[chave] ?? fatorB_by_n[max_chave]);
+        }
+      }
+
+      /* monta seleção rápida para texto_disjuntores */
+      function formatTextoDisjuntores(pares) {
+        let texto = "";
+        const tipos = [
+          "Disjuntor Residencial",
+          "Disjuntor Comercial",
+          "Disjuntor Industrial",
+        ];
+        const [qtdg, disjg] = pares[9] || [0, ""];
+        if (qtdg && disjg) texto += `Disjuntor Geral: ${qtdg} x ${disjg}\n`;
+        for (let i = 0; i < 9; i++) {
+          const [qtd, disj] = pares[i] || [0, ""];
+          if (!qtd || !disj) continue;
+          let tipo = i < 3 ? tipos[0] : i < 6 ? tipos[1] : tipos[2];
+          texto += `${tipo}: ${qtd} x ${disj}\n`;
+        }
+        return texto;
+      }
+
+      /* ========= Chart.js inicialização ========== */
+      let chart = null;
+      function plotCurve(labels, dataArr, limite, dataArr2) {
+        const ctx = document.getElementById("chart").getContext("2d");
+        const pottr = parseFloat(document.getElementById("pottr").value);
+        if (chart) chart.destroy();
+
+        // Gradiente de preenchimento
+        const grad = ctx.createLinearGradient(0, 0, 0, 400);
+        grad.addColorStop(0, "rgba(0,128,0,0.35)");
+        grad.addColorStop(1, "rgba(0,128,0,0.01)");
+
+        // Pico
+        const pico = Math.max(...dataArr);
+        const picIdx = dataArr.indexOf(pico);
+
+        // Cores ponto a ponto: vermelho no pico
+        const pointColors = dataArr.map((v, i) =>
+          i === picIdx ? "#e53e3e" : "#008000",
+        );
+        const pointRadii = dataArr.map((v, i) => (i === picIdx ? 7 : 3));
+
+        // Porcentagem de carregamento por hora
+        const pctData = dataArr.map((v) => +((v / limite) * 150).toFixed(1));
+
+        chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Demanda simulada (kVA)",
+                data: dataArr,
+                borderColor: "#008000",
+                backgroundColor: grad,
+                fill: true,
+                tension: 0.4,
+                pointRadius: pointRadii,
+                pointBackgroundColor: pointColors,
+                pointBorderColor: pointColors,
+                pointHoverRadius: 8,
+                borderWidth: 2.5,
+                yAxisID: "y",
+                order: 1,
+              },
+              {
+                label: "Demanda Atual (kVA)",
+                data: dataArr2,
+                borderColor: "#9f1ab9",
+                backgroundColor: grad,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                borderWidth: 1.5,
+                borderDash: [4, 3],
+                yAxisID: "y",
+                order: 2,
+              },
+              {
+                label: "Carregamento (%)",
+                data: pctData,
+                borderColor: "rgba(59,130,246,0.7)",
+                backgroundColor: "transparent",
+                fill: false,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                borderWidth: 1.5,
+                borderDash: [4, 3],
+                yAxisID: "y2",
+                order: 3,
+              },
+              {
+                label: `Limite trafo (${limite.toFixed(0)} kVA)`,
+                data: Array(labels.length).fill(limite),
+                borderColor: "#e53e3e",
+                backgroundColor: "rgb(255,255,255)",
+                fill: true,
+                borderDash: [8, 4],
+                pointRadius: 0,
+                borderWidth: 2,
+                yAxisID: "y",
+                order: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            interaction: { mode: "index", intersect: false },
+            devicePixelRatio: 2,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  font: { size: 11 },
+                  usePointStyle: true,
+                  pointStyleWidth: 14,
+                  padding: 10,
+                },
+              },
+              tooltip: {
+                backgroundColor: "rgba(20,30,20,0.88)",
+                titleColor: "#e2f0e2",
+                bodyColor: "#d1e8d1",
+                padding: 10,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function (ctx) {
+                    if (ctx.datasetIndex === 0)
+                      return ` Demanda simulada: ${ctx.parsed.y.toFixed(3)} kVA`;
+                    if (ctx.datasetIndex === 1)
+                      return ` Demanda atual: ${ctx.parsed.y.toFixed(2)} kVA`;
+                    if (ctx.datasetIndex === 2)
+                      return ` Carregamento: ${ctx.parsed.y.toFixed(1)}%`;
+                    if (ctx.datasetIndex === 3)
+                      return ` Limite: ${ctx.parsed.y.toFixed(0)} kVA`;
+                  },
+                  afterBody: function (items) {
+                    const v = items[0]?.parsed.y;
+                    const pct = ((v / limite) * 100).toFixed(1);
+                    const status =
+                      v > limite
+                        ? "⚠ EXCEDIDO"
+                        : v > limite * 0.85
+                          ? "⚡ Atenção"
+                          : "✓ OK";
+                    return [``, `  ${status} — ${pct}% do limite`];
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: "Horário",
+                  font: { size: 14, weight: "600" },
+                  color: "#444",
+                },
+                grid: {
+                  color: "rgba(0,0,0,0.05)",
+                  lineWidth: 1,
+                  borderDash: [4, 4],
+                  drawTicks: false,
+                },
+                ticks: { font: { size: 14 }, maxRotation: 45 },
+              },
+              y: {
+                display: true,
+                position: "left",
+                title: {
+                  display: true,
+                  text: "Demanda (kVA)",
+                  font: { size: 14, weight: "600" },
+                  color: "#000000",
+                },
+                grid: { color: "rgba(0,0,0,0.06)" },
+                ticks: {
+                  font: { size: 14 },
+                  color: "#000000",
+                  callback: (v) => v.toFixed(0) + " kVA",
+                },
+              },
+              y2: {
+                display: true,
+                position: "right",
+                min: 0,
+                max: Math.max(...pctData, 150),
+                title: {
+                  display: true,
+                  text: "Carregamento (%)",
+                  font: { size: 14, weight: "600" },
+                  color: "#000000",
+                },
+                grid: { drawOnChartArea: false, drawTicks: true },
+                ticks: {
+                  font: { size: 14 },
+                  color: "#000000",
+                  callback: (v) => v + "%",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      /* =====================================================================
+       UTILITÁRIOS GEOESPACIAIS
+       ===================================================================== */
+
+      /**
+       * parseDMSCoordinate — converte GMS ou decimal para graus decimais.
+       * Aceita: "-19.924501", "19°55'28.2\"S", "19 55 28.2 S"
+       */
+      function parseDMSCoordinate(str) {
+        if (!str || !str.trim()) throw new Error("Coordenada vazia.");
+        str = str.trim();
+        // Decimal puro
+        if (/^-?\d+(\.\d+)?$/.test(str)) {
+          return parseFloat(str);
+        }
+        // GMS com símbolos ou espaços
+        const regex = /(\d+)[°\s]+(\d+)['\s]+(\d+\.?\d*)["\s]*([NSEWnsew])/i;
+        const m = str.match(regex);
+        if (!m)
+          throw new Error(
+            `Formato inválido: "${str}". Use -19.924501 ou 19°55'28.2"S`,
+          );
+        const [, deg, min, sec, dir] = m;
+        let dec =
+          parseFloat(deg) + parseFloat(min) / 60 + parseFloat(sec) / 3600;
+        if ("SWsw".includes(dir)) dec = -dec;
+        return dec;
+      }
+
+      /** Valida faixa de lat/lon */
+      function validarLatLon(lat, lon) {
+        if (isNaN(lat) || lat < -90 || lat > 90)
+          throw new Error(
+            `Latitude inválida: ${lat}. Deve estar entre -90 e +90.`,
+          );
+        if (isNaN(lon) || lon < -180 || lon > 180)
+          throw new Error(
+            `Longitude inválida: ${lon}. Deve estar entre -180 e +180.`,
+          );
+      }
+
+      /**
+       * latLonToUTM — converte lat/lon WGS84 → UTM
+       * Retorna { zone, hemisphere, easting, northing, label }
+       */
+      function latLonToUTM(lat, lon) {
+        const a = 6378137.0;
+        const f = 1 / 298.257223563;
+        const b = a * (1 - f);
+        const e2 = 1 - (b * b) / (a * a);
+        const ep2 = e2 / (1 - e2);
+        const k0 = 0.9996;
+
+        const zone = Math.floor((lon + 180) / 6) + 1;
+        const lon0 = (((zone - 1) * 6 - 180 + 3) * Math.PI) / 180;
+
+        const phi = (lat * Math.PI) / 180;
+        const lam = (lon * Math.PI) / 180;
+
+        const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+        const T = Math.tan(phi) ** 2;
+        const C = ep2 * Math.cos(phi) ** 2;
+        const A = Math.cos(phi) * (lam - lon0);
+
+        const M =
+          a *
+          ((1 - e2 / 4 - (3 * e2 ** 2) / 64 - (5 * e2 ** 3) / 256) * phi -
+            ((3 * e2) / 8 + (3 * e2 ** 2) / 32 + (45 * e2 ** 3) / 1024) *
+              Math.sin(2 * phi) +
+            ((15 * e2 ** 2) / 256 + (45 * e2 ** 3) / 1024) * Math.sin(4 * phi) -
+            ((35 * e2 ** 3) / 3072) * Math.sin(6 * phi));
+
+        let easting =
+          k0 *
+            N *
+            (A +
+              ((1 - T + C) * A ** 3) / 6 +
+              ((5 - 18 * T + T ** 2 + 72 * C - 58 * ep2) * A ** 5) / 120) +
+          500000;
+
+        let northing =
+          k0 *
+          (M +
+            N *
+              Math.tan(phi) *
+              (A ** 2 / 2 +
+                ((5 - T + 9 * C + 4 * C ** 2) * A ** 4) / 24 +
+                ((61 - 58 * T + T ** 2 + 600 * C - 330 * ep2) * A ** 6) / 720));
+        if (lat < 0) northing += 10000000;
+
+        const hemisphere = lat >= 0 ? "N" : "S";
+        easting = Math.round(easting);
+        northing = Math.round(northing);
+
+        return {
+          zone,
+          hemisphere,
+          easting,
+          northing,
+          label: `${zone}${hemisphere} ${easting}:${northing}`,
+        };
+      }
+
+      /**
+       * haversineDistance — distância entre dois pontos em metros
+       */
+      function haversineDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const phi1 = (lat1 * Math.PI) / 180;
+        const phi2 = (lat2 * Math.PI) / 180;
+        const dp = ((lat2 - lat1) * Math.PI) / 180;
+        const dl = ((lon2 - lon1) * Math.PI) / 180;
+        const a =
+          Math.sin(dp / 2) ** 2 +
+          Math.cos(phi1) * Math.cos(phi2) * Math.sin(dl / 2) ** 2;
+        return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+      }
+
+      /**
+       * getFasesDisjuntor — extrai número de fases do nome do disjuntor.
+       * MONO → 1, BI → 2, TRI → 3
+       */
+      function getFasesDisjuntor(...nomes) {
+        // Recebe vários nomes e retorna o maior número de fases encontrado
+        let maxFases = 0;
+
+        for (const nome of nomes) {
+          if (!nome) continue;
+          const n = nome.toUpperCase();
+          if (n.includes("TRI")) maxFases = Math.max(maxFases, 3);
+          else if (n.includes("BI")) maxFases = Math.max(maxFases, 2);
+          else if (n.includes("MONO")) maxFases = Math.max(maxFases, 1);
+        }
+
+        return maxFases || null;
+      }
+
+      /**
+       * getTransformerPhases — extrai fases efetivas a partir do campo Transformador.
+       * Formato esperado: XXX-N/3-XXX  (ex: "150-1/3-220", "75-3/3-220")
+       * Regra: N=1 → tratado como 2 (bifásico conforme norma); N=3 → trifásico.
+       */
+      function getTransformerPhases(trafoStr) {
+        // Captura o número entre -#-
+        let m = trafoStr.match(/-(\d)-/);
+        if (m) {
+          let val = parseInt(m[1]);
+          // Se for 1 retorna 2, caso contrário retorna 3
+          return val === 1 ? 2 : 3;
+        }
+        return 0;
+      }
+
+      /**
+       * determineConsumerType — identifica tipo de UC a partir dos disjuntores informados.
+       * Critério: maior valor de (corrente_disjuntor × quantidade) entre res/com/ind.
+       * Retorna: "residencial" | "comercial" | "industrial"
+       */
+      function determineConsumerType(pares) {
+        // pares índices: 0-2=residencial, 3-5=comercial, 6-8=industrial, 9=geral (ignorado)
+        const tiposPorIdx = [
+          "residencial",
+          "residencial",
+          "residencial",
+          "comercial",
+          "comercial",
+          "comercial",
+          "industrial",
+          "industrial",
+          "industrial",
+        ];
+        let maxVal = -1;
+        let tipoMax = "";
+
+        for (let i = 0; i < 9; i++) {
+          const [qtd, disjNome] = pares[i] || [0, ""];
+          if (!qtd || !disjNome) continue;
+          const mA = (disjNome || "").match(/(\d+)\s*A/i);
+          const corrente = mA ? parseInt(mA[1]) : 0;
+          const val = corrente * (Math.abs(parseInt(qtd)) || 0);
+          if (val > maxVal) {
+            maxVal = val;
+            tipoMax = tiposPorIdx[i];
+          }
+        }
+        return tipoMax || "residencial"; // padrão residencial
+      }
+
+      /* =====================================================================
+       ATUALIZAÇÃO AUTOMÁTICA DE UTM E DISTÂNCIA
+       ===================================================================== */
+
+      function atualizarUTM() {
+        const fmt = document.getElementById("coord_format").value;
+        const latRaw = document.getElementById("lat_input").value.trim();
+        const lonRaw = document.getElementById("lon_input").value.trim();
+        const utmOut = document.getElementById("utm_output");
+
+        if (!latRaw || !lonRaw) {
+          utmOut.value = "";
+          return;
+        }
+
+        try {
+          const lat = parseDMSCoordinate(latRaw);
+          const lon = parseDMSCoordinate(lonRaw);
+          validarLatLon(lat, lon);
+          utmOut.value = latLonToUTM(lat, lon).label;
+          utmOut.style.color = "#1b5e20";
+        } catch (e) {
+          utmOut.value = "⚠ " + e.message;
+          utmOut.style.color = "#c62828";
+        }
+      }
+
+      function atualizarDistancia() {
+        const latRaw = document.getElementById("lat_input").value.trim();
+        const lonRaw = document.getElementById("lon_input").value.trim();
+        const latRedeRaw = document.getElementById("lat_rede").value.trim();
+        const lonRedeRaw = document.getElementById("lon_rede").value.trim();
+        const distOut = document.getElementById("distancia_rede");
+        const utmRedeOut = document.getElementById("utm_rede");
+
+        // UTM da rede: atualizar independentemente da distância
+        if (latRedeRaw && lonRedeRaw && utmRedeOut) {
+          try {
+            const lat2 = parseDMSCoordinate(latRedeRaw);
+            const lon2 = parseDMSCoordinate(lonRedeRaw);
+            validarLatLon(lat2, lon2);
+            utmRedeOut.value = latLonToUTM(lat2, lon2).label;
+            utmRedeOut.style.color = "#1b5e20";
+          } catch (e) {
+            utmRedeOut.value = "⚠ " + e.message;
+            utmRedeOut.style.color = "#c62828";
+          }
+        } else if (utmRedeOut) {
+          utmRedeOut.value = "";
+        }
+
+        // Distância: precisa dos dois pares completos
+        if (!latRaw || !lonRaw || !latRedeRaw || !lonRedeRaw) {
+          distOut.value = "—";
+          return;
+        }
+        try {
+          const lat1 = parseDMSCoordinate(latRaw);
+          const lon1 = parseDMSCoordinate(lonRaw);
+          const lat2 = parseDMSCoordinate(latRedeRaw);
+          const lon2 = parseDMSCoordinate(lonRedeRaw);
+          validarLatLon(lat1, lon1);
+          validarLatLon(lat2, lon2);
+          const dist = haversineDistance(lat1, lon1, lat2, lon2);
+          distOut.value = dist.toLocaleString("pt-BR") + " m";
+          distOut.style.color = "#1b5e20";
+        } catch (e) {
+          distOut.value = "⚠ " + e.message;
+          distOut.style.color = "#c62828";
+        }
+      }
+
+      // Hint de formato dinâmico
+      function atualizarHints() {
+        const fmt = document.getElementById("coord_format").value;
+        const isGMS = fmt === "gms";
+        document.getElementById("lat_hint").textContent = isGMS
+          ? "-19.924501"
+          : "-19.924501";
+        document.getElementById("lon_hint").textContent = isGMS
+          ? "-43.935238"
+          : "-43.935238";
+        const latIn = document.getElementById("lat_input");
+        const lonIn = document.getElementById("lon_input");
+        latIn.placeholder = isGMS ? "-19.924501" : "-19.924501";
+        lonIn.placeholder = isGMS ? "-43.935238" : "-43.935238";
+      }
+
+      document.getElementById("coord_format").addEventListener("change", () => {
+        atualizarHints();
+        atualizarUTM();
+        atualizarDistancia();
+      });
+      document.getElementById("lat_input").addEventListener("input", () => {
+        atualizarUTM();
+        atualizarDistancia();
+      });
+      document.getElementById("lon_input").addEventListener("input", () => {
+        atualizarUTM();
+        atualizarDistancia();
+      });
+      document
+        .getElementById("lat_rede")
+        .addEventListener("input", atualizarDistancia);
+      document
+        .getElementById("lon_rede")
+        .addEventListener("input", atualizarDistancia);
+
+      // Toggle extensão de rede
+      document
+        .getElementById("chk_extensao")
+        .addEventListener("change", function () {
+          document.getElementById("extensao_fields").style.display = this
+            .checked
+            ? "block"
+            : "none";
+          atualizarDistancia();
+        });
+
+      /* ======================= Main calcular ======================= */
+      document.getElementById("btnCalc").addEventListener("click", calcular);
+      document.getElementById("trafo").addEventListener("input", function () {
+        const valor = this.value;
+        const partes = valor.split("-");
+        if (partes.length === 3) {
+          const potencia = partes[2]; // XXX é a terceira parte
+          if (!isNaN(potencia)) {
+            document.getElementById("pottr").value = potencia;
+          }
+        }
+      });
+
+      // Auto-calcular ao alterar qualquer campo, se botão habilitado
+      document.querySelector(".wrap").addEventListener("change", function (e) {
+        const btn = document.getElementById("btnCalc");
+        if (!btn.disabled) calcular();
+      });
+      document.querySelector(".wrap").addEventListener("input", function (e) {
+        const btn = document.getElementById("btnCalc");
+        if (!btn.disabled) calcular();
+      });
+
+      document.getElementById("btnReset").addEventListener("click", () => {
+        document
+          .querySelectorAll('input[type="number"]')
+          .forEach((i) => (i.value = ""));
+        document
+          .querySelectorAll('input[type="text"]')
+          .forEach((i) => (i.value = ""));
+        document
+          .querySelectorAll("select")
+          .forEach((s) => (s.selectedIndex = 0));
+        document.getElementById("msg").innerText = "";
+        // Limpar campos novos
+        document.getElementById("utm_output").value = "";
+        const utmRedeEl = document.getElementById("utm_rede");
+        if (utmRedeEl) utmRedeEl.value = "";
+        document.getElementById("distancia_rede").value = "—";
+        document.getElementById("chk_extensao").checked = false;
+        document.getElementById("extensao_fields").style.display = "none";
+        const resumo = document.getElementById("resumo_texto");
+        if (resumo) resumo.innerText = "Resultado aparecerá aqui.";
+        if (chart) chart.destroy();
+        atualizarBtnCalc();
+      });
+
+      // --- 1) Função para obter fator de diversidade (retorna [factor, key])
+      function get_fator_diversidade(idx, total_customers, consumer_class) {
+        // construir dicionários a partir de fator_diversidade (assumindo que existe array fator_diversidade)
+        const factorA_by_n = {};
+        const factorB_by_n = {};
+        for (const [n, a, b] of fator_diversidade) {
+          factorA_by_n[n] = a;
+          factorB_by_n[n] = b;
+        }
+
+        const klass = (consumer_class || "").toString().trim().toLowerCase();
+        let useA;
+        if (
+          klass === "residencial" ||
+          klass === "residential" ||
+          klass === "rural"
+        ) {
+          useA = idx >= 1 && idx <= 13;
+        } else {
+          useA = idx >= 1 && idx <= 9;
+        }
+
+        if (useA) {
+          const maxKey = Math.max(...Object.keys(factorA_by_n).map(Number));
+          const key = Math.min(
+            Math.max(1, parseInt(total_customers) || 1),
+            maxKey,
+          );
+          const factor =
+            factorA_by_n[key] !== undefined
+              ? factorA_by_n[key]
+              : factorA_by_n[maxKey];
+          return [parseFloat(factor), key];
+        } else {
+          const maxKey = Math.max(...Object.keys(factorB_by_n).map(Number));
+          const n = Math.max(1, parseInt(total_customers) || 1);
+          let key = n === 1 ? 1 : Math.max(1, Math.floor(n / 2));
+          key = Math.min(key, maxKey);
+          const factor =
+            factorB_by_n[key] !== undefined
+              ? factorB_by_n[key]
+              : factorB_by_n[maxKey];
+          return [parseFloat(factor), key];
+        }
+      }
+
+      // --- 2) Corrigir leitura do limite municipal manual (não atribuir addEventListener ao lim_manual)
+      document
+        .getElementById("municipio")
+        .addEventListener("change", function () {
+          // apenas atualiza UI/estado; não sobrescreve lim_manual global
+          // se quiser recalcular automaticamente, chame calcular() aqui
+          // calcular();
+        });
+
+      // obter valor manual (se existir) no momento do cálculo
+      const lim_manual_input = document.getElementById("lim_manual"); // supondo que exista um input com id lim_manual
+      const lim_manual_val = lim_manual_input
+        ? parseFloat(lim_manual_input.value)
+        : NaN;
+
+      const lookup = {};
+      DISJUNTORES.forEach((d) => {
+        lookup[d[0]] = { idx: d[1], kva: d[2] };
+      });
+      function getEntry(name) {
+        if (!name) return { idx: 0, kva: 0.0 };
+        return lookup[name] || { idx: 0, kva: 0.0 };
+      }
+
+      function computeItemDemand(
+        amount,
+        breakerName,
+        consumerClass,
+        total_customers,
+      ) {
+        const entry = getEntry(breakerName);
+        const idx = entry.idx || 0;
+        const base_kva = entry.kva || 0.0;
+        const amountInt = parseInt(amount) || 0;
+
+        // obter fator e chave
+        const [factor, div_key] = get_fator_diversidade(
+          idx,
+          total_customers,
+          consumerClass,
+        );
+
+        // multiplicador por classe (dummy_factor)
+        let dummy_factor = 0.9;
+        const klass = (consumerClass || "").toString().trim().toLowerCase();
+        if (
+          klass === "residencial" ||
+          klass === "residential" ||
+          klass === "rural"
+        ) {
+          dummy_factor = 0.6;
+        } else if (
+          klass === "comercial" ||
+          klass === "comercial".toLowerCase()
+        ) {
+          dummy_factor = 0.8;
+        } else {
+          dummy_factor = 0.9;
+        }
+
+        const demand_kva = factor * base_kva * dummy_factor * amountInt;
+
+        return {
+          amount: amountInt,
+          idx,
+          base_kva,
+          factor,
+          div_key,
+          demand_kva,
+        };
+      }
+
+      function calcular() {
+        // ler inputs (seguindo nomes do Python)
+        const pottr = parseFloat(document.getElementById("pottr").value) || 0;
+        const tipo_TRF =
+          parseInt(document.getElementById("tipo_TRF").value) || 0;
+        const trafo = (document.getElementById("trafo").value || "").trim();
+        const zona = document.getElementById("zona").value;
+
+        function verificarLimite(municipio, zona) {
+          municipio = municipio.trim();
+
+          if (CIDADE_100_25.includes(municipio) && zona === "rural") {
+            return { trifasico: 100, monofasico: 25 };
+          }
+
+          if (CIDADE_50_50.includes(municipio) && zona === "rural") {
+            return { trifasico: 50, monofasico: 50 };
+          }
+
+          // demais casos (urbano ou rural)
+          return { trifasico: 100, monofasico: 50 };
+        }
+
+        // exemplo de uso
+        const lim_manual = document
+          .getElementById("municipio")
+          .addEventListener("change", function () {
+            const municipio = this.value;
+            const zona = document.getElementById("zona").value; // supondo que exista um select para zona
+            const limites = verificarLimite(municipio, zona);
+          });
+
+        // quantidades e nomes
+        const res1 = parseInt(document.getElementById("res1").value) || 0;
+        const res2 = parseInt(document.getElementById("res2").value) || 0;
+        const res3 = parseInt(document.getElementById("res3").value) || 0;
+
+        const com1 = parseInt(document.getElementById("com1").value) || 0;
+        const com2 = parseInt(document.getElementById("com2").value) || 0;
+        const com3 = parseInt(document.getElementById("com3").value) || 0;
+
+        const ind1 = parseInt(document.getElementById("ind1").value) || 0;
+        const ind2 = parseInt(document.getElementById("ind2").value) || 0;
+        const ind3 = parseInt(document.getElementById("ind3").value) || 0;
+
+        const dres1 = document.getElementById("dres1").value || "";
+        const dres2 = document.getElementById("dres2").value || "";
+        const dres3 = document.getElementById("dres3").value || "";
+
+        const dcom1 = document.getElementById("dcom1").value || "";
+        const dcom2 = document.getElementById("dcom2").value || "";
+        const dcom3 = document.getElementById("dcom3").value || "";
+
+        const dind1 = document.getElementById("dind1").value || "";
+        const dind2 = document.getElementById("dind2").value || "";
+        const dind3 = document.getElementById("dind3").value || "";
+
+        const qtd_geral =
+          parseInt(document.getElementById("qtd_geral").value) || 0;
+        const disj_geral = document.getElementById("disj_geral").value || "";
+
+        const uc_residencial =
+          parseInt(document.getElementById("uc_residencial").value) || 0;
+        const uc_comercial =
+          parseInt(document.getElementById("uc_comercial").value) || 0;
+        const uc_industrial =
+          parseInt(document.getElementById("uc_industrial").value) || 0;
+        const uc_outros =
+          parseInt(document.getElementById("uc_outros").value) || 0;
+        const uc_rural =
+          parseInt(document.getElementById("uc_rural").value) || 0;
+
+        let demanda_residencial =
+          parseFloat(document.getElementById("demanda_residencial").value) || 0;
+        let demanda_comercial =
+          parseFloat(document.getElementById("demanda_comercial").value) || 0;
+        let demanda_industrial =
+          parseFloat(document.getElementById("demanda_industrial").value) || 0;
+        let demanda_rural =
+          parseFloat(document.getElementById("demanda_rural").value) || 0;
+        let demanda_outros =
+          parseFloat(document.getElementById("demanda_outros").value) || 0;
+        let demanda_iluminação =
+          parseFloat(document.getElementById("demanda_iluminação").value) || 0;
+
+        const total_customers =
+          res1 +
+          res2 +
+          res3 +
+          uc_residencial +
+          uc_rural +
+          com1 +
+          com2 +
+          com3 +
+          uc_comercial +
+          ind1 +
+          ind2 +
+          ind3 +
+          uc_industrial +
+          uc_outros;
+
+        function safeCompute(a, b, tipo, total) {
+          return a && b ? computeItemDemand(a, b, tipo, total) : null;
+        }
+
+        const r1 = safeCompute(res1, dres1, "residencial", total_customers);
+        const r2 = safeCompute(res2, dres2, "residencial", total_customers);
+        const r3 = safeCompute(res3, dres3, "residencial", total_customers);
+
+        const c1 = safeCompute(com1, dcom1, "comercial", total_customers);
+        const c2 = safeCompute(com2, dcom2, "comercial", total_customers);
+        const c3 = safeCompute(com3, dcom3, "comercial", total_customers);
+
+        const i1 = safeCompute(ind1, dind1, "industrial", total_customers);
+        const i2 = safeCompute(ind2, dind2, "industrial", total_customers);
+        const i3 = safeCompute(ind3, dind3, "industrial", total_customers);
+
+        const dem_simulada_residencial =
+          (r1?.demand_kva ?? 0) + (r2?.demand_kva ?? 0) + (r3?.demand_kva ?? 0);
+
+        const dem_simulada_comercial =
+          (c1?.demand_kva ?? 0) + (c2?.demand_kva ?? 0) + (c3?.demand_kva ?? 0);
+
+        const dem_simulada_industrial =
+          (i1?.demand_kva ?? 0) + (i2?.demand_kva ?? 0) + (i3?.demand_kva ?? 0);
+
+        const curvaResTotal = consumidorRes.map(
+          (v) =>
+            v *
+            (dem_simulada_residencial + demanda_residencial + demanda_rural),
+        );
+        const curvaComTotal = consumidorComerc.map(
+          (v) =>
+            v *
+            (dem_simulada_comercial +
+              demanda_comercial / 0.82 +
+              demanda_outros / 0.82),
+        );
+        const curvaIndTotal = consumidorIndustrial.map(
+          (v) => v * (dem_simulada_industrial + demanda_industrial / 0.55),
+        );
+        const curvaResAtual = consumidorRes.map(
+          (v) => v * (demanda_residencial + demanda_rural),
+        );
+        const curvaComAtual = consumidorComerc.map(
+          (v) => v * (demanda_comercial / 0.82 + demanda_outros / 0.82),
+        );
+        const curvaIndAtual = consumidorIndustrial.map(
+          (v) => v * (demanda_industrial / 0.55),
+        );
+        const curva_ip = ip.map((v) => v * demanda_iluminação);
+
+        const curvaTOT = curvaResTotal.map(
+          (v, i) => v + curvaComTotal[i] + curvaIndTotal[i] + curva_ip[i],
+        );
+        const curvaAtual = curvaResAtual.map(
+          (v, i) => v + curvaComAtual[i] + curvaIndAtual[i] + curva_ip[i],
+        );
+
+        const diff = curvaTOT.map((v, i) => v - curvaAtual[i]);
+
+        const dem_simulada = Math.max(...diff);
+
+        const demTOT =
+          dem_simulada_residencial +
+          dem_simulada_comercial +
+          dem_simulada_industrial +
+          (demanda_industrial || 0) +
+          (demanda_comercial || 0) +
+          (demanda_residencial || 0) +
+          (demanda_outros || 0) +
+          (demanda_rural || 0) +
+          (demanda_iluminação || 0);
+
+        const curva_simulada = [];
+        for (let i = 0; i < Hora.length; i++) {
+          const v =
+            curvaResTotal[i] +
+            curvaComTotal[i] +
+            curvaIndTotal[i] +
+            curva_ip[i];
+          curva_simulada.push(v);
+        }
+
+        const curva_atual = [];
+        for (let i = 0; i < Hora.length; i++) {
+          const v =
+            curvaResAtual[i] +
+            curvaComAtual[i] +
+            curvaIndAtual[i] +
+            curva_ip[i];
+          curva_atual.push(v);
+        }
+
+        // limite transformador
+        let mult = tipo_TRF === 0 ? 1.5 : 0.9;
+        const label_pct = tipo_TRF === 0 ? "150%" : "90%";
+        const limite = pottr * mult;
+
+        // pico
+        const pico_total = Math.max(...curva_simulada);
+        const hora_pico = Hora[curva_simulada.indexOf(pico_total)];
+
+        // verificar limite municipal (usando lim_manual se presente)
+        let lim_Municipio;
+        if (!isNaN(lim_manual) && lim_manual > 0) {
+          lim_Municipio = lim_manual;
+        } else {
+          // simples default (o usuário optou por inserir lista depois)
+          lim_Municipio = zona === "urbana" ? 100 : 50;
+        }
+
+        // ================================================================
+        // CONSTRUÇÃO DOS PARES (antecipada para uso em determineConsumerType)
+        // ================================================================
+        const pares = [
+          [res1, dres1],
+          [res2, dres2],
+          [res3, dres3],
+          [com1, dcom1],
+          [com2, dcom2],
+          [com3, dcom3],
+          [ind1, dind1],
+          [ind2, dind2],
+          [ind3, dind3],
+          [qtd_geral, disj_geral],
+        ];
+
+        // kva selecionados (para checar municipal)
+        const kva_selecionados = [];
+        for (const [qtd, disj] of pares) {
+          if (!disj || disj === "") continue;
+          const entry = getEntry(disj);
+          if (!entry || entry.idx === 0) continue;
+          const idx = entry.idx;
+          const kva_base = entry.kva;
+          const kva_valor = idx >= 12 ? kva_base * (qtd || 0) : kva_base;
+          kva_selecionados.push({ nome: disj, kva: kva_valor });
+        }
+
+        // ================================================================
+        // REGRAS DE ENGENHARIA — motivos de obra
+        // ================================================================
+        const motivos_obra = [];
+        let erro_bloqueante = null;
+
+        // --- Coordenadas do ponto de atendimento ---
+        const latRaw = document.getElementById("lat_input").value.trim();
+        const lonRaw = document.getElementById("lon_input").value.trim();
+        let latDec = null,
+          lonDec = null,
+          utmInfo = null;
+
+        if (latRaw && lonRaw) {
+          try {
+            latDec = parseDMSCoordinate(latRaw);
+            lonDec = parseDMSCoordinate(lonRaw);
+            validarLatLon(latDec, lonDec);
+            utmInfo = latLonToUTM(latDec, lonDec);
+          } catch (e) {
+            document.getElementById("msg").innerText =
+              "⚠ Erro de coordenada: " + e.message;
+            return;
+          }
+        }
+
+        // --- Tipo de UC inferido automaticamente ---
+        const tipoUC = determineConsumerType(pares);
+        const limites_queda = { residencial: 9, comercial: 7, industrial: 5 };
+
+        // --- Queda de tensão ---
+        const quedaVal = parseFloat(
+          document.getElementById("queda_tensao").value,
+        );
+        if (!isNaN(quedaVal) && quedaVal > 0 && tipoUC) {
+          const lim = limites_queda[tipoUC];
+          if (quedaVal > lim) {
+            motivos_obra.push(
+              `• Queda de tensão acima do limite permitido (${quedaVal.toFixed(1)}% > ${lim}% — UC ${tipoUC})`,
+            );
+          }
+        }
+
+        // --- Fases: extraídas automaticamente do campo Transformador ---
+        const fasesTrf = getTransformerPhases(trafo);
+        const disjGeralNome = document.getElementById("disj_geral").value;
+        const fasesDisj = getFasesDisjuntor(
+          disjGeralNome,
+          dres1,
+          dres2,
+          dres3,
+          dcom1,
+          dcom2,
+          dcom3,
+          dind1,
+          dind2,
+          dind3,
+        );
+
+        function pegarCorrente(...nomesDisjuntor) {
+          let maior = 0;
+          for (const nome of nomesDisjuntor) {
+            if (!nome) continue;
+            const matches = nome.match(/(\d+)\s*A/gi);
+            if (!matches) continue;
+            const valores = matches.map((m) => parseInt(m));
+            const corrente = Math.max(...valores);
+            if (corrente > maior) {
+              maior = corrente;
+            }
+          }
+          return maior;
+        }
+
+        const corrente = pegarCorrente(
+          disjGeralNome,
+          dres1,
+          dres2,
+          dres3,
+          dcom1,
+          dcom2,
+          dcom3,
+          dind1,
+          dind2,
+          dind3,
+        );
+        console.log(corrente);
+        // Regra BLOQUEANTE: bifásico > 63A em rede trifásica
+        if (fasesTrf === 3 && Math.max(fasesDisj) === 2 && corrente > 63) {
+          if (corrente > 63) {
+            erro_bloqueante =
+              "⛔ Disjuntor bifásico acima de 63 A não é permitido em rede trifásica.\n\nRevisão necessária antes de prosseguir.";
+          }
+        }
+
+        if (erro_bloqueante) {
+          document.getElementById("msg").innerText = erro_bloqueante;
+          return;
+        }
+
+        // --- Conversão de rede: disjuntor exige mais fases que o transformador ---
+        if (fasesDisj !== null && fasesTrf > 0 && fasesDisj > fasesTrf) {
+          const nomeTrf =
+            fasesTrf === 2 ? "monofásico/bifásico (2F)" : `${fasesTrf}F`;
+          const nomeDisj =
+            fasesDisj === 2
+              ? "bifásico"
+              : fasesDisj === 3
+                ? "trifásico"
+                : `${fasesDisj}F`;
+          motivos_obra.push(
+            `• Conversão de rede necessária (disjuntor ${nomeDisj} requer mais fases que o transformador ${nomeTrf})`,
+          );
+        }
+
+        // --- Extensão de rede ---
+        const extensaoAtiva = document.getElementById("chk_extensao").checked;
+        let utmRedeInfo = null;
+        let distMetrosExt = null;
+        let latRede2 = null,
+          lonRede2 = null;
+
+        if (extensaoAtiva) {
+          const latRedeRaw = document.getElementById("lat_rede").value.trim();
+          const lonRedeRaw = document.getElementById("lon_rede").value.trim();
+
+          if (latRedeRaw && lonRedeRaw) {
+            try {
+              latRede2 = parseDMSCoordinate(latRedeRaw);
+              lonRede2 = parseDMSCoordinate(lonRedeRaw);
+              validarLatLon(latRede2, lonRede2);
+              utmRedeInfo = latLonToUTM(latRede2, lonRede2);
+              if (latDec !== null && lonDec !== null) {
+                distMetrosExt = haversineDistance(
+                  latDec,
+                  lonDec,
+                  latRede2,
+                  lonRede2,
+                );
+              }
+            } catch (e) {
+              document.getElementById("msg").innerText =
+                "⚠ Erro de coordenada da rede: " + e.message;
+              return;
+            }
+          }
+          motivos_obra.push("• Extensão de rede necessária");
+        }
+
+        // --- Carregamento excedido ---
+        if (pico_total > limite) {
+          motivos_obra.unshift(
+            "• Carregamento máximo do transformador excedido",
+          );
+        }
+
+        // ================================================================
+        // GERAÇÃO DO TEXTO TÉCNICO FINAL
+        // ================================================================
+
+        // Bloco Local de atendimento (apenas UTM)
+        let blocoLocal = "";
+        if (utmInfo) {
+          blocoLocal = `
+                      Local de atendimento
+                        UTM: ${utmInfo.label}
+                      `;
+        }
+
+        // Bloco Dados do transformador
+        const tipoTrfLabel = tipo_TRF === 0 ? "Convencional" : "Autoprotegido";
+        const loadingpct = (pico_total / pottr) * 100;
+        let blocoTrafo = `Dados do transformador
+      Transformador: ${trafo || "(não informado)"} (${tipoTrfLabel}) \n  Carregamento: ${loadingpct.toFixed(2)}%`;
+        if (!isNaN(quedaVal) && quedaVal > 0) {
+          const lim = limites_queda[tipoUC] || "-";
+          const status =
+            quedaVal > lim ? " ⚠ ACIMA DO LIMITE" : " ✓ dentro do limite";
+          blocoTrafo += `\n  Queda de tensão: ${quedaVal.toFixed(2)}% (limite ${lim}% - ${tipoUC})${status}`;
+        }
+        blocoTrafo += "\n";
+
+        // Cabeçalho de análise técnica
+        const criarMedidas = {
+          carregamento: false,
+          planejamento: false,
+          liberacao: false,
+        };
+        let textoCabFinal = "";
+        if (pico_total > limite || motivos_obra.length > 0) {
+          textoCabFinal =
+            "Atendimento requer obra.\n──────────────────────────────────────────";
+          criarMedidas.carregamento = true;
+        } else if (kva_selecionados.some((k) => k.kva > lim_Municipio)) {
+          textoCabFinal =
+            "Necessário análise pela equipe de planejamento.\n──────────────────────────────────────────";
+          criarMedidas.planejamento = true;
+        } else {
+          textoCabFinal =
+            "Rede liberada para conexão.\n──────────────────────────────────────────";
+          criarMedidas.liberacao = true;
+        }
+
+        // Bloco de análise técnica (carregamento)
+        const blocoAnalise = `Análise técnica
+                            Pico de demanda : ${pico_total.toFixed(2)} kVA às ${hora_pico}
+                            Demanda simulada: ${dem_simulada.toFixed(2)} kVA
+                          `;
+
+        // Bloco disjuntores
+        const texto_disjuntores = formatTextoDisjuntores(pares);
+
+        // Bloco motivos de obra
+        let blocoMotivos = "";
+        if (motivos_obra.length > 0) {
+          blocoMotivos = `\nMotivos de obra:\n${motivos_obra.join("\n")}\n`;
+        }
+
+        // Bloco rede mais próxima (extensão)
+        let blocoRede = "";
+        if (extensaoAtiva && utmRedeInfo) {
+          blocoRede = `\nRede mais próxima\n  UTM: ${utmRedeInfo.label}`;
+          if (distMetrosExt !== null)
+            blocoRede += `\n  Distância até rede existente: ${distMetrosExt.toLocaleString("pt-BR")} m`;
+          blocoRede += "\n";
+        }
+
+        // Texto final completo
+        const texto_resultado = `${textoCabFinal}${blocoLocal}
+      ${blocoTrafo}
+      ${blocoAnalise}${texto_disjuntores}${blocoMotivos}${blocoRede}`;
+
+        // atualizar UI
+        document.getElementById("msg").innerText = texto_resultado;
+
+        // plot
+        plotCurve(
+          Hora,
+          curva_simulada.map((v) => +v.toFixed(2)),
+          limite,
+          curva_atual.map((v) => +v.toFixed(2)),
+        );
+
+        // salvar metadados ocultos (se quiser estender)
+        window._lastCalc = {
+          texto_resultado,
+          pico_total,
+          hora_pico,
+          demTOT,
+          criarMedidas,
+          kva_selecionados,
+          limite,
+          lim_Municipio,
+        };
+      }
+
+      /* util escape HTML */
+      function escapeHtml(s) {
+        return (s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+    </script>
+  </body>
+</html>
