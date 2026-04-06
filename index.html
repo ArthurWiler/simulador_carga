@@ -1672,7 +1672,209 @@
         "Uruana de Minas",
         "Urucuia",
       ];
-      const DEMAIS = "";
+      const CIDADE_305_50 = [
+        "Belo Horizonte",
+        "Contagem",
+        "Ibirite",
+        "Ribeirao das Neves",
+        "Santa Luzia",
+        "Betim",
+        "Mario Campos",
+        "Sarzedo",
+        "Nova Lima",
+        "Caetanopolis",
+        "Capim Branco",
+        "Igarape",
+        "Lagoa Santa",
+        "Mateus Leme",
+        "Matozinhos",
+        "Paraopeba",
+        "Pedro Leopoldo",
+        "Sabara",
+        "Sao Joaquim de Bicas",
+        "Sao Jose da Lapa",
+        "Sete Lagoas",
+        "Vespasiano",
+        "Pedra Azul",
+        "Jordania",
+        "Almenara",
+        "Jequitinhonha",
+        "Itaobim",
+        "Aracuai",
+        "Aguas Formosas",
+        "Barao de Cocais",
+        "Pote",
+        "Carlos Chagas",
+        "Nanuque",
+        "Capelinha",
+        "Itamarandiba",
+        "Santa Maria do Suacui",
+        "Pecanha",
+        "Sao Joao Evangelista",
+        "Coroaci",
+        "Campanario",
+        "Frei Inocencio",
+        "Matias Lobato",
+        "Central de Minas",
+        "Mantena",
+        "Carangola",
+        "Conselheiro Pena",
+        "Resplendor",
+        "Aimores",
+        "Lajinha",
+        "Sabinopolis",
+        "Braunas",
+        "Conceicao do Mato Dentro",
+        "Caratinga",
+        "Coronel Fabriciano",
+        "Governador Valadares",
+        "Guanhaes",
+        "Inhapim",
+        "Ipatinga",
+        "Itabira",
+        "Joao Monlevade",
+        "Teofilo Otoni",
+        "Timoteo",
+        "Nova Era",
+        "Carandai",
+        "Barbacena",
+        "Barroso",
+        "Santos Dumont",
+        "Conselheiro Lafaiete",
+        "Itabirito",
+        "Rio Espera",
+        "Juiz de Fora",
+        "Ouro Preto",
+        "Santa Cruz de Minas",
+        "Itutinga",
+        "Joaquim Murtinho",
+        "Diamantina",
+        "Januaria",
+        "Montes Claros",
+        "Pirapora",
+        "Sao Francisco",
+        "Lontra",
+        "Brasilia de Minas",
+        "Mirabela",
+        "Coracao de Jesus",
+        "Corinto",
+        "Porteirinha",
+        "Espinosa",
+        "Jaiba",
+        "Itacarambi",
+        "Manga",
+        "Salinas",
+        "Bocaiuva",
+        "Formiga",
+        "Nova Serrana",
+        "Paineiras",
+        "Pedra do Indaia",
+        "Abaete",
+        "Martinho Campos",
+        "Morada Nova de Minas",
+        "Pompeu",
+        "Pitangui",
+        "Leandro Ferreira",
+        "Bom Despacho",
+        "Para de Minas",
+        "Itauna",
+        "Itatiaiucu",
+        "Divinopolis",
+        "Sao Sebastiao do Oeste",
+        "Oliveira",
+        "Pains",
+        "Piumhi",
+        "Bambui",
+        "Lagoa da Prata",
+        "Cassia",
+        "Passos",
+        "Itau de Minas",
+        "Sao Sebastiao do Paraiso",
+        "Carmo do Rio Claro",
+        "Sao Fco de Paula",
+        "Areado",
+        "Campo Belo",
+        "Santo Antonio do Amparo",
+        "Bom Sucesso",
+        "Lavras",
+        "Perdoes",
+        "Nepomuceno",
+        "Coqueiral",
+        "Boa Esperanca",
+        "Campo do Meio",
+        "Tres Pontas",
+        "Varginha",
+        "Tres Coracoes",
+        "Alfenas",
+        "Botelhos",
+        "Cambuquira",
+        "Caxambu",
+        "Baependi",
+        "Passa Quatro",
+        "Maia da Fe",
+        "Brasopolis",
+        "Guaxupe",
+        "Itajuba",
+        "Itanhandu",
+        "Machado",
+        "Ouro Fino",
+        "Jacutinga",
+        "Borda da Mata",
+        "Monte Siao",
+        "Paraisopolis",
+        "Pocos de Caldas",
+        "Pouso Alegre",
+        "Santa Rita do Sapucai",
+        "Andradas",
+        "Paraguacu",
+        "Nova Resende",
+        "Sao Goncalo do Sapucai",
+        "Sao Lourenco",
+        "Santa Rita de Caldas",
+        "Campos Gerais",
+        "Campestre",
+        "Irai de Minas",
+        "Pedrinopolis",
+        "Frutal",
+        "Conceicao das Alagoas",
+        "Araxa",
+        "Uberaba",
+        "Uberlandia",
+        "Prata",
+        "Tupaciguara",
+        "Centralina",
+        "Arapora",
+        "Santa Vitoria",
+        "Planura",
+        "Sao Simao",
+      ];
+
+      /** Remove acentos e converte para minúsculas para comparação */
+      function normalizeStr(s) {
+        return (s || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .trim();
+      }
+
+      /**
+       * verificarLimite — retorna o limite de kVA do município conforme zona.
+       * Prioridade: 100/25 > 50/50 > 305/50 > padrão 100/50
+       */
+      function verificarLimite(municipioNome, zona) {
+        const mn = normalizeStr(municipioNome);
+        if (CIDADE_100_25.some((c) => normalizeStr(c) === mn)) {
+          return zona === "urbana" ? 100 : 25;
+        }
+        if (CIDADE_50_50.some((c) => normalizeStr(c) === mn)) {
+          return 50; // urbano=50, rural=50
+        }
+        if (CIDADE_305_50.some((c) => normalizeStr(c) === mn)) {
+          return zona === "urbana" ? 305 : 50;
+        }
+        return zona === "urbana" ? 100 : 50;
+      }
 
       const select = document.getElementById("municipio");
       municipios.forEach((mun) => {
@@ -2544,30 +2746,10 @@
         const trafo = (document.getElementById("trafo").value || "").trim();
         const zona = document.getElementById("zona").value;
 
-        function verificarLimite(municipio, zona) {
-          municipio = municipio.trim();
-
-          if (CIDADE_100_25.includes(municipio) && zona === "rural") {
-            return { trifasico: 100, monofasico: 25 };
-          }
-
-          if (CIDADE_50_50.includes(municipio) && zona === "rural") {
-            return { trifasico: 50, monofasico: 50 };
-          }
-
-          // demais casos (urbano ou rural)
-          return { trifasico: 100, monofasico: 50 };
-        }
-
-        // exemplo de uso
-        const lim_manual = document
-          .getElementById("municipio")
-          .addEventListener("change", function () {
-            const municipio = this.value;
-            const zona = document.getElementById("zona").value; // supondo que exista um select para zona
-            const limites = verificarLimite(municipio, zona);
-          });
-
+        // lê o nome de exibição do município selecionado
+        const municipioEl = document.getElementById("municipio");
+        const municipioNome =
+          municipioEl.options[municipioEl.selectedIndex]?.text || "";
         // quantidades e nomes
         const res1 = parseInt(document.getElementById("res1").value) || 0;
         const res2 = parseInt(document.getElementById("res2").value) || 0;
@@ -2739,15 +2921,11 @@
         const pico_total = Math.max(...curva_simulada);
         const hora_pico = Hora[curva_simulada.indexOf(pico_total)];
 
-        // verificar limite municipal (usando lim_manual se presente)
-        let lim_Municipio;
-        if (!isNaN(lim_manual) && lim_manual > 0) {
-          lim_Municipio = lim_manual;
-        } else {
-          // simples default (o usuário optou por inserir lista depois)
-          lim_Municipio = zona === "urbana" ? 100 : 50;
-        }
-
+        // limite municipal baseado no município e zona
+        const lim_Municipio = verificarLimite(municipioNome, zona);
+        console.log(
+          `Limite municipal: ${lim_Municipio} kVA (${municipioNome} / ${zona})`,
+        );
         // ================================================================
         // CONSTRUÇÃO DOS PARES (antecipada para uso em determineConsumerType)
         // ================================================================
@@ -2862,7 +3040,6 @@
           dind2,
           dind3,
         );
-        console.log(corrente);
         // Regra BLOQUEANTE: bifásico > 63A em rede trifásica
         if (fasesTrf === 3 && Math.max(fasesDisj) === 2 && corrente > 63) {
           if (corrente > 63) {
@@ -2877,17 +3054,21 @@
         }
 
         // --- Conversão de rede: disjuntor exige mais fases que o transformador ---
+        // Regra: transformador monofásico (N=1) é tratado como 2 fases (bifásico).
+        // Se as fases do disjuntor > fases disponíveis no transformador → obra.
         if (fasesDisj !== null && fasesTrf > 0 && fasesDisj > fasesTrf) {
           const nomeTrf =
-            fasesTrf === 2 ? "monofásico/bifásico (2F)" : `${fasesTrf}F`;
+            fasesTrf === 2
+              ? "monofásico (2F disponíveis)"
+              : `trifásico (${fasesTrf}F)`;
           const nomeDisj =
             fasesDisj === 2
-              ? "bifásico"
+              ? "bifásico (2F)"
               : fasesDisj === 3
-                ? "trifásico"
+                ? "trifásico (3F)"
                 : `${fasesDisj}F`;
           motivos_obra.push(
-            `• Conversão de rede necessária (disjuntor ${nomeDisj} requer mais fases que o transformador ${nomeTrf})`,
+            `• Conversão de rede necessária (disjuntor ${nomeDisj} exige mais fases do que o transformador ${nomeTrf} disponibiliza)`,
           );
         }
 
