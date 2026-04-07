@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Simulador de Carga - CEMIG</title>
+    <title>Simulador de Carga v1.0.3 - CEMIG</title>
 
     <!-- Chart.js para plot da curva -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -3044,7 +3044,7 @@
         if (fasesTrf === 3 && Math.max(fasesDisj) === 2 && corrente > 63) {
           if (corrente > 63) {
             erro_bloqueante =
-              "⛔ Disjuntor bifásico acima de 63 A não é permitido em rede trifásica.\n\nRevisão necessária antes de prosseguir.";
+              "⛔ Disjuntor bifásico acima de 63 A não é permitido em rede trifásica.";
           }
         }
 
@@ -3067,9 +3067,11 @@
               : fasesDisj === 3
                 ? "trifásico (3F)"
                 : `${fasesDisj}F`;
-          motivos_obra.push(
-            `• Conversão de rede necessária (disjuntor ${nomeDisj} exige mais fases do que o transformador ${nomeTrf} disponibiliza)`,
-          );
+          motivos_obra.push(`• Conversão de rede necessária`);
+        }
+
+        if (corrente > 250) {
+          motivos_obra.push(`• Necessário construção de ramal subterrâneo`);
         }
 
         // --- Extensão de rede ---
