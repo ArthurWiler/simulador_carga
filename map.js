@@ -22,9 +22,11 @@ let carLayerAmb = null; // perímetro do imóvel CAR (SICAR), desenhado à parte
 let _ambDebounce = null;
 let _ambLastKey = "";
 
-// Cor do contorno do imóvel CAR no mapa — verde institucional CEMIG, para
-// distinguir do vermelho/amarelo das restrições ambientais. É informativo.
-const COR_CAR = "#0f6c58";
+// Contorno do imóvel CAR no mapa — tracejado AMARELO de alto contraste
+// (informativo). Legibilidade sobre satélite E ruas via halo escuro por baixo
+// (COR_CAR_HALO), como faz o padrão de traçado amarelo em mapas.
+const COR_CAR = "#FFEB00"; // amarelo vívido
+const COR_CAR_HALO = "#1a1a1a"; // contorno escuro por baixo, p/ contraste
 
 // Evita consultar/mover o pino com coordenada pela metade (como no BT:
 // só reage quando lat e lng têm ao menos 5 dígitos digitados).
@@ -288,25 +290,33 @@ function _limparCamadasAmb() {
 }
 
 // Desenha o perímetro do imóvel CAR (Feature GeoJSON de consultarImovelCAR).
-// Contorno tracejado verde institucional, sem preenchimento, para não competir
-// visualmente com as restrições. Popup com o nº do CAR/situação. Não reenquadra.
+// Tracejado AMARELO de alto contraste, sem preenchimento: duas passadas — um
+// halo escuro sólido por baixo e o tracejado amarelo por cima — para ficar
+// legível tanto sobre satélite quanto sobre ruas. Popup com o nº do CAR/
+// situação. Retorna um layerGroup (removido de uma vez no cleanup). Não
+// reenquadra o mapa.
 function desenharCARNoMapa(car) {
   if (!mapaAmb || !window.L || !car || !car.dentro || !car.feicao) return null;
   const f = car.feicao;
   if (!f.geometry) return null;
-  return window.L.geoJSON(f, {
+  const popup = car.nome ? "Imóvel CAR: " + car.nome : "Imóvel CAR";
+  // Halo escuro por baixo: linha sólida um pouco mais grossa.
+  const halo = window.L.geoJSON(f, {
+    style: { color: COR_CAR_HALO, weight: 4, opacity: 0.85, fill: false },
+    interactive: false,
+  });
+  // Tracejado amarelo por cima.
+  const traco = window.L.geoJSON(f, {
     style: {
       color: COR_CAR,
-      weight: 2,
-      opacity: 0.9,
-      dashArray: "6 4",
+      weight: 2.5,
+      opacity: 1,
+      dashArray: "6 5",
       fill: false,
     },
-    onEachFeature: (feat, lyr) => {
-      const txt = car.nome ? "Imóvel CAR: " + car.nome : "Imóvel CAR";
-      lyr.bindPopup(txt);
-    },
-  }).addTo(mapaAmb);
+    onEachFeature: (feat, lyr) => lyr.bindPopup(popup),
+  });
+  return window.L.layerGroup([halo, traco]).addTo(mapaAmb);
 }
 
 async function consultarAmbiental(lat, lng) {
