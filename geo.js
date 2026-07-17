@@ -121,6 +121,23 @@ const FBDS_APP_CIRCUNSCRICAO = [
 
 const DOC_INTRO =
   "Para que o cliente obtenha ligação de energia elétrica, é necessário anexar os seguintes documentos no Cemig Atende:";
+/* ---- Área de Preservação Permanente (APP) — texto de indeferimento ----
+   O texto cita a COORDENADA consultada: use o placeholder {coord}, que o
+   builder (restricaoDocsHTML) substitui por "(-lat, -lng)". Como não há
+   `intro` própria dele e a introdução padrão (DOC_INTRO, "anexar…") não se
+   aplica a esta redação, o texto vive numa `intro` própria via campo
+   `introPropria` — ver restricaoDocsMesclado(). */
+const DOC_APP = {
+  introPropria:
+    "Como o imóvel de V.Sa. está localizado dentro de uma APP, para que possamos dar continuidade ao seu atendimento, V.Sa. deverá comprovar à Cemig que sua residência ou benfeitoria na coordenada {coord}, encontra-se regular através de um dos documentos a seguir:",
+  bullets: [
+    "Termo de Ajustamento de Conduta;",
+    "Comprovação de Uso Antrópico Consolidado;",
+    "Declaração de Interesse Social ou Utilidade Pública, no caso de propriedade rural; ou",
+    "Simples Declaração do órgão ambiental.",
+  ],
+  notas: [],
+};
 const DOC_UNIDADE_CONSERVACAO = {
   bullets: [
     "Comprovação da posse e regularidade do imóvel simultaneamente (IPTU, Registro do Imóvel, Escritura Pública, etc.); ou",
@@ -264,7 +281,7 @@ const SISEMA_CAMADAS = [
     rotulo: "APPs hídricas " + regiao,
     typeName: `IDE:ide_210603_mg_hid_app_hidrica_mapcar_${suf}_pol`,
     tipoNome: "APP hídrica",
-    documentos: DOC_UNIDADE_CONSERVACAO,
+    documentos: DOC_APP,
     nomeFeicao: (p) => {
       const c = p && p.categoria != null ? String(p.categoria).trim() : "";
       return c ? "faixa " + c.replace(/\bAte\b/g, "até") : null;
@@ -279,7 +296,7 @@ const SISEMA_CAMADAS = [
     rotulo: "APPs (FBDS) — " + nome,
     typeName: `IDE:ide_240905_${suf}_apps_fbds_pol`,
     tipoNome: "Área de Preservação Permanente",
-    documentos: DOC_UNIDADE_CONSERVACAO,
+    documentos: DOC_APP,
     nomeFeicao: (p) => {
       const c = p && p.categoria != null ? String(p.categoria).trim() : "";
       return c ? "faixa " + c.replace(/\bAte\b/g, "até") : nome;
@@ -668,42 +685,83 @@ function restricaoSentencaHTML(detalhe) {
     .join("");
   return `<strong>${_escHtml(RESTRICAO_AVISO_TITULO)}</strong>. ${corpo}`;
 }
-// Mescla os documentos de todas as áreas: introdução ÚNICA + bullets unidos +
-// notas ao final, deduplicando por tipo (mesmo objeto `documentos`) e por texto
-// idêntico. Retorna { intro, bullets:[...], notas:[...] }.
-function restricaoDocsMesclado(detalhe) {
+// Substitui placeholders dinâmicos no texto. Hoje só {coord} (coordenada
+// consultada, usada pelo texto de APP). ctx = { lat, lng }.
+function _interpTexto(txt, ctx) {
+  if (txt == null) return txt;
+  let s = String(txt);
+  if (ctx && ctx.lat != null && ctx.lng != null) {
+    const coord = `(${(+ctx.lat).toFixed(6)}, ${(+ctx.lng).toFixed(6)})`;
+    s = s.replace(/\{coord\}/g, coord);
+  }
+  return s;
+}
+// Mescla os documentos das áreas em BLOCOS. A maioria dos tipos compartilha a
+// introdução padrão (DOC_INTRO) — seus bullets/notas caem num único bloco
+// "compartilhado". Tipos com introdução PRÓPRIA (doc.introPropria, ex.: APP)
+// viram um bloco separado cada, para que a redação e seus bullets fiquem
+// coerentes. Dedup por referência do objeto `documentos` e por texto idêntico.
+// ctx = { lat, lng } alimenta os placeholders ({coord}). Retorna
+// [ { intro, bullets:[...], notas:[...] }, … ].
+function restricaoDocsBlocos(detalhe, ctx) {
   const areas = detalhe || [];
-  const bullets = [];
-  const notas = [];
+  const compart = { intro: "", bullets: [], notas: [] };
+  const proprios = [];
   const vistos = new Set();
   for (const a of areas) {
     const doc = a.documentos;
-    if (!doc || vistos.has(doc)) continue; // dedup por tipo (referência do objeto)
+    if (!doc || vistos.has(doc)) continue; // dedup por tipo (referência)
     vistos.add(doc);
-    (doc.bullets || []).forEach((b) => {
-      if (!bullets.includes(b)) bullets.push(b);
-    });
-    (doc.notas || []).forEach((n) => {
-      if (!notas.includes(n)) notas.push(n);
-    });
+    const bullets = (doc.bullets || []).map((b) => _interpTexto(b, ctx));
+    const notas = (doc.notas || []).map((n) => _interpTexto(n, ctx));
+    if (doc.introPropria) {
+      proprios.push({
+        intro: _interpTexto(doc.introPropria, ctx),
+        bullets,
+        notas,
+      });
+    } else {
+      bullets.forEach((b) => {
+        if (!compart.bullets.includes(b)) compart.bullets.push(b);
+      });
+      notas.forEach((n) => {
+        if (!compart.notas.includes(n)) compart.notas.push(n);
+      });
+    }
   }
-  return { intro: bullets.length ? DOC_INTRO : "", bullets, notas };
+  const blocos = [];
+  if (compart.bullets.length || compart.notas.length) {
+    compart.intro = compart.bullets.length ? DOC_INTRO : "";
+    blocos.push(compart);
+  }
+  return blocos.concat(proprios);
 }
-// Versão em HTML do bloco de documentos (intro + <ul> + notas) — usada pelo MT.
-function restricaoDocsHTML(detalhe) {
-  const d = restricaoDocsMesclado(detalhe);
-  if (!d.bullets.length && !d.notas.length) return "";
-  let html = '<div class="restricao-docs">';
-  if (d.intro)
-    html += `<p class="restricao-docs-intro">${_escHtml(d.intro)}</p>`;
-  if (d.bullets.length)
-    html +=
-      '<ul class="restricao-docs-lista">' +
-      d.bullets.map((b) => `<li>${_escHtml(b)}</li>`).join("") +
-      "</ul>";
-  html += d.notas
-    .map((n) => `<p class="restricao-docs-nota">${_escHtml(n)}</p>`)
-    .join("");
-  html += "</div>";
-  return html;
+// Retrocompat.: primeiro bloco no formato antigo { intro, bullets, notas }.
+function restricaoDocsMesclado(detalhe, ctx) {
+  const b = restricaoDocsBlocos(detalhe, ctx);
+  return b[0] || { intro: "", bullets: [], notas: [] };
+}
+// Versão em HTML do(s) bloco(s) de documentos (intro + <ul> + notas).
+// ctx = { lat, lng } para os placeholders ({coord}).
+function restricaoDocsHTML(detalhe, ctx) {
+  const blocos = restricaoDocsBlocos(detalhe, ctx);
+  const partes = blocos
+    .map((d) => {
+      if (!d.bullets.length && !d.notas.length) return "";
+      let html = '<div class="restricao-docs">';
+      if (d.intro)
+        html += `<p class="restricao-docs-intro">${_escHtml(d.intro)}</p>`;
+      if (d.bullets.length)
+        html +=
+          '<ul class="restricao-docs-lista">' +
+          d.bullets.map((b) => `<li>${_escHtml(b)}</li>`).join("") +
+          "</ul>";
+      html += d.notas
+        .map((n) => `<p class="restricao-docs-nota">${_escHtml(n)}</p>`)
+        .join("");
+      html += "</div>";
+      return html;
+    })
+    .filter(Boolean);
+  return partes.join("");
 }

@@ -18,8 +18,13 @@
 let mapaAmb = null;
 let marcadorAmb = null;
 let restricaoLayerAmb = null;
+let carLayerAmb = null; // perímetro do imóvel CAR (SICAR), desenhado à parte
 let _ambDebounce = null;
 let _ambLastKey = "";
+
+// Cor do contorno do imóvel CAR no mapa — verde institucional CEMIG, para
+// distinguir do vermelho/amarelo das restrições ambientais. É informativo.
+const COR_CAR = "#0f6c58";
 
 // Evita consultar/mover o pino com coordenada pela metade (como no BT:
 // só reage quando lat e lng têm ao menos 5 dígitos digitados).
@@ -274,9 +279,33 @@ function sincronizarAmbientalDoFormulario() {
 function _limparCamadasAmb() {
   if (mapaAmb && restricaoLayerAmb) mapaAmb.removeLayer(restricaoLayerAmb);
   restricaoLayerAmb = null;
+  if (mapaAmb && carLayerAmb) mapaAmb.removeLayer(carLayerAmb);
+  carLayerAmb = null;
   // Some com a legenda junto do contorno (desenharRestricoesNoMapa recria).
   if (mapaAmb && typeof atualizarLegendaRestricoes === "function")
     atualizarLegendaRestricoes(mapaAmb, null);
+}
+
+// Desenha o perímetro do imóvel CAR (Feature GeoJSON de consultarImovelCAR).
+// Contorno tracejado verde institucional, sem preenchimento, para não competir
+// visualmente com as restrições. Popup com o nº do CAR/situação. Não reenquadra.
+function desenharCARNoMapa(car) {
+  if (!mapaAmb || !window.L || !car || !car.dentro || !car.feicao) return null;
+  const f = car.feicao;
+  if (!f.geometry) return null;
+  return window.L.geoJSON(f, {
+    style: {
+      color: COR_CAR,
+      weight: 2,
+      opacity: 0.9,
+      dashArray: "6 4",
+      fill: false,
+    },
+    onEachFeature: (feat, lyr) => {
+      const txt = car.nome ? "Imóvel CAR: " + car.nome : "Imóvel CAR";
+      lyr.bindPopup(txt);
+    },
+  }).addTo(mapaAmb);
 }
 
 async function consultarAmbiental(lat, lng) {
@@ -294,14 +323,14 @@ async function consultarAmbiental(lat, lng) {
   _ambStatus("Consultando restrições… (várias camadas, pode levar alguns segundos)");
   const box = document.getElementById("ambResultado");
   try {
-    // Imóvel CAR: consulta informativa (fora do critério de restrição),
-    // apenas quando a zona do simulador é rural — todo ponto rural de MG
-    // cai em algum imóvel CAR.
-    const zonaEl = document.getElementById("zona");
-    const rural = zonaEl && zonaEl.value === "rural";
+    // Imóvel CAR (SICAR): consulta INFORMATIVA (fora do critério de restrição
+    // ambiental). Consultada SEMPRE — todo ponto de MG pode cair em um imóvel
+    // cadastrado; o resultado traz o nº do CAR/situação e o perímetro.
     const [res, car] = await Promise.all([
       consultarRestricoesObra(lat, lng),
-      rural ? consultarImovelCAR(lat, lng) : Promise.resolve(null),
+      typeof consultarImovelCAR === "function"
+        ? consultarImovelCAR(lat, lng)
+        : Promise.resolve(null),
     ]);
     if (_ambLastKey !== key) return; // consulta mais nova em andamento
     const errosTodos = res.length > 0 && res.every((r) => r.erro);
@@ -316,6 +345,7 @@ async function consultarAmbiental(lat, lng) {
       return;
     }
     restricaoLayerAmb = desenharRestricoesNoMapa(window.L, mapaAmb, res);
+    carLayerAmb = desenharCARNoMapa(car);
     if (box) box.innerHTML = _htmlResultadoAmb(lat, lng, res, car);
     const comErro = res.filter((r) => r.erro).length;
     _ambStatus(
@@ -338,16 +368,15 @@ function _htmlResultadoAmb(lat, lng, res, car) {
   let html = `<p class="mapa-hint" style="margin-top:12px">Ponto consultado: ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>`;
   if (dentros.length) {
     html += alertHTML("warn", restricaoSentencaHTML(det));
-    html += restricaoDocsHTML(det);
+    // ctx { lat, lng } alimenta o placeholder {coord} do texto de APP.
+    html += restricaoDocsHTML(det, { lat, lng });
   } else {
     html += alertHTML(
       "ok",
       "<strong>Nenhuma restrição ambiental encontrada</strong> nas camadas consultadas para o ponto informado.",
     );
   }
-  if (car && car.dentro) {
-    html += `<p class="mapa-hint">Imóvel CAR (informativo): <strong>${_escHtml(car.nome || "identificado")}</strong></p>`;
-  }
+  html += _htmlCAR(car);
   // Chips só das camadas relevantes (interseção ou erro) — com as APPs
   // hídricas por URFBio a lista completa passa de 20 camadas.
   const chips = []
@@ -369,6 +398,43 @@ function _htmlResultadoAmb(lat, lng, res, car) {
     );
   html += `<div class="restricao-chips">${chips.join("")}</div>`;
   return html;
+}
+
+// Bloco informativo do imóvel CAR (SICAR). Retorna "" quando a consulta não
+// rodou (car == null). Distingue: erro de consulta, ponto fora de qualquer
+// imóvel, e ponto dentro (com nº do CAR/situação e, se houver, a área em ha).
+// É INFORMATIVO — não entra no critério de restrição ambiental.
+function _htmlCAR(car) {
+  if (!car) return "";
+  const linha = (txt, cor) =>
+    `<p class="mapa-hint" style="margin:8px 0 0${cor ? ";color:" + cor : ""}">${txt}</p>`;
+  if (car.erro) {
+    return linha(
+      "Cadastro Ambiental Rural (CAR): não foi possível consultar o imóvel (" +
+        _escHtml(car.erro) +
+        ").",
+      "var(--cmg-neutral-500)",
+    );
+  }
+  if (!car.dentro) {
+    return linha(
+      "Cadastro Ambiental Rural (CAR): o ponto não está dentro de um imóvel cadastrado.",
+    );
+  }
+  const p = car.props || {};
+  const area =
+    p.num_area != null && String(p.num_area).trim() !== ""
+      ? Number(String(p.num_area).replace(",", "."))
+      : null;
+  const areaTxt =
+    area != null && !isNaN(area)
+      ? ` — ${area.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ha`
+      : "";
+  return (
+    `<p class="mapa-hint" style="margin:8px 0 0">Cadastro Ambiental Rural (CAR) — ` +
+    `<strong>${_escHtml(car.nome || "imóvel identificado")}</strong>${areaTxt} ` +
+    `<span style="color:var(--cmg-neutral-500)">(informativo)</span></p>`
+  );
 }
 
 // Chamado pelo botão "Limpar" do simulador: remove pino, contornos,
