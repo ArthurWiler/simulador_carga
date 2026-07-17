@@ -3,10 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Simulador de Carga v1.0.3 - CEMIG</title>
+    <title>Simulador de Carga - CEMIG</title>
 
     <!-- Chart.js para plot da curva -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Leaflet + Turf.js para a aba Análise Ambiental (mapa e teste
+         ponto-em-polígono das camadas WFS do Sisema/SICAR/AgroTag) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 
     <style>
       :root {
@@ -287,12 +296,250 @@
           /* uma coluna em telas pequenas */
         }
       }
+
+      /* ============================================================
+         CEMIG — Design Tokens (subset --cmg-* usado pela aba
+         Análise Ambiental; a paleta legada do outro projeto foi
+         omitida para não colidir com o --bg deste simulador)
+         ============================================================ */
+      :root {
+        /* ---- Brand / institutional greens ---- */
+        --cmg-green-600: #0f6c58;
+        --cmg-green-500: #107761;
+        --cmg-green-50: #e7f1ef;
+
+        /* ---- Neutrals (CEMIG scale) ---- */
+        --cmg-neutral-0: #ffffff;
+        --cmg-neutral-50: #f4f5f4;
+        --cmg-neutral-100: #e6e9e8;
+        --cmg-neutral-200: #d1d4d3;
+        --cmg-neutral-300: #b1b9b7;
+        --cmg-neutral-400: #8c9895;
+        --cmg-neutral-500: #576864;
+        --cmg-neutral-600: #364b46;
+        --cmg-neutral-700: #041e18;
+
+        /* ---- Feedback / status ---- */
+        --cmg-warning-500: #ffc107;
+        --cmg-danger-500: #c0392b;
+        --cmg-error-500: #c8303f;
+
+        /* ---- Typography ---- */
+        --cmg-font-family:
+          "Open Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+        --cmg-fs-body-lg: 16px;
+        --cmg-lh-body-lg: 26px;
+        --cmg-fs-body: 14px;
+        --cmg-fw-regular: 400;
+        --cmg-fw-bold: 700;
+
+        /* ---- Spacing scale (4px grid) ---- */
+        --cmg-space-1: 4px;
+        --cmg-space-2: 8px;
+        --cmg-space-3: 12px;
+        --cmg-space-4: 16px;
+        --cmg-space-6: 24px;
+      }
+
+      /* ===== Abas (Simulador | Análise Ambiental) ===== */
+      .abas {
+        display: flex;
+        gap: 4px;
+        margin: 58px 22px 0 120px; /* limpa o header fixo e os botões fixos */
+        border-bottom: 1px solid var(--cmg-neutral-200);
+      }
+      .abas .aba-btn {
+        background: none;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+        box-shadow: none;
+        color: var(--cmg-neutral-500);
+        font-weight: 700;
+        font-size: 14px;
+        padding: 10px 16px;
+        cursor: pointer;
+      }
+      .abas .aba-btn.on {
+        color: var(--cemig-blue);
+        border-bottom-color: var(--cemig-blue);
+      }
+      .aba-painel {
+        display: none;
+      }
+      .aba-painel.show {
+        display: block;
+      }
+
+      /* ===== Aba Análise Ambiental ===== */
+      #aba-ambiental .wrap-amb {
+        max-width: 1100px;
+        margin: 8px auto;
+        padding: 18px;
+      }
+      .amb-coords {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1.6fr;
+        gap: 14px;
+        margin-bottom: 10px;
+      }
+      @media (max-width: 900px) {
+        .amb-coords {
+          grid-template-columns: 1fr;
+        }
+      }
+      .mapa-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 10px 0;
+        flex-wrap: wrap;
+      }
+      .mapa-status {
+        font-size: 13px;
+        color: var(--cmg-neutral-500);
+      }
+      .mapa-status.err {
+        color: var(--cmg-danger-500);
+      }
+      .mapa-canvas {
+        height: 480px;
+        border-radius: 8px;
+        border: 1px solid var(--cmg-neutral-200);
+      }
+      .mapa-hint {
+        display: block;
+        margin: 0 0 var(--cmg-space-2);
+        font-family: var(--cmg-font-family);
+        font-weight: var(--cmg-fw-regular);
+        font-size: var(--cmg-fs-body-lg);
+        line-height: var(--cmg-lh-body-lg);
+        letter-spacing: 0.2px;
+        color: var(--cmg-neutral-600);
+      }
+      .mapa-legenda {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--cmg-space-2) var(--cmg-space-4);
+        margin-top: var(--cmg-space-2);
+      }
+      .mapa-legenda-item {
+        display: flex;
+        align-items: center;
+        gap: var(--cmg-space-2);
+      }
+      .mapa-legenda-cor {
+        flex: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 2px;
+      }
+      /* Rótulo da restrição — spec Figma corpo/médio: 14/22 regular,
+         letter-spacing 0.25px, neutra/500. */
+      .mapa-legenda-rotulo {
+        font-family: var(--cmg-font-family);
+        font-weight: var(--cmg-fw-regular);
+        font-size: var(--cmg-fs-body);
+        line-height: 22px;
+        letter-spacing: 0.25px;
+        color: var(--cmg-neutral-500);
+      }
+
+      /* ===== Banner de aviso (alertHTML do core.js) ===== */
+      .cmg-aviso {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--cmg-space-3);
+        margin: var(--cmg-space-4) 0;
+        padding: var(--cmg-space-3) var(--cmg-space-4);
+        border: 1px solid var(--cmg-neutral-200);
+        border-left: 4px solid var(--cmg-green-500);
+        border-radius: 8px;
+        background: var(--cmg-neutral-0);
+      }
+      .cmg-aviso--warn {
+        border-left-color: var(--cmg-warning-500);
+        background: #fffaf0;
+      }
+      .cmg-aviso-icon::before {
+        content: "✓";
+        color: var(--cmg-green-500);
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .cmg-aviso--warn .cmg-aviso-icon::before {
+        content: "⚠";
+        color: #9a6b00;
+      }
+      .cmg-aviso-texto {
+        margin: 0;
+        font-size: var(--cmg-fs-body);
+        line-height: 22px;
+        color: var(--cmg-neutral-600);
+        font-weight: 400;
+      }
+
+      /* ===== Documentos exigidos (restricaoDocsHTML do geo.js) ===== */
+      .restricao-docs {
+        margin: var(--cmg-space-3) 0;
+        padding: var(--cmg-space-3) var(--cmg-space-4);
+        border: 1px solid var(--cmg-neutral-200);
+        border-radius: 8px;
+        background: var(--cmg-neutral-50);
+        font-size: var(--cmg-fs-body);
+        color: var(--cmg-neutral-600);
+      }
+      .restricao-docs-intro {
+        margin: 0 0 var(--cmg-space-2);
+        font-weight: 700;
+      }
+      .restricao-docs-lista {
+        margin: 0 0 var(--cmg-space-2);
+        padding-left: 20px;
+      }
+      .restricao-docs-lista li {
+        margin-bottom: var(--cmg-space-1);
+        line-height: 20px;
+      }
+      .restricao-docs-nota {
+        margin: var(--cmg-space-2) 0 0;
+        font-size: 12px;
+        color: var(--cmg-neutral-500);
+      }
+
+      /* ===== Chips de camadas ===== */
+      .restricao-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--cmg-space-2);
+        margin-top: var(--cmg-space-3);
+      }
+      .chip {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        border: 1px solid var(--cmg-neutral-200);
+        background: var(--cmg-neutral-0);
+        color: var(--cmg-neutral-500);
+      }
+      .chip-on {
+        border-color: var(--cmg-warning-500);
+        background: #fff6e0;
+        color: #9a6b00;
+        font-weight: 700;
+      }
+      .chip-err {
+        border-color: #f0b9b3;
+        background: #fdecea;
+        color: var(--cmg-danger-500);
+      }
     </style>
   </head>
 
   <body>
     <div class="header">
-      Simulador de Carga
+      Simulador de Carga v1.0.3
       <img src="logo.png" alt="Logo" />
     </div>
     <!-- Botões fixos no canto superior esquerdo -->
@@ -307,427 +554,493 @@
       <button id="btnReset" class="secondary">Limpar</button>
     </div>
 
-    <div class="page-layout">
-      <div class="wrap">
-        <!-- Top - Transformador / Meta -->
-        <div class="card">
-          <h2>Dados do Transformador</h2>
-          <div class="form-two-col" style="margin-top: 8px">
-            <!-- Coluna 1: identificação + demandas -->
-            <div>
-              <label>Transformador</label>
-              <input id="trafo" type="text" placeholder="Ex: 18759-3-45" />
-              <label style="margin-top: 16px">Demanda residencial</label>
-              <input
-                id="demanda_residencial"
-                type="number"
-                value=""
-                step="0.01"
-              />
-              <label>Demanda comercial</label>
-              <input
-                id="demanda_comercial"
-                type="number"
-                value=""
-                step="0.01"
-              />
-              <label>Demanda industrial</label>
-              <input
-                id="demanda_industrial"
-                type="number"
-                value=""
-                step="0.01"
-              />
-              <label>Demanda rural</label>
-              <input id="demanda_rural" type="number" value="" step="0.01" />
-              <label>Demanda outros</label>
-              <input id="demanda_outros" type="number" value="" step="0.01" />
-              <label>Demanda Iluminação Pública</label>
-              <input
-                id="demanda_iluminação"
-                type="number"
-                value=""
-                step="0.01"
-              />
-            </div>
+    <!-- Abas: Simulador (fluxo original) | Análise Ambiental (mapa + WFS) -->
+    <nav class="abas" aria-label="Abas">
+      <button type="button" class="aba-btn on" data-aba="simulador">
+        Simulador
+      </button>
+      <button type="button" class="aba-btn" data-aba="ambiental">
+        Análise Ambiental
+      </button>
+    </nav>
 
-            <!-- Coluna 2: potência + consumidores + tipo + queda -->
-            <div>
-              <label>Potência do transformador (kVA)</label>
-              <input id="pottr" type="number" value="" step="1" readonly />
+    <div id="aba-simulador" class="aba-painel show">
+      <div class="page-layout">
+        <div class="wrap">
+          <!-- Top - Transformador / Meta -->
+          <div class="card">
+            <h2>Dados do Transformador</h2>
+            <div class="form-two-col" style="margin-top: 8px">
+              <!-- Coluna 1: identificação + demandas -->
+              <div>
+                <label>Transformador</label>
+                <input id="trafo" type="text" placeholder="Ex: 18759-3-45" />
+                <label style="margin-top: 16px">Demanda residencial</label>
+                <input
+                  id="demanda_residencial"
+                  type="number"
+                  value=""
+                  step="0.01"
+                />
+                <label>Demanda comercial</label>
+                <input
+                  id="demanda_comercial"
+                  type="number"
+                  value=""
+                  step="0.01"
+                />
+                <label>Demanda industrial</label>
+                <input
+                  id="demanda_industrial"
+                  type="number"
+                  value=""
+                  step="0.01"
+                />
+                <label>Demanda rural</label>
+                <input id="demanda_rural" type="number" value="" step="0.01" />
+                <label>Demanda outros</label>
+                <input id="demanda_outros" type="number" value="" step="0.01" />
+                <label>Demanda Iluminação Pública</label>
+                <input
+                  id="demanda_iluminação"
+                  type="number"
+                  value=""
+                  step="0.01"
+                />
+              </div>
 
-              <label style="margin-top: 16px">Consumidores residenciais</label>
-              <input id="uc_residencial" type="number" value="" />
-              <label>Consumidores comerciais</label>
-              <input id="uc_comercial" type="number" value="" />
-              <label>Consumidores industriais</label>
-              <input id="uc_industrial" type="number" value="" />
-              <label>Consumidores rurais</label>
-              <input id="uc_rural" type="number" value="" />
-              <label>Consumidores outros</label>
-              <input id="uc_outros" type="number" value="" />
+              <!-- Coluna 2: potência + consumidores + tipo + queda -->
+              <div>
+                <label>Potência do transformador (kVA)</label>
+                <input id="pottr" type="number" value="" step="1" readonly />
 
-              <label>Tipo de Transformador</label>
-              <select id="tipo_TRF">
-                <option value="">Convencional</option>
-                <option value="1">Autoprotegido</option>
-              </select>
+                <label style="margin-top: 16px"
+                  >Consumidores residenciais</label
+                >
+                <input id="uc_residencial" type="number" value="" />
+                <label>Consumidores comerciais</label>
+                <input id="uc_comercial" type="number" value="" />
+                <label>Consumidores industriais</label>
+                <input id="uc_industrial" type="number" value="" />
+                <label>Consumidores rurais</label>
+                <input id="uc_rural" type="number" value="" />
+                <label>Consumidores outros</label>
+                <input id="uc_outros" type="number" value="" />
 
-              <label style="margin-top: 14px">Queda de tensão (%)</label>
-              <input
-                id="queda_tensao"
-                type="number"
-                step="0.1"
-                min="0"
-                max="100"
-                placeholder="Ex: 4.5"
-              />
+                <label>Tipo de Transformador</label>
+                <select id="tipo_TRF">
+                  <option value="">Convencional</option>
+                  <option value="1">Autoprotegido</option>
+                </select>
+
+                <label style="margin-top: 14px">Queda de tensão (%)</label>
+                <input
+                  id="queda_tensao"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  placeholder="Ex: 4.5"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="card">
-          <h2>Local de atendimento</h2>
-          <div class="form-two-col" style="margin-top: 8px">
-            <!-- Coluna 1: localização + coordenadas do ponto -->
-            <div>
-              <label>Zona</label>
-              <select id="zona">
-                <option value="urbana">Área Urbana</option>
-                <option value="rural">Área Rural</option>
-              </select>
+          <div class="card">
+            <h2>Local de atendimento</h2>
+            <div class="form-two-col" style="margin-top: 8px">
+              <!-- Coluna 1: localização + coordenadas do ponto -->
+              <div>
+                <label>Zona</label>
+                <select id="zona">
+                  <option value="urbana">Área Urbana</option>
+                  <option value="rural">Área Rural</option>
+                </select>
 
-              <label style="margin-top: 12px">Município</label>
-              <select id="municipio">
-                <option value=""></option>
-              </select>
+                <label style="margin-top: 12px">Município</label>
+                <select id="municipio">
+                  <option value=""></option>
+                </select>
 
-              <label style="margin-top: 12px">Formato das coordenadas</label>
-              <select id="coord_format">
-                <option value="decimal">Graus decimais (ex: -19.924501)</option>
-                <option value="gms">
-                  Graus, minutos e segundos (ex: 19°55'28.2"S)
-                </option>
-              </select>
+                <label style="margin-top: 12px">Formato das coordenadas</label>
+                <select id="coord_format">
+                  <option value="decimal">
+                    Graus decimais (ex: -19.924501)
+                  </option>
+                  <option value="gms">
+                    Graus, minutos e segundos (ex: 19°55'28.2"S)
+                  </option>
+                </select>
 
-              <label style="margin-top: 12px">Latitude</label>
-              <input id="lat_input" type="text" placeholder="-19.924501" />
-              <span class="muted-note" id="lat_hint"
-                >Formato decimal: -90 a +90</span
-              >
+                <label style="margin-top: 12px">Latitude</label>
+                <input id="lat_input" type="text" placeholder="-19.924501" />
+                <span class="muted-note" id="lat_hint"
+                  >Formato decimal: -90 a +90</span
+                >
 
-              <label style="margin-top: 8px">Longitude</label>
-              <input id="lon_input" type="text" placeholder="-43.935238" />
-              <span class="muted-note" id="lon_hint"
-                >Formato decimal: -180 a +180</span
-              >
+                <label style="margin-top: 8px">Longitude</label>
+                <input id="lon_input" type="text" placeholder="-43.935238" />
+                <span class="muted-note" id="lon_hint"
+                  >Formato decimal: -180 a +180</span
+                >
 
-              <script>
-                function normalizarEntrada(id) {
-                  const campo = document.getElementById(id);
-                  campo.addEventListener("input", () => {
-                    campo.value = campo.value.replace(",", ".");
-                  });
-                }
+                <script>
+                  function normalizarEntrada(id) {
+                    const campo = document.getElementById(id);
+                    campo.addEventListener("input", () => {
+                      campo.value = campo.value.replace(",", ".");
+                    });
+                  }
 
-                normalizarEntrada("lat_input");
-                normalizarEntrada("lon_input");
-              </script>
+                  normalizarEntrada("lat_input");
+                  normalizarEntrada("lon_input");
+                </script>
 
-              <label style="margin-top: 12px">UTM (automático)</label>
-              <input
-                id="utm_output"
-                type="text"
-                readonly
-                placeholder="Preencha lat/long"
-                style="background: #f0f4f0; color: #333"
-              />
-              <span class="muted-note">Calculado automaticamente</span>
-            </div>
+                <label style="margin-top: 12px">UTM (automático)</label>
+                <input
+                  id="utm_output"
+                  type="text"
+                  readonly
+                  placeholder="Preencha lat/long"
+                  style="background: #f0f4f0; color: #333"
+                />
+                <span class="muted-note">Calculado automaticamente</span>
+              </div>
 
-            <!-- Coluna 2: extensão de rede -->
-            <div>
-              <div
-                style="
-                  padding: 12px;
-                  background: #f7fdf7;
-                  border-radius: 8px;
-                  border: 1px solid #c8e6c9;
-                  height: 100%;
-                  box-sizing: border-box;
-                "
-              >
+              <!-- Coluna 2: extensão de rede -->
+              <div>
                 <div
                   style="
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    margin-bottom: 10px;
+                    padding: 12px;
+                    background: #f7fdf7;
+                    border-radius: 8px;
+                    border: 1px solid #c8e6c9;
+                    height: 100%;
+                    box-sizing: border-box;
                   "
                 >
-                  <input
-                    type="checkbox"
-                    id="chk_extensao"
-                    style="width: 18px; height: 18px; cursor: pointer"
-                  />
-                  <label
-                    for="chk_extensao"
+                  <div
                     style="
-                      margin: 0;
-                      font-size: 14px;
-                      font-weight: 700;
-                      cursor: pointer;
-                      color: #1b5e20;
+                      display: flex;
+                      align-items: center;
+                      gap: 10px;
+                      margin-bottom: 10px;
                     "
                   >
-                    📏 Necessita extensão de rede
-                  </label>
-                </div>
-                <div id="extensao_fields" style="display: none">
-                  <label>Latitude da rede mais próxima</label>
-                  <input
-                    id="lat_rede"
-                    type="text"
-                    placeholder="Mesmo formato acima"
-                  />
+                    <input
+                      type="checkbox"
+                      id="chk_extensao"
+                      style="width: 18px; height: 18px; cursor: pointer"
+                    />
+                    <label
+                      for="chk_extensao"
+                      style="
+                        margin: 0;
+                        font-size: 14px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        color: #1b5e20;
+                      "
+                    >
+                      📏 Necessita extensão de rede
+                    </label>
+                  </div>
+                  <div id="extensao_fields" style="display: none">
+                    <label>Latitude da rede mais próxima</label>
+                    <input
+                      id="lat_rede"
+                      type="text"
+                      placeholder="Mesmo formato acima"
+                    />
 
-                  <label style="margin-top: 8px"
-                    >Longitude da rede mais próxima</label
-                  >
-                  <input
-                    id="lon_rede"
-                    type="text"
-                    placeholder="Mesmo formato acima"
-                  />
+                    <label style="margin-top: 8px"
+                      >Longitude da rede mais próxima</label
+                    >
+                    <input
+                      id="lon_rede"
+                      type="text"
+                      placeholder="Mesmo formato acima"
+                    />
 
-                  <script>
-                    function normalizarEntrada(id) {
-                      const campo = document.getElementById(id);
-                      campo.addEventListener("input", () => {
-                        campo.value = campo.value.replace(",", ".");
-                      });
-                    }
+                    <script>
+                      function normalizarEntrada(id) {
+                        const campo = document.getElementById(id);
+                        campo.addEventListener("input", () => {
+                          campo.value = campo.value.replace(",", ".");
+                        });
+                      }
 
-                    normalizarEntrada("lat_rede");
-                    normalizarEntrada("lon_rede");
-                  </script>
+                      normalizarEntrada("lat_rede");
+                      normalizarEntrada("lon_rede");
+                    </script>
 
-                  <label style="margin-top: 8px"
-                    >UTM da rede (automático)</label
-                  >
-                  <input
-                    id="utm_rede"
-                    type="text"
-                    readonly
-                    placeholder="Preencha lat/long da rede"
-                    style="background: #f0f4f0; color: #333"
-                  />
-                  <span class="muted-note">Calculado automaticamente</span>
+                    <label style="margin-top: 8px"
+                      >UTM da rede (automático)</label
+                    >
+                    <input
+                      id="utm_rede"
+                      type="text"
+                      readonly
+                      placeholder="Preencha lat/long da rede"
+                      style="background: #f0f4f0; color: #333"
+                    />
+                    <span class="muted-note">Calculado automaticamente</span>
 
-                  <label style="margin-top: 8px">Distância calculada</label>
-                  <input
-                    id="distancia_rede"
-                    type="text"
-                    readonly
-                    placeholder="—"
-                    style="background: #f0f4f0; color: #333; font-weight: 700"
-                  />
-                  <span class="muted-note"
-                    >Calculada automaticamente (metros)</span
-                  >
+                    <label style="margin-top: 8px">Distância calculada</label>
+                    <input
+                      id="distancia_rede"
+                      type="text"
+                      readonly
+                      placeholder="—"
+                      style="background: #f0f4f0; color: #333; font-weight: 700"
+                    />
+                    <span class="muted-note"
+                      >Calculada automaticamente (metros)</span
+                    >
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Consumidores: Residencial / Comercial / Industrial -->
+          <div class="card">
+            <h2>Novos Consumidores</h2>
+            <div class="three-col">
+              <div>
+                <label>Qtd.</label>
+                <input id="qtd_geral" type="number" value="" min="-999" />
+              </div>
+              <div>
+                <label>Disjuntor Geral</label>
+                <select id="disj_geral"></select>
+              </div>
+            </div>
+            <div class="three-col">
+              <div>
+                <h3 style="color: var(--black); margin: 10 0 8px">
+                  Residencial
+                </h3>
+                <div style="margin-top: 10px">
+                  <div class="row">
+                    <div>
+                      <label>Qtd.</label>
+                      <input
+                        class="qtd"
+                        id="res1"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <label>Disjuntor</label>
+                      <select id="dres1"></select>
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top: 2px">
+                    <div>
+                      <input
+                        class="qtd"
+                        id="res2"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <select id="dres2"></select>
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top: 2px">
+                    <div>
+                      <input
+                        class="qtd"
+                        id="res3"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <select id="dres3"></select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 style="color: var(--black); margin: 10 0 8px">Comercial</h3>
+                <div style="margin-top: 10px">
+                  <div class="row">
+                    <div>
+                      <label>Qtd.</label>
+                      <input
+                        class="qtd"
+                        id="com1"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <label>Disjuntor</label>
+                      <select id="dcom1"></select>
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top: 2px">
+                    <div>
+                      <input
+                        class="qtd"
+                        id="com2"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <select id="dcom2"></select>
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top: 2px">
+                    <div>
+                      <input
+                        class="qtd"
+                        id="com3"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <select id="dcom3"></select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 style="color: var(--black); margin: 10 0 8px">
+                  Industrial
+                </h3>
+                <div style="margin-top: 10px">
+                  <div class="row">
+                    <div>
+                      <label>Qtd.</label>
+                      <input
+                        class="qtd"
+                        id="ind1"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <label>Disjuntor</label>
+                      <select id="dind1"></select>
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top: 2px">
+                    <div>
+                      <input
+                        class="qtd"
+                        id="ind2"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <select id="dind2"></select>
+                    </div>
+                  </div>
+
+                  <div class="row" style="margin-top: 2px">
+                    <div>
+                      <input
+                        class="qtd"
+                        id="ind3"
+                        type="number"
+                        value=""
+                        min="-999"
+                      />
+                    </div>
+                    <div class="dq">
+                      <select id="dind3"></select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ajustes e Botões removidos daqui -->
+
+          <footer>Simulador de Carga CEMIG - PE/EM</footer>
+        </div>
+
+        <!-- Gráfico e resumo — coluna lateral do page-layout -->
+        <div class="sidebar">
+          <div class="card">
+            <h2>Resultado</h2>
+            <div
+              id="msg"
+              class="result"
+              style="margin-top: 14px; margin-bottom: 20px"
+            ></div>
+            <div>
+              <canvas id="chart" height="230"></canvas>
             </div>
           </div>
         </div>
-
-        <!-- Consumidores: Residencial / Comercial / Industrial -->
-        <div class="card">
-          <h2>Novos Consumidores</h2>
-          <div class="three-col">
-            <div>
-              <label>Qtd.</label>
-              <input id="qtd_geral" type="number" value="" min="-999" />
-            </div>
-            <div>
-              <label>Disjuntor Geral</label>
-              <select id="disj_geral"></select>
-            </div>
-          </div>
-          <div class="three-col">
-            <div>
-              <h3 style="color: var(--black); margin: 10 0 8px">Residencial</h3>
-              <div style="margin-top: 10px">
-                <div class="row">
-                  <div>
-                    <label>Qtd.</label>
-                    <input
-                      class="qtd"
-                      id="res1"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <label>Disjuntor</label>
-                    <select id="dres1"></select>
-                  </div>
-                </div>
-
-                <div class="row" style="margin-top: 2px">
-                  <div>
-                    <input
-                      class="qtd"
-                      id="res2"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <select id="dres2"></select>
-                  </div>
-                </div>
-
-                <div class="row" style="margin-top: 2px">
-                  <div>
-                    <input
-                      class="qtd"
-                      id="res3"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <select id="dres3"></select>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 style="color: var(--black); margin: 10 0 8px">Comercial</h3>
-              <div style="margin-top: 10px">
-                <div class="row">
-                  <div>
-                    <label>Qtd.</label>
-                    <input
-                      class="qtd"
-                      id="com1"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <label>Disjuntor</label>
-                    <select id="dcom1"></select>
-                  </div>
-                </div>
-
-                <div class="row" style="margin-top: 2px">
-                  <div>
-                    <input
-                      class="qtd"
-                      id="com2"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <select id="dcom2"></select>
-                  </div>
-                </div>
-
-                <div class="row" style="margin-top: 2px">
-                  <div>
-                    <input
-                      class="qtd"
-                      id="com3"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <select id="dcom3"></select>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 style="color: var(--black); margin: 10 0 8px">Industrial</h3>
-              <div style="margin-top: 10px">
-                <div class="row">
-                  <div>
-                    <label>Qtd.</label>
-                    <input
-                      class="qtd"
-                      id="ind1"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <label>Disjuntor</label>
-                    <select id="dind1"></select>
-                  </div>
-                </div>
-
-                <div class="row" style="margin-top: 2px">
-                  <div>
-                    <input
-                      class="qtd"
-                      id="ind2"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <select id="dind2"></select>
-                  </div>
-                </div>
-
-                <div class="row" style="margin-top: 2px">
-                  <div>
-                    <input
-                      class="qtd"
-                      id="ind3"
-                      type="number"
-                      value=""
-                      min="-999"
-                    />
-                  </div>
-                  <div class="dq">
-                    <select id="dind3"></select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Ajustes e Botões removidos daqui -->
-
-        <footer>Simulador de Carga CEMIG - PE/EM</footer>
       </div>
+    </div>
 
-      <!-- Gráfico e resumo — coluna lateral do page-layout -->
-      <div class="sidebar">
+    <!-- Aba Análise Ambiental: mapa Leaflet + consulta de restrição
+         (IDE-Sisema / Reserva Legal do CAR / APPs hídricas). A legenda
+         (.mapa-legenda) é inserida logo após o mapa pelo geo.js. -->
+    <div id="aba-ambiental" class="aba-painel">
+      <div class="wrap-amb">
         <div class="card">
-          <h2>Resultado</h2>
-          <div
-            id="msg"
-            class="result"
-            style="margin-top: 14px; margin-bottom: 20px"
-          ></div>
-          <div>
-            <canvas id="chart" height="230"></canvas>
+          <h2>Análise Ambiental</h2>
+          <!-- Coordenadas da consulta: lat/long (decimal ou GMS) OU UTM.
+               Sincronizadas em duas vias com o pino do mapa e com os campos
+               do card "Local de atendimento" da aba Simulador. -->
+          <div class="amb-coords">
+            <div>
+              <label>Latitude</label>
+              <input id="amb_lat" type="text" placeholder="-19.924501" />
+              <span class="muted-note">Decimal ou GMS (19°55'28.2"S)</span>
+            </div>
+            <div>
+              <label>Longitude</label>
+              <input id="amb_lon" type="text" placeholder="-43.935238" />
+              <span class="muted-note">Decimal ou GMS (43°56'6.9"W)</span>
+            </div>
+            <div>
+              <label>UTM (zona easting northing)</label>
+              <input
+                id="amb_utm"
+                type="text"
+                placeholder="23K 611111 7795555"
+              />
+              <span class="muted-note"
+                >Hemisfério Sul (MG) — preenchido automaticamente a partir de
+                lat/long</span
+              >
+            </div>
           </div>
+          <div class="mapa-toolbar">
+            <button id="btnConsultarAmb" type="button">
+              🌿 Consultar restrição ambiental
+            </button>
+            <span id="ambStatus" class="mapa-status"></span>
+          </div>
+          <div id="mapAmbiental" class="mapa-canvas"></div>
+          <div id="ambResultado"></div>
         </div>
       </div>
     </div>
@@ -2617,6 +2930,8 @@
         const resumo = document.getElementById("resumo_texto");
         if (resumo) resumo.innerText = "Resultado aparecerá aqui.";
         if (chart) chart.destroy();
+        // Limpa também a aba Análise Ambiental (pino, contornos, resultado)
+        if (window.limparAmbiental) window.limparAmbiental();
         atualizarBtnCalc();
       });
 
@@ -3223,5 +3538,12 @@
           .replace(/>/g, "&gt;");
       }
     </script>
+
+    <!-- Aba Análise Ambiental: consultas WFS (geo.js), núcleo/abas
+         (core.js) e mapa Leaflet (map.js). Carregados após o script
+         principal porque o map.js usa parseDMSCoordinate/validarLatLon. -->
+    <script src="geo.js"></script>
+    <script src="core.js"></script>
+    <script src="map.js"></script>
   </body>
 </html>
