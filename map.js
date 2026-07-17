@@ -169,8 +169,9 @@ function utmStringParaLatLon(str) {
 function initMapaAmbiental() {
   const div = document.getElementById("mapAmbiental");
   if (!div || !window.L || mapaAmb) return;
-  // Enquadramento inicial: Minas Gerais inteira.
-  mapaAmb = window.L.map(div).setView([-18.5, -44.6], 6);
+  // Enquadramento inicial: Praça Sete de Setembro (Pça 7), centro de Belo
+  // Horizonte — marco zero da cidade (Av. Afonso Pena × Av. Amazonas).
+  mapaAmb = window.L.map(div).setView([-19.9191, -43.9387], 15);
   // Camadas base alternáveis: Satélite (Esri World Imagery — mesma fonte
   // usada pelo Sisema; sem subdomínio {s} e eixos {z}/{y}/{x}) e Ruas (OSM).
   const ruas = window.L.tileLayer(
