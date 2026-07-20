@@ -801,8 +801,12 @@ footer {
 
 .mapa-legenda-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--cmg-space-2);
+  /* Cada item pode ocupar a linha inteira e quebrar o rótulo internamente
+     em vez de estourar o container quando há muitas restrições. */
+  min-width: 0;
+  max-width: 100%;
 }
 
 .mapa-legenda-cor {
@@ -810,6 +814,8 @@ footer {
   width: 16px;
   height: 16px;
   border-radius: 2px;
+  /* Alinha o quadradinho com a primeira linha do rótulo (line-height 22px). */
+  margin-top: 3px;
 }
 
 /* Rótulo da restrição — spec Figma corpo/médio: 14/22 regular,
@@ -821,6 +827,10 @@ footer {
   line-height: 22px;
   letter-spacing: 0.25px;
   color: var(--cmg-text-muted);
+  /* Deixa o rótulo quebrar em várias linhas (nomes longos de UC/reserva)
+     sem empurrar o layout nem cortar o texto. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* ============================================================
