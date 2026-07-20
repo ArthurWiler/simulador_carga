@@ -178,14 +178,13 @@ function initMapaAmbiental() {
   // usada pelo Sisema; sem subdomínio {s} e eixos {z}/{y}/{x}) e Ruas (OSM).
   const ruas = window.L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    { maxZoom: 15, attribution: "© OpenStreetMap" },
+    { maxZoom: 18, attribution: "© OpenStreetMap" },
   );
   const satelite = window.L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
-      maxZoom: 15,
-      attribution:
-        "Tiles © Esri — Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+      maxZoom: 18,
+      attribution: "Esri",
     },
   );
   satelite.addTo(mapaAmb);
