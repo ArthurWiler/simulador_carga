@@ -507,19 +507,19 @@ function atualizarLegendaRestricoes(map, res) {
   if (!areas.length) return;
   const div = document.createElement("div");
   div.className = "mapa-legenda";
+  // Texto corrido: cada área com seu quadradinho de cor inline (mantém a
+  // correspondência com o contorno no mapa), separadas por "; ".
   div.innerHTML = areas
     .map((a) => {
       // Rótulo: nome da área quando existe (distingue 2 UCs na mesma camada);
       // senão, o rótulo da camada.
       const texto = a.nome ? `${a.rotulo}: ${a.nome}` : a.rotulo;
       return (
-        `<span class="mapa-legenda-item">` +
         `<span class="mapa-legenda-cor" style="background:${a.cor}"></span>` +
-        `<span class="mapa-legenda-rotulo">${_escHtml(texto)}</span>` +
-        `</span>`
+        `<span class="mapa-legenda-rotulo">${_escHtml(texto)}</span>`
       );
     })
-    .join("");
+    .join(`<span class="mapa-legenda-sep">; </span>`);
   cont.insertAdjacentElement("afterend", div);
 }
 function desenharRestricoesNoMapa(L, map, res) {

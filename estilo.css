@@ -790,32 +790,22 @@ footer {
   color: var(--cmg-text);
 }
 
-/* Legenda do mapa — inserida pelo geo.js após .mapa-canvas */
+/* Legenda do mapa — inserida pelo geo.js após .mapa-canvas.
+   Texto corrido: as áreas fluem numa única frase (com quebra natural de
+   linha), cada uma precedida do seu quadradinho de cor e separadas por "; ". */
 .mapa-legenda {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--cmg-space-2) var(--cmg-space-4);
   margin-top: var(--cmg-space-2);
+  line-height: 22px;
 }
 
-.mapa-legenda-item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--cmg-space-2);
-  /* Cada item pode ocupar a linha inteira e quebrar o rótulo internamente
-     em vez de estourar o container quando há muitas restrições. */
-  min-width: 0;
-  max-width: 100%;
-}
-
+/* Quadradinho de cor inline, alinhado ao texto do rótulo. */
 .mapa-legenda-cor {
-  flex: none;
-  width: 16px;
-  height: 16px;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
   border-radius: 2px;
-  /* Alinha o quadradinho com a primeira linha do rótulo (line-height 22px). */
-  margin-top: 3px;
+  margin-right: var(--cmg-space-2);
+  vertical-align: -1px;
 }
 
 /* Rótulo da restrição — spec Figma corpo/médio: 14/22 regular,
@@ -824,13 +814,16 @@ footer {
   font-family: var(--cmg-font-family);
   font-weight: var(--cmg-fw-regular);
   font-size: var(--cmg-fs-body);
-  line-height: 22px;
   letter-spacing: 0.25px;
   color: var(--cmg-text-muted);
-  /* Deixa o rótulo quebrar em várias linhas (nomes longos de UC/reserva)
-     sem empurrar o layout nem cortar o texto. */
-  min-width: 0;
   overflow-wrap: anywhere;
+}
+
+/* Separador entre áreas ("; ") — mesma cor/estilo do texto do rótulo. */
+.mapa-legenda-sep {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  color: var(--cmg-text-muted);
 }
 
 /* ============================================================
