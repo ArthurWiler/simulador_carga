@@ -267,18 +267,14 @@ body {
 /* ===== Layout geral ===== */
 .wrap {
   max-width: 1100px;
-  margin: 20px auto;
+  margin: 8px auto;
   padding: 18px;
 }
 
+/* Coluna única centralizada — mesmo estilo/largura da aba Ambiental
+   (.wrap-amb). A sidebar ficou vazia após mover o bloco Resultado. */
 .page-layout {
-  display: grid;
-  grid-template-columns: 1fr 600px;
-  gap: 5px;
-  align-items: start;
-  padding-top: 22px;
-  padding-left: 100px;
-  padding-right: 15px;
+  display: block;
 }
 
 .card {
@@ -316,11 +312,9 @@ p.lead {
   align-items: start;
 }
 
+/* Sidebar esvaziada após mover o bloco Resultado — não reserva espaço. */
 .sidebar {
-  position: sticky;
-  top: 74px; /* libera o header fixo (64px) */
-  align-self: start;
-  height: fit-content;
+  display: none;
 }
 
 /* ===== Linha Qtd | Disjuntor | remover =====

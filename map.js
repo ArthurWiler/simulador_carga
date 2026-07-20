@@ -59,7 +59,8 @@ function _lerParCoordenada(idLat, idLon) {
   }
 }
 // Coordenada digitada no simulador (Local de atendimento).
-const lerCoordenadaFormulario = () => _lerParCoordenada("lat_input", "lon_input");
+const lerCoordenadaFormulario = () =>
+  _lerParCoordenada("lat_input", "lon_input");
 // Coordenada digitada na própria aba ambiental.
 const lerCoordenadaAmb = () => _lerParCoordenada("amb_lat", "amb_lon");
 
@@ -137,8 +138,7 @@ function utmParaLatLon(zona, easting, northing, sul) {
     lon0 +
     (D -
       ((1 + 2 * T1 + C1) * D ** 3) / 6 +
-      ((5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * ep2 + 24 * T1 * T1) *
-        D ** 5) /
+      ((5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * ep2 + 24 * T1 * T1) * D ** 5) /
         120) /
       cos1;
   return { lat: (lat * 180) / Math.PI, lng: (lon * 180) / Math.PI };
@@ -178,20 +178,18 @@ function initMapaAmbiental() {
   // usada pelo Sisema; sem subdomínio {s} e eixos {z}/{y}/{x}) e Ruas (OSM).
   const ruas = window.L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    { maxZoom: 19, attribution: "© OpenStreetMap" },
+    { maxZoom: 15, attribution: "© OpenStreetMap" },
   );
   const satelite = window.L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
-      maxZoom: 19,
+      maxZoom: 15,
       attribution:
         "Tiles © Esri — Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
     },
   );
   satelite.addTo(mapaAmb);
-  window.L.control
-    .layers({ Satélite: satelite, Ruas: ruas })
-    .addTo(mapaAmb);
+  window.L.control.layers({ Satélite: satelite, Ruas: ruas }).addTo(mapaAmb);
   mapaAmb.on("click", (e) => aplicarCoordDoMapa(e.latlng.lat, e.latlng.lng));
   setTimeout(() => mapaAmb.invalidateSize(), 200);
 }
@@ -331,7 +329,9 @@ async function consultarAmbiental(lat, lng) {
   const key = lat.toFixed(5) + "," + lng.toFixed(5);
   if (_ambLastKey === key) return;
   _ambLastKey = key;
-  _ambStatus("Consultando restrições… (várias camadas, pode levar alguns segundos)");
+  _ambStatus(
+    "Consultando restrições… (várias camadas, pode levar alguns segundos)",
+  );
   const box = document.getElementById("ambResultado");
   try {
     // Imóvel CAR (SICAR): consulta INFORMATIVA (fora do critério de restrição
@@ -360,9 +360,7 @@ async function consultarAmbiental(lat, lng) {
     if (box) box.innerHTML = _htmlResultadoAmb(lat, lng, res, car);
     const comErro = res.filter((r) => r.erro).length;
     _ambStatus(
-      comErro
-        ? `${comErro} camada(s) falharam — resultado parcial.`
-        : "",
+      comErro ? `${comErro} camada(s) falharam — resultado parcial.` : "",
       comErro > 0,
     );
   } catch (e) {
