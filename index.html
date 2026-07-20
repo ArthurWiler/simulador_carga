@@ -17,552 +17,49 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 
-    <style>
-      :root {
-        --cemig-blue: #008000;
-        --cemig-accent: #008000;
-        --black: #000000;
-        --muted: #000000;
-        --bg: #faf4fb;
-        --card: #ffffff;
-      }
-
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        font-family: "Segoe UI", Roboto, Arial, sans-serif;
-        font-size: 20px;
-        background: var(--bg);
-        color: #122028;
-      }
-
-      .header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 98%;
-        height: 50px;
-        /* aumente um pouco a altura */
-        background: linear-gradient(
-          90deg,
-          var(--cemig-blue),
-          var(--cemig-accent)
-        );
-        color: #fff;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        /* centraliza verticalmente */
-        justify-content: space-between;
-        padding: 0 22px;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-        z-index: 1000;
-      }
-
-      .header img {
-        max-height: 90%;
-        /* ocupa até 70% da altura do header */
-        height: auto;
-        /* mantém proporção */
-        width: auto;
-        /* mantém proporção */
-      }
-
-      .wrap {
-        max-width: 1100px;
-        margin: 20px auto;
-        padding: 18px;
-      }
-
-      .page-layout {
-        display: grid;
-        grid-template-columns: 1fr 600px;
-        gap: 5px;
-        align-items: start;
-        padding-top: 22px;
-        padding-left: 100px;
-        padding-right: 15px;
-      }
-
-      .card {
-        background: var(--card);
-        border-radius: 10px;
-        padding: 18px;
-        margin-bottom: 18px;
-        box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
-      }
-
-      h2 {
-        margin: 10 0 8px;
-        font-size: 18px;
-        color: var(--black);
-      }
-
-      p.lead {
-        margin: 0;
-        color: var(--muted);
-        font-size: 13px;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 14px;
-        align-items: start;
-      }
-
-      .sidebar {
-        position: sticky;
-        top: 60px;
-        align-self: start;
-        height: fit-content;
-      }
-
-      /* Linha Qtd | Disjuntor (aparece como um row) */
-      .row {
-        display: grid;
-        grid-template-columns: 50px 160px;
-        /* Qtd. fixo, Disjuntor ocupa o restante */
-        gap: 8px;
-        align-items: center;
-      }
-
-      .row .qtd {
-        width: 50px;
-      }
-
-      .row .dq {
-        flex: 1;
-      }
-
-      label {
-        font-size: 13px;
-        color: #000000;
-        display: block;
-        margin-bottom: 6px;
-        font-weight: 600;
-      }
-
-      input[type="number"],
-      input[type="text"],
-      select,
-      textarea {
-        width: 100%;
-        padding: 8px;
-        border-radius: 8px;
-        border: 1px solid #000000;
-        background: #ffffff;
-        font-size: 12px;
-        color: #000000;
-        box-sizing: border-box;
-      }
-
-      .small {
-        font-size: 12px;
-        color: var(--muted);
-        margin-top: 6px;
-      }
-
-      .actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 12px;
-        flex-wrap: wrap;
-      }
-
-      button {
-        background: var(--cemig-blue);
-        color: #fff;
-        padding: 10px 14px;
-        border-radius: 8px;
-        border: 0;
-        cursor: pointer;
-        font-weight: 700;
-        box-shadow: 0 6px 18px lab(33.8% 21.3 -58.01 / 0.12);
-      }
-
-      button.secondary {
-        background: var(--cemig-blue);
-        color: var(#fff);
-        box-shadow: none;
-        border: 1px solid var(--cemig-blue);
-      }
-
-      .result {
-        white-space: pre-line;
-        background: linear-gradient(180deg, #fff, #fff);
-        padding: 14px;
-        border-radius: 8px;
-        border: 1px solid #000000;
-        margin-top: 12px;
-        color: #000000;
-        font-size: 12px;
-      }
-
-      .two-col {
-        display: grid;
-        grid-template-columns: 1fr 700px;
-        gap: 18px;
-      }
-
-      canvas {
-        background: #fff;
-        border-radius: 8px;
-        padding: 8px;
-      }
-
-      .muted-note {
-        font-size: 12px;
-        color: var(--muted);
-        margin-top: 2px;
-      }
-
-      footer {
-        font-size: 12px;
-        color: var(--muted);
-        text-align: center;
-        padding: 12px 0;
-      }
-
-      #fixed-actions {
-        position: fixed;
-        top: 60px;
-        left: 18px;
-        z-index: 1100;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      #fixed-actions button {
-        width: 80px;
-        padding: 10px 14px;
-        font-size: 13px;
-      }
-
-      #fixed-actions button:disabled {
-        background: #a0bfa0;
-        cursor: not-allowed;
-        box-shadow: none;
-        opacity: 0.65;
-      }
-
-      @media (max-width: 900px) {
-        .two-col {
-          grid-template-columns: 1fr;
-        }
-
-        .grid {
-          grid-template-columns: 1fr;
-        }
-
-        .row .qtd {
-          width: 50px;
-        }
-      }
-
-      .three-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        /* três colunas */
-        gap: 18px;
-      }
-
-      /* Layout 2 colunas para formulários (Local de atend. / Dados do Trafo) */
-      .form-two-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-        align-items: start;
-      }
-
-      @media (max-width: 900px) {
-        .form-two-col {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 1200px) {
-        .three-col {
-          grid-template-columns: 1fr 1fr;
-          /* duas colunas em telas médias */
-        }
-      }
-
-      @media (max-width: 900px) {
-        .three-col {
-          grid-template-columns: 1fr;
-          /* uma coluna em telas pequenas */
-        }
-      }
-
-      /* ============================================================
-         CEMIG — Design Tokens (subset --cmg-* usado pela aba
-         Análise Ambiental; a paleta legada do outro projeto foi
-         omitida para não colidir com o --bg deste simulador)
-         ============================================================ */
-      :root {
-        /* ---- Brand / institutional greens ---- */
-        --cmg-green-600: #0f6c58;
-        --cmg-green-500: #107761;
-        --cmg-green-50: #e7f1ef;
-
-        /* ---- Neutrals (CEMIG scale) ---- */
-        --cmg-neutral-0: #ffffff;
-        --cmg-neutral-50: #f4f5f4;
-        --cmg-neutral-100: #e6e9e8;
-        --cmg-neutral-200: #d1d4d3;
-        --cmg-neutral-300: #b1b9b7;
-        --cmg-neutral-400: #8c9895;
-        --cmg-neutral-500: #576864;
-        --cmg-neutral-600: #364b46;
-        --cmg-neutral-700: #041e18;
-
-        /* ---- Feedback / status ---- */
-        --cmg-warning-500: #ffc107;
-        --cmg-danger-500: #c0392b;
-        --cmg-error-500: #c8303f;
-
-        /* ---- Typography ---- */
-        --cmg-font-family:
-          "Open Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
-        --cmg-fs-body-lg: 16px;
-        --cmg-lh-body-lg: 26px;
-        --cmg-fs-body: 14px;
-        --cmg-fw-regular: 400;
-        --cmg-fw-bold: 700;
-
-        /* ---- Spacing scale (4px grid) ---- */
-        --cmg-space-1: 4px;
-        --cmg-space-2: 8px;
-        --cmg-space-3: 12px;
-        --cmg-space-4: 16px;
-        --cmg-space-6: 24px;
-      }
-
-      /* ===== Abas (Simulador | Análise Ambiental) ===== */
-      .abas {
-        display: flex;
-        gap: 4px;
-        margin: 58px 22px 0 120px; /* limpa o header fixo e os botões fixos */
-        border-bottom: 1px solid var(--cmg-neutral-200);
-      }
-      .abas .aba-btn {
-        background: none;
-        border: 0;
-        border-bottom: 3px solid transparent;
-        border-radius: 0;
-        box-shadow: none;
-        color: var(--cmg-neutral-500);
-        font-weight: 700;
-        font-size: 14px;
-        padding: 10px 16px;
-        cursor: pointer;
-      }
-      .abas .aba-btn.on {
-        color: var(--cemig-blue);
-        border-bottom-color: var(--cemig-blue);
-      }
-      .aba-painel {
-        display: none;
-      }
-      .aba-painel.show {
-        display: block;
-      }
-
-      /* ===== Aba Análise Ambiental ===== */
-      #aba-ambiental .wrap-amb {
-        max-width: 1100px;
-        margin: 8px auto;
-        padding: 18px;
-      }
-      .amb-coords {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1.6fr;
-        gap: 14px;
-        margin-bottom: 10px;
-      }
-      @media (max-width: 900px) {
-        .amb-coords {
-          grid-template-columns: 1fr;
-        }
-      }
-      .mapa-toolbar {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 10px 0;
-        flex-wrap: wrap;
-      }
-      .mapa-status {
-        font-size: 13px;
-        color: var(--cmg-neutral-500);
-      }
-      .mapa-status.err {
-        color: var(--cmg-danger-500);
-      }
-      .mapa-canvas {
-        height: 480px;
-        border-radius: 8px;
-        border: 1px solid var(--cmg-neutral-200);
-      }
-      .mapa-hint {
-        display: block;
-        margin: 0 0 var(--cmg-space-2);
-        font-family: var(--cmg-font-family);
-        font-weight: var(--cmg-fw-regular);
-        font-size: var(--cmg-fs-body-lg);
-        line-height: var(--cmg-lh-body-lg);
-        letter-spacing: 0.2px;
-        color: var(--cmg-neutral-600);
-      }
-      .mapa-legenda {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--cmg-space-2) var(--cmg-space-4);
-        margin-top: var(--cmg-space-2);
-      }
-      .mapa-legenda-item {
-        display: flex;
-        align-items: center;
-        gap: var(--cmg-space-2);
-      }
-      .mapa-legenda-cor {
-        flex: none;
-        width: 16px;
-        height: 16px;
-        border-radius: 2px;
-      }
-      /* Rótulo da restrição — spec Figma corpo/médio: 14/22 regular,
-         letter-spacing 0.25px, neutra/500. */
-      .mapa-legenda-rotulo {
-        font-family: var(--cmg-font-family);
-        font-weight: var(--cmg-fw-regular);
-        font-size: var(--cmg-fs-body);
-        line-height: 22px;
-        letter-spacing: 0.25px;
-        color: var(--cmg-neutral-500);
-      }
-
-      /* ===== Banner de aviso (alertHTML do core.js) ===== */
-      .cmg-aviso {
-        display: flex;
-        align-items: flex-start;
-        gap: var(--cmg-space-3);
-        margin: var(--cmg-space-4) 0;
-        padding: var(--cmg-space-3) var(--cmg-space-4);
-        border: 1px solid var(--cmg-neutral-200);
-        border-left: 4px solid var(--cmg-green-500);
-        border-radius: 8px;
-        background: var(--cmg-neutral-0);
-      }
-      .cmg-aviso--warn {
-        border-left-color: var(--cmg-warning-500);
-        background: #fffaf0;
-      }
-      .cmg-aviso-icon::before {
-        content: "✓";
-        color: var(--cmg-green-500);
-        font-size: 16px;
-        font-weight: 700;
-      }
-      .cmg-aviso--warn .cmg-aviso-icon::before {
-        content: "⚠";
-        color: #9a6b00;
-      }
-      .cmg-aviso-texto {
-        margin: 0;
-        font-size: var(--cmg-fs-body);
-        line-height: 22px;
-        color: var(--cmg-neutral-600);
-        font-weight: 400;
-      }
-
-      /* ===== Documentos exigidos (restricaoDocsHTML do geo.js) ===== */
-      .restricao-docs {
-        margin: var(--cmg-space-3) 0;
-        padding: var(--cmg-space-3) var(--cmg-space-4);
-        border: 1px solid var(--cmg-neutral-200);
-        border-radius: 8px;
-        background: var(--cmg-neutral-50);
-        font-size: var(--cmg-fs-body);
-        color: var(--cmg-neutral-600);
-      }
-      .restricao-docs-intro {
-        margin: 0 0 var(--cmg-space-2);
-        font-weight: 700;
-      }
-      .restricao-docs-lista {
-        margin: 0 0 var(--cmg-space-2);
-        padding-left: 20px;
-      }
-      .restricao-docs-lista li {
-        margin-bottom: var(--cmg-space-1);
-        line-height: 20px;
-      }
-      .restricao-docs-nota {
-        margin: var(--cmg-space-2) 0 0;
-        font-size: 12px;
-        color: var(--cmg-neutral-500);
-      }
-
-      /* ===== Chips de camadas ===== */
-      .restricao-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--cmg-space-2);
-        margin-top: var(--cmg-space-3);
-      }
-      .chip {
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        border: 1px solid var(--cmg-neutral-200);
-        background: var(--cmg-neutral-0);
-        color: var(--cmg-neutral-500);
-      }
-      .chip-on {
-        border-color: var(--cmg-warning-500);
-        background: #fff6e0;
-        color: #9a6b00;
-        font-weight: 700;
-      }
-      .chip-err {
-        border-color: #f0b9b3;
-        background: #fdecea;
-        color: var(--cmg-danger-500);
-      }
-    </style>
+    <!-- Estilo único do app — design system oficial CEMIG (tokens --cmg-*)
+         com temas claro/escuro. Ver estilo.css. -->
+    <link rel="stylesheet" href="estilo.css" />
+    <!-- Boot do tema ANTES do primeiro paint (evita flash): aplica a
+         escolha salva em localStorage; sem escolha, vale o tema do SO
+         (prefers-color-scheme, tratado no CSS). -->
+    <script>
+      (function () {
+        try {
+          const t = localStorage.getItem("tema");
+          if (t === "dark" || t === "light")
+            document.documentElement.dataset.theme = t;
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>
     <div class="header">
-      Simulador de Carga v1.0.3
-      <img src="logo.png" alt="Logo" />
+      Simulador de Carga v2.0.1
+      <div class="header-right">
+        <!-- Alterna claro/escuro (core.js); ícone reflete o tema ATIVO -->
+        <button id="btnTheme" class="theme-toggle" title="Alternar tema">
+          🌙
+        </button>
+        <img src="logo.png" alt="Logo" />
+      </div>
     </div>
-    <!-- Botões fixos no canto superior esquerdo -->
+    <!-- Coluna FIXA no canto superior esquerdo: abas (Simulador | Análise
+         Ambiental) empilhadas acima do Limpar. O cálculo é AUTOMÁTICO:
+         dispara a cada alteração assim que Zona/Município/Transformador
+         estão preenchidos (podeCalcular()) — não há botão Calcular. -->
     <div id="fixed-actions">
-      <button
-        id="btnCalc"
-        disabled
-        title="Preencha a Zona e o Município para calcular"
-      >
-        Calcular
-      </button>
+      <nav aria-label="Abas" class="abas-fixas">
+        <button type="button" class="aba-btn on" data-aba="simulador">
+          Simulador
+        </button>
+        <button type="button" class="aba-btn" data-aba="ambiental">
+          Análise Ambiental
+        </button>
+      </nav>
       <button id="btnReset" class="secondary">Limpar</button>
     </div>
-
-    <!-- Abas: Simulador (fluxo original) | Análise Ambiental (mapa + WFS) -->
-    <nav class="abas" aria-label="Abas">
-      <button type="button" class="aba-btn on" data-aba="simulador">
-        Simulador
-      </button>
-      <button type="button" class="aba-btn" data-aba="ambiental">
-        Análise Ambiental
-      </button>
-    </nav>
 
     <div id="aba-simulador" class="aba-painel show">
       <div class="page-layout">
@@ -570,70 +67,24 @@
           <!-- Top - Transformador / Meta -->
           <div class="card">
             <h2>Dados do Transformador</h2>
-            <div class="form-two-col" style="margin-top: 8px">
-              <!-- Coluna 1: identificação + demandas -->
+            <!-- Transformador | Tipo | Queda lado a lado (three-col:
+                 vira 2 colunas <1200px e 1 coluna <900px) -->
+            <div class="three-col" style="margin-top: 8px">
               <div>
                 <label>Transformador</label>
                 <input id="trafo" type="text" placeholder="Ex: 18759-3-45" />
-                <label style="margin-top: 16px">Demanda residencial</label>
-                <input
-                  id="demanda_residencial"
-                  type="number"
-                  value=""
-                  step="0.01"
-                />
-                <label>Demanda comercial</label>
-                <input
-                  id="demanda_comercial"
-                  type="number"
-                  value=""
-                  step="0.01"
-                />
-                <label>Demanda industrial</label>
-                <input
-                  id="demanda_industrial"
-                  type="number"
-                  value=""
-                  step="0.01"
-                />
-                <label>Demanda rural</label>
-                <input id="demanda_rural" type="number" value="" step="0.01" />
-                <label>Demanda outros</label>
-                <input id="demanda_outros" type="number" value="" step="0.01" />
-                <label>Demanda Iluminação Pública</label>
-                <input
-                  id="demanda_iluminação"
-                  type="number"
-                  value=""
-                  step="0.01"
-                />
               </div>
 
-              <!-- Coluna 2: potência + consumidores + tipo + queda -->
               <div>
-                <label>Potência do transformador (kVA)</label>
-                <input id="pottr" type="number" value="" step="1" readonly />
-
-                <label style="margin-top: 16px"
-                  >Consumidores residenciais</label
-                >
-                <input id="uc_residencial" type="number" value="" />
-                <label>Consumidores comerciais</label>
-                <input id="uc_comercial" type="number" value="" />
-                <label>Consumidores industriais</label>
-                <input id="uc_industrial" type="number" value="" />
-                <label>Consumidores rurais</label>
-                <input id="uc_rural" type="number" value="" />
-                <label>Consumidores outros</label>
-                <input id="uc_outros" type="number" value="" />
-
                 <label>Tipo de Transformador</label>
                 <select id="tipo_TRF">
                   <option value="">Convencional</option>
                   <option value="1">Autoprotegido</option>
                 </select>
+              </div>
 
-                <label style="margin-top: 14px">Queda de tensão (%)</label>
+              <div>
+                <label>Queda de tensão (%)</label>
                 <input
                   id="queda_tensao"
                   type="number"
@@ -643,26 +94,229 @@
                   placeholder="Ex: 4.5"
                 />
               </div>
+
+              <!-- Zona e Município moram AQUI (gate do cálculo automático:
+                   podeCalcular exige Zona+Município+Transformador — juntos,
+                   o resultado aparece sem rolar até o fim da página). O card
+                   "Local de atendimento" fica só com coordenadas/extensão. -->
+              <div>
+                <label>Zona</label>
+                <select id="zona">
+                  <!-- opção vazia: sem pré-preenchimento — o gate
+                       (podeCalcular) só libera com a zona escolhida -->
+                  <option value=""></option>
+                  <option value="urbana">Área Urbana</option>
+                  <option value="rural">Área Rural</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Município</label>
+                <!-- Combobox com BUSCA: digite para filtrar (sem acentos/
+                     maiúsculas — normalizeStr). A lista (combo-lista) é
+                     montada por initComboMunicipio(); o gate (podeCalcular)
+                     só aceita município que exista na lista. -->
+                <div class="combo-municipio">
+                  <input
+                    id="municipio"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Digite para pesquisar…"
+                  />
+                  <div id="municipio_lista" class="combo-lista" hidden></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Potência (kVA): derivada automaticamente da 3ª parte do
+                 código do transformador. OCULTA para o usuário, mas o campo
+                 permanece no DOM — calcular() e plotCurve() leem #pottr
+                 normalmente. -->
+            <div hidden>
+              <label>Potência do transformador (kVA)</label>
+              <input id="pottr" type="number" value="" step="1" readonly />
+            </div>
+
+            <!-- Demandas e consumidores POR CLASSE em tabela (mesmos ids
+                 dos antigos campos soltos — o cálculo não muda). A linha
+                 Total é informativa, atualizada por atualizarTotaisClasses().
+                 Iluminação Pública não tem contagem de consumidores (—). -->
+            <div class="tabela-classes-wrap">
+              <table class="tabela-classes">
+                <thead>
+                  <tr>
+                    <th>Classe</th>
+                    <th>Demanda (kVA)</th>
+                    <th>Consumidores</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Residencial</td>
+                    <td>
+                      <input
+                        id="demanda_residencial"
+                        type="number"
+                        value=""
+                        step="0.01"
+                      />
+                    </td>
+                    <td>
+                      <input id="uc_residencial" type="number" value="" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Comercial</td>
+                    <td>
+                      <input
+                        id="demanda_comercial"
+                        type="number"
+                        value=""
+                        step="0.01"
+                      />
+                    </td>
+                    <td><input id="uc_comercial" type="number" value="" /></td>
+                  </tr>
+                  <tr>
+                    <td>Industrial</td>
+                    <td>
+                      <input
+                        id="demanda_industrial"
+                        type="number"
+                        value=""
+                        step="0.01"
+                      />
+                    </td>
+                    <td><input id="uc_industrial" type="number" value="" /></td>
+                  </tr>
+                  <tr>
+                    <td>Rural</td>
+                    <td>
+                      <input
+                        id="demanda_rural"
+                        type="number"
+                        value=""
+                        step="0.01"
+                      />
+                    </td>
+                    <td><input id="uc_rural" type="number" value="" /></td>
+                  </tr>
+                  <tr>
+                    <td>Outros</td>
+                    <td>
+                      <input
+                        id="demanda_outros"
+                        type="number"
+                        value=""
+                        step="0.01"
+                      />
+                    </td>
+                    <td><input id="uc_outros" type="number" value="" /></td>
+                  </tr>
+                  <tr>
+                    <td>Iluminação Pública</td>
+                    <td>
+                      <input
+                        id="demanda_iluminação"
+                        type="number"
+                        value=""
+                        step="0.01"
+                      />
+                    </td>
+                    <td class="tabela-nd">—</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td>Total</td>
+                    <td id="demanda_total">0</td>
+                    <td id="uc_total">0</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Consumidores: Residencial / Comercial / Industrial -->
+          <div class="card">
+            <h2>Novos Consumidores</h2>
+            <!-- Disjuntores GERAIS também são linhas dinâmicas (rows_ger):
+                 começa com 1 e aceita N tipos, como res/com/ind. -->
+            <div class="three-col">
+              <div>
+                <h3>Disjuntor Geral</h3>
+                <div style="margin-top: 10px">
+                  <div class="row">
+                    <div><label>Qtd.</label></div>
+                    <div class="dq"><label>Disjuntor</label></div>
+                    <div></div>
+                  </div>
+                  <div id="rows_ger"></div>
+                  <button type="button" class="add-disj" data-tipo="ger">
+                    + Adicionar disjuntor
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="three-col">
+              <!-- Linhas de disjuntor DINÂMICAS por tipo (rows_res/com/ind):
+                   o cabeçalho (Qtd. | Disjuntor) é fixo; as linhas são
+                   criadas por criarLinhaDisj() — começa com 3 e o botão
+                   "+ Adicionar disjuntor" acrescenta quantas precisar.
+                   O × remove a linha. Leitura em lerLinhasDisj(). -->
+              <div>
+                <h3>Residencial</h3>
+                <div style="margin-top: 10px">
+                  <div class="row">
+                    <div><label>Qtd.</label></div>
+                    <div class="dq"><label>Disjuntor</label></div>
+                    <div></div>
+                  </div>
+                  <div id="rows_res"></div>
+                  <button type="button" class="add-disj" data-tipo="res">
+                    + Adicionar disjuntor
+                  </button>
+                </div>
+              </div>
+              <div>
+                <h3>Comercial</h3>
+                <div style="margin-top: 10px">
+                  <div class="row">
+                    <div><label>Qtd.</label></div>
+                    <div class="dq"><label>Disjuntor</label></div>
+                    <div></div>
+                  </div>
+                  <div id="rows_com"></div>
+                  <button type="button" class="add-disj" data-tipo="com">
+                    + Adicionar disjuntor
+                  </button>
+                </div>
+              </div>
+              <div>
+                <h3>Industrial</h3>
+                <div style="margin-top: 10px">
+                  <div class="row">
+                    <div><label>Qtd.</label></div>
+                    <div class="dq"><label>Disjuntor</label></div>
+                    <div></div>
+                  </div>
+                  <div id="rows_ind"></div>
+                  <button type="button" class="add-disj" data-tipo="ind">
+                    + Adicionar disjuntor
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="card">
             <h2>Local de atendimento</h2>
+            <!-- Zona e Município subiram p/ o card "Dados do Transformador"
+                 (gate do cálculo). Aqui ficam coordenadas e extensão. -->
             <div class="form-two-col" style="margin-top: 8px">
-              <!-- Coluna 1: localização + coordenadas do ponto -->
+              <!-- Coluna 1: coordenadas do ponto -->
               <div>
-                <label>Zona</label>
-                <select id="zona">
-                  <option value="urbana">Área Urbana</option>
-                  <option value="rural">Área Rural</option>
-                </select>
-
-                <label style="margin-top: 12px">Município</label>
-                <select id="municipio">
-                  <option value=""></option>
-                </select>
-
-                <label style="margin-top: 12px">Formato das coordenadas</label>
+                <label>Formato das coordenadas</label>
                 <select id="coord_format">
                   <option value="decimal">
                     Graus decimais (ex: -19.924501)
@@ -702,46 +356,16 @@
                   type="text"
                   readonly
                   placeholder="Preencha lat/long"
-                  style="background: #f0f4f0; color: #333"
                 />
                 <span class="muted-note">Calculado automaticamente</span>
               </div>
 
               <!-- Coluna 2: extensão de rede -->
               <div>
-                <div
-                  style="
-                    padding: 12px;
-                    background: #f7fdf7;
-                    border-radius: 8px;
-                    border: 1px solid #c8e6c9;
-                    height: 100%;
-                    box-sizing: border-box;
-                  "
-                >
-                  <div
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: 10px;
-                      margin-bottom: 10px;
-                    "
-                  >
-                    <input
-                      type="checkbox"
-                      id="chk_extensao"
-                      style="width: 18px; height: 18px; cursor: pointer"
-                    />
-                    <label
-                      for="chk_extensao"
-                      style="
-                        margin: 0;
-                        font-size: 14px;
-                        font-weight: 700;
-                        cursor: pointer;
-                        color: #1b5e20;
-                      "
-                    >
+                <div class="box-extensao">
+                  <div class="box-extensao-head">
+                    <input type="checkbox" id="chk_extensao" />
+                    <label for="chk_extensao">
                       📏 Necessita extensão de rede
                     </label>
                   </div>
@@ -782,7 +406,6 @@
                       type="text"
                       readonly
                       placeholder="Preencha lat/long da rede"
-                      style="background: #f0f4f0; color: #333"
                     />
                     <span class="muted-note">Calculado automaticamente</span>
 
@@ -792,185 +415,11 @@
                       type="text"
                       readonly
                       placeholder="—"
-                      style="background: #f0f4f0; color: #333; font-weight: 700"
+                      style="font-weight: 700"
                     />
                     <span class="muted-note"
                       >Calculada automaticamente (metros)</span
                     >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Consumidores: Residencial / Comercial / Industrial -->
-          <div class="card">
-            <h2>Novos Consumidores</h2>
-            <div class="three-col">
-              <div>
-                <label>Qtd.</label>
-                <input id="qtd_geral" type="number" value="" min="-999" />
-              </div>
-              <div>
-                <label>Disjuntor Geral</label>
-                <select id="disj_geral"></select>
-              </div>
-            </div>
-            <div class="three-col">
-              <div>
-                <h3 style="color: var(--black); margin: 10 0 8px">
-                  Residencial
-                </h3>
-                <div style="margin-top: 10px">
-                  <div class="row">
-                    <div>
-                      <label>Qtd.</label>
-                      <input
-                        class="qtd"
-                        id="res1"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <label>Disjuntor</label>
-                      <select id="dres1"></select>
-                    </div>
-                  </div>
-
-                  <div class="row" style="margin-top: 2px">
-                    <div>
-                      <input
-                        class="qtd"
-                        id="res2"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <select id="dres2"></select>
-                    </div>
-                  </div>
-
-                  <div class="row" style="margin-top: 2px">
-                    <div>
-                      <input
-                        class="qtd"
-                        id="res3"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <select id="dres3"></select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 style="color: var(--black); margin: 10 0 8px">Comercial</h3>
-                <div style="margin-top: 10px">
-                  <div class="row">
-                    <div>
-                      <label>Qtd.</label>
-                      <input
-                        class="qtd"
-                        id="com1"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <label>Disjuntor</label>
-                      <select id="dcom1"></select>
-                    </div>
-                  </div>
-
-                  <div class="row" style="margin-top: 2px">
-                    <div>
-                      <input
-                        class="qtd"
-                        id="com2"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <select id="dcom2"></select>
-                    </div>
-                  </div>
-
-                  <div class="row" style="margin-top: 2px">
-                    <div>
-                      <input
-                        class="qtd"
-                        id="com3"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <select id="dcom3"></select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 style="color: var(--black); margin: 10 0 8px">
-                  Industrial
-                </h3>
-                <div style="margin-top: 10px">
-                  <div class="row">
-                    <div>
-                      <label>Qtd.</label>
-                      <input
-                        class="qtd"
-                        id="ind1"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <label>Disjuntor</label>
-                      <select id="dind1"></select>
-                    </div>
-                  </div>
-
-                  <div class="row" style="margin-top: 2px">
-                    <div>
-                      <input
-                        class="qtd"
-                        id="ind2"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <select id="dind2"></select>
-                    </div>
-                  </div>
-
-                  <div class="row" style="margin-top: 2px">
-                    <div>
-                      <input
-                        class="qtd"
-                        id="ind3"
-                        type="number"
-                        value=""
-                        min="-999"
-                      />
-                    </div>
-                    <div class="dq">
-                      <select id="dind3"></select>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1048,25 +497,15 @@
     <script>
       /* ======================= Dados (31 disjuntores, fatores, perfis) ======================= */
 
-      // Habilitar/desabilitar botão Calcular conforme zona e município
-      function atualizarBtnCalc() {
+      // Gate do cálculo automático (substitui o antigo botão Calcular):
+      // só calcula com Zona, Município e Transformador preenchidos.
+      function podeCalcular() {
         const zona = document.getElementById("zona").value;
         const municipio = document.getElementById("municipio").value;
         const trafo = document.getElementById("trafo").value;
-        const btn = document.getElementById("btnCalc");
-        const ok = zona && municipio && trafo;
-        btn.disabled = !ok;
-        btn.title = ok ? "" : "Preencha a Zona e o Município para calcular";
+        // município precisa EXISTIR na lista (combobox de busca digitada)
+        return Boolean(zona && trafo && municipioValido(municipio));
       }
-      document
-        .getElementById("zona")
-        .addEventListener("change", atualizarBtnCalc);
-      document
-        .getElementById("municipio")
-        .addEventListener("change", atualizarBtnCalc);
-      document
-        .getElementById("trafo")
-        .addEventListener("change", atualizarBtnCalc);
       const DISJUNTORES = [
         ["", 0, 0.0],
         ["A1/G1-MONO 40 A", 1, 5.0],
@@ -1957,12 +1396,25 @@
         "Volta Grande",
         "Wenceslau Braz",
       ];
-      const CIDADE_100_25 = [
+      /* ---- Tabela 1 do ED/PS "Limites para Liberação de Cargas" (rev. E,
+         23/04/2023). O documento define limites POR FASE (colunas MT/BT
+         TRIFÁSICA e MONOFÁSICA) e distingue SEDE municipal (área urbana da
+         sede) das DEMAIS ÁREAS. As listas abaixo espelham as linhas da
+         tabela; a resolução fica em verificarLimite(municipio, zona, fase).
+         ---- Linhas RURAIS com limite próprio: ---- */
+      // Oeste — "Itapecerica, Pedra do Indaiá, S.S. do Oeste - RURAL":
+      // 100 kW trifásica / 25 kVA monofásica. (Pedra do Indaiá e S.S. do
+      // Oeste também são SEDES 305 kW — a sede vale na zona urbana.)
+      const RURAL_TRI100_MONO25 = [
         "Itapecerica",
         "Pedra do Indaia",
         "Sao Sebastiao do Oeste",
       ];
-      const CIDADE_50_50 = [
+      // Norte — "Três Marias, Jequitaí e Pirapora - RURAL" (50 kVA) e
+      // Triângulo — "Pólo PARACATU (PTU) – RURAL / Guarda-Mor, Patos de
+      // Minas, Monte Carmelo - RURAL" (50 kW): coluna trifásica = 50.
+      // (Pirapora também é SEDE 305 kW — a sede vale na zona urbana.)
+      const RURAL_TRI50 = [
         "Tres Marias",
         "Jequitai",
         "Pirapora",
@@ -1985,7 +1437,8 @@
         "Uruana de Minas",
         "Urucuia",
       ];
-      const CIDADE_305_50 = [
+      // Sedes municipais listadas na Tabela 1: 305 kW trifásica NA SEDE.
+      const SEDES_305 = [
         "Belo Horizonte",
         "Contagem",
         "Ibirite",
@@ -2172,47 +1625,109 @@
       }
 
       /**
-       * verificarLimite — retorna o limite de kVA do município conforme zona.
-       * Prioridade: 100/25 > 50/50 > 305/50 > padrão 100/50
+       * verificarLimite — limite p/ liberação de carga pela Expansão sem
+       * análise do Planejamento (ED/PS Tabela 1, rev. E), por município,
+       * zona E FASE ("tri" = coluna MT/BT trifásica; "mono" = monofásica —
+       * disjuntores MONO e BI usam a coluna monofásica).
+       *   trifásica: sede listada (zona urbana) 305; demais áreas 100;
+       *              exceções RURAIS: Oeste-3 → 100; Norte-3 e Pólo
+       *              Paracatu/Triângulo → 50.
+       *   monofásica: 50 em geral; 25 nas 3 cidades do Oeste em área rural.
+       * Zona urbana de município NÃO listado = "demais áreas" (100).
        */
-      function verificarLimite(municipioNome, zona) {
+      function verificarLimite(municipioNome, zona, fase) {
         const mn = normalizeStr(municipioNome);
-        if (CIDADE_100_25.some((c) => normalizeStr(c) === mn)) {
-          return zona === "urbana" ? 100 : 25;
+        const em = (lista) => lista.some((c) => normalizeStr(c) === mn);
+        if (fase === "mono") {
+          return zona === "rural" && em(RURAL_TRI100_MONO25) ? 25 : 50;
         }
-        if (CIDADE_50_50.some((c) => normalizeStr(c) === mn)) {
-          return 50; // urbano=50, rural=50
-        }
-        if (CIDADE_305_50.some((c) => normalizeStr(c) === mn)) {
-          return zona === "urbana" ? 305 : 50;
-        }
-        return zona === "urbana" ? 100 : 50;
+        // coluna TRIFÁSICA
+        if (zona === "urbana") return em(SEDES_305) ? 305 : 100;
+        if (em(RURAL_TRI100_MONO25)) return 100;
+        if (em(RURAL_TRI50)) return 50;
+        return 100; // demais áreas
       }
 
-      const select = document.getElementById("municipio");
-      municipios.forEach((mun) => {
-        const option = document.createElement("option");
-        option.value = mun.toLowerCase().replace(/\s+/g, "_");
-        option.textContent = mun;
-        select.appendChild(option);
-      });
+      /* ===== Combobox de município com busca =====
+         Filtra por substring SEM acentos/maiúsculas (normalizeStr) e navega
+         por teclado (↑/↓/Enter/Esc). O valor do input é o próprio NOME do
+         município; municipioValido() diz se ele existe na lista — usado
+         pelo gate podeCalcular(). */
+      function municipioValido(v) {
+        const n = normalizeStr(v);
+        return !!n && municipios.some((m) => normalizeStr(m) === n);
+      }
+      (function initComboMunicipio() {
+        const input = document.getElementById("municipio");
+        const lista = document.getElementById("municipio_lista");
+        if (!input || !lista) return;
+        const MAX_ITENS = 60; // suficiente p/ qualquer filtro digitado
+        let ativo = -1; // índice destacado (teclado)
 
-      const selects = [
-        "dres1",
-        "dres2",
-        "dres3",
-        "dcom1",
-        "dcom2",
-        "dcom3",
-        "dind1",
-        "dind2",
-        "dind3",
-        "disj_geral",
-      ];
-      for (const id of selects) {
-        const el = document.getElementById(id);
-        if (!el) continue;
-        // empty option
+        function render(filtro) {
+          const n = normalizeStr(filtro);
+          const achados = n
+            ? municipios.filter((m) => normalizeStr(m).includes(n))
+            : municipios;
+          ativo = -1;
+          lista.innerHTML = "";
+          achados.slice(0, MAX_ITENS).forEach((m) => {
+            const div = document.createElement("div");
+            div.className = "combo-item";
+            div.textContent = m;
+            // mousedown (não click): dispara ANTES do blur do input
+            div.addEventListener("mousedown", (e) => {
+              e.preventDefault();
+              escolher(m);
+            });
+            lista.appendChild(div);
+          });
+          lista.hidden = achados.length === 0;
+        }
+        function escolher(m) {
+          input.value = m;
+          lista.hidden = true;
+          // seleção altera o resultado — mesmo critério do auto-cálculo
+          if (podeCalcular()) calcular();
+        }
+        function moverDestaque(delta) {
+          const itens = lista.querySelectorAll(".combo-item");
+          if (!itens.length) return;
+          ativo = (ativo + delta + itens.length) % itens.length;
+          itens.forEach((el, i) => el.classList.toggle("on", i === ativo));
+          itens[ativo].scrollIntoView({ block: "nearest" });
+        }
+
+        input.addEventListener("input", () => render(input.value));
+        input.addEventListener("focus", () => render(input.value));
+        input.addEventListener("blur", () => {
+          // pequeno atraso p/ não fechar antes do mousedown do item
+          setTimeout(() => (lista.hidden = true), 120);
+        });
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            if (lista.hidden) render(input.value);
+            moverDestaque(1);
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            moverDestaque(-1);
+          } else if (e.key === "Enter") {
+            const itens = lista.querySelectorAll(".combo-item");
+            if (!lista.hidden && itens.length) {
+              e.preventDefault();
+              escolher(itens[Math.max(0, ativo)].textContent);
+            }
+          } else if (e.key === "Escape") {
+            lista.hidden = true;
+          }
+        });
+      })();
+
+      // Preenche um <select> com as opções de disjuntor (opção vazia + lista).
+      // Usado pelo disjuntor geral (fixo) e pelas linhas dinâmicas.
+      function popularSelectDisjuntores(el) {
+        if (!el) return;
         el.innerHTML = '<option value=""></option>';
         DISJUNTORES.slice(1).forEach((d) => {
           const opt = document.createElement("option");
@@ -2221,6 +1736,82 @@
           el.appendChild(opt);
         });
       }
+      /* ===== Linhas DINÂMICAS de disjuntores (res/com/ind/ger) =====
+         Cada tipo tem um container #rows_<tipo>; as linhas (Qtd | Disjuntor
+         | ×) são criadas aqui — N linhas por tipo, sem limite. A leitura no
+         calcular() é feita por lerLinhasDisj(), que varre o container.
+         O GERAL começa com 1 linha (é opcional); os demais com 3. */
+      const TIPOS_DISJ = ["res", "com", "ind", "ger"];
+      const LINHAS_DISJ_INICIAIS = { res: 3, com: 3, ind: 3, ger: 1 };
+
+      function criarLinhaDisj(tipo) {
+        const cont = document.getElementById("rows_" + tipo);
+        if (!cont) return;
+        const row = document.createElement("div");
+        row.className = "row";
+        if (cont.children.length > 0) row.style.marginTop = "2px";
+
+        const cQtd = document.createElement("div");
+        const inp = document.createElement("input");
+        inp.className = "qtd";
+        inp.type = "number";
+        inp.min = "-999";
+        cQtd.appendChild(inp);
+
+        const cSel = document.createElement("div");
+        cSel.className = "dq";
+        const sel = document.createElement("select");
+        popularSelectDisjuntores(sel);
+        cSel.appendChild(sel);
+
+        const cRm = document.createElement("div");
+        const rm = document.createElement("button");
+        rm.type = "button";
+        rm.className = "rm-disj";
+        rm.title = "Remover esta linha";
+        rm.textContent = "×";
+        rm.addEventListener("click", () => {
+          row.remove();
+          // remover linha altera o resultado — recalcula (mesmo critério do
+          // auto-cálculo delegado em .wrap, que não captura este clique)
+          if (podeCalcular()) calcular();
+        });
+        cRm.appendChild(rm);
+
+        row.appendChild(cQtd);
+        row.appendChild(cSel);
+        row.appendChild(cRm);
+        cont.appendChild(row);
+        return row;
+      }
+
+      // Lê as linhas de um tipo: [ [qtd, nomeDisjuntor], ... ]
+      function lerLinhasDisj(tipo) {
+        return [...document.querySelectorAll("#rows_" + tipo + " .row")].map(
+          (r) => [
+            parseInt(r.querySelector("input.qtd").value) || 0,
+            r.querySelector("select").value || "",
+          ],
+        );
+      }
+
+      // (Re)monta os containers com a quantidade inicial de linhas
+      function resetLinhasDisj() {
+        for (const tipo of TIPOS_DISJ) {
+          const cont = document.getElementById("rows_" + tipo);
+          if (!cont) continue;
+          cont.innerHTML = "";
+          const n = LINHAS_DISJ_INICIAIS[tipo] || 1;
+          for (let i = 0; i < n; i++) criarLinhaDisj(tipo);
+        }
+      }
+      resetLinhasDisj();
+
+      document
+        .querySelectorAll(".add-disj")
+        .forEach((b) =>
+          b.addEventListener("click", () => criarLinhaDisj(b.dataset.tipo)),
+        );
 
       // fator diversidade tabela (n, a, b)
       const fator_diversidade = [
@@ -2372,21 +1963,24 @@
         }
       }
 
-      /* monta seleção rápida para texto_disjuntores */
-      function formatTextoDisjuntores(pares) {
+      /* monta seleção rápida para texto_disjuntores.
+         grupos = [ [pares, "residencial"|"comercial"|"industrial"], ... ]
+         (N linhas por tipo); gerais = [ [qtd, nome], ... ] dos gerais. */
+      function formatTextoDisjuntores(grupos, gerais) {
         let texto = "";
-        const tipos = [
-          "Disjuntor Residencial",
-          "Disjuntor Comercial",
-          "Disjuntor Industrial",
-        ];
-        const [qtdg, disjg] = pares[9] || [0, ""];
-        if (qtdg && disjg) texto += `Disjuntor Geral: ${qtdg} x ${disjg}\n`;
-        for (let i = 0; i < 9; i++) {
-          const [qtd, disj] = pares[i] || [0, ""];
-          if (!qtd || !disj) continue;
-          let tipo = i < 3 ? tipos[0] : i < 6 ? tipos[1] : tipos[2];
-          texto += `${tipo}: ${qtd} x ${disj}\n`;
+        const rotulos = {
+          residencial: "Disjuntor Residencial",
+          comercial: "Disjuntor Comercial",
+          industrial: "Disjuntor Industrial",
+        };
+        for (const [qtdg, disjg] of gerais || []) {
+          if (qtdg && disjg) texto += `Disjuntor Geral: ${qtdg} x ${disjg}\n`;
+        }
+        for (const [pares, tipo] of grupos) {
+          for (const [qtd, disj] of pares) {
+            if (!qtd || !disj) continue;
+            texto += `${rotulos[tipo]}: ${qtd} x ${disj}\n`;
+          }
         }
         return texto;
       }
@@ -2398,10 +1992,23 @@
         const pottr = parseFloat(document.getElementById("pottr").value);
         if (chart) chart.destroy();
 
+        // Cores do TEMA ativo (tokens --chart-* do estilo.css). Lidas a cada
+        // plot: alternar claro/escuro re-plota (core.js) e o gráfico acompanha.
+        const css = getComputedStyle(document.documentElement);
+        const tk = (nome, fb) =>
+          (css.getPropertyValue(nome) || "").trim() || fb;
+        const corLinha = tk("--chart-line", "#0f6c58");
+        const corFill = tk("--chart-fill", "rgba(15,108,88,0.28)");
+        const corLinha2 = tk("--chart-line-2", "#9f1ab9");
+        const corGrade = tk("--chart-grid", "rgba(0,0,0,0.06)");
+        const corTexto = tk("--chart-text", "#364b46");
+        const corSuperficie = tk("--cmg-surface", "#ffffff");
+        Chart.defaults.color = corTexto;
+
         // Gradiente de preenchimento
         const grad = ctx.createLinearGradient(0, 0, 0, 400);
-        grad.addColorStop(0, "rgba(0,128,0,0.35)");
-        grad.addColorStop(1, "rgba(0,128,0,0.01)");
+        grad.addColorStop(0, corFill);
+        grad.addColorStop(1, "rgba(0,0,0,0)");
 
         // Pico
         const pico = Math.max(...dataArr);
@@ -2409,7 +2016,7 @@
 
         // Cores ponto a ponto: vermelho no pico
         const pointColors = dataArr.map((v, i) =>
-          i === picIdx ? "#e53e3e" : "#008000",
+          i === picIdx ? "#e53e3e" : corLinha,
         );
         const pointRadii = dataArr.map((v, i) => (i === picIdx ? 7 : 3));
 
@@ -2424,7 +2031,7 @@
               {
                 label: "Demanda simulada (kVA)",
                 data: dataArr,
-                borderColor: "#008000",
+                borderColor: corLinha,
                 backgroundColor: grad,
                 fill: true,
                 tension: 0.4,
@@ -2439,7 +2046,7 @@
               {
                 label: "Demanda Atual (kVA)",
                 data: dataArr2,
-                borderColor: "#9f1ab9",
+                borderColor: corLinha2,
                 backgroundColor: grad,
                 fill: true,
                 tension: 0.4,
@@ -2468,7 +2075,7 @@
                 label: `Limite trafo (${limite.toFixed(0)} kVA)`,
                 data: Array(labels.length).fill(limite),
                 borderColor: "#e53e3e",
-                backgroundColor: "rgb(255,255,255)",
+                backgroundColor: corSuperficie,
                 fill: true,
                 borderDash: [8, 4],
                 pointRadius: 0,
@@ -2530,10 +2137,10 @@
                   display: true,
                   text: "Horário",
                   font: { size: 14, weight: "600" },
-                  color: "#444",
+                  color: corTexto,
                 },
                 grid: {
-                  color: "rgba(0,0,0,0.05)",
+                  color: corGrade,
                   lineWidth: 1,
                   borderDash: [4, 4],
                   drawTicks: false,
@@ -2547,12 +2154,12 @@
                   display: true,
                   text: "Demanda (kVA)",
                   font: { size: 14, weight: "600" },
-                  color: "#000000",
+                  color: corTexto,
                 },
-                grid: { color: "rgba(0,0,0,0.06)" },
+                grid: { color: corGrade },
                 ticks: {
                   font: { size: 14 },
-                  color: "#000000",
+                  color: corTexto,
                   callback: (v) => v.toFixed(0) + " kVA",
                 },
               },
@@ -2565,12 +2172,12 @@
                   display: true,
                   text: "Carregamento (%)",
                   font: { size: 14, weight: "600" },
-                  color: "#000000",
+                  color: corTexto,
                 },
                 grid: { drawOnChartArea: false, drawTicks: true },
                 ticks: {
                   font: { size: 14 },
-                  color: "#000000",
+                  color: corTexto,
                   callback: (v) => v + "%",
                 },
               },
@@ -2735,33 +2342,23 @@
       /**
        * determineConsumerType — identifica tipo de UC a partir dos disjuntores informados.
        * Critério: maior valor de (corrente_disjuntor × quantidade) entre res/com/ind.
+       * grupos = [ [pares, tipo], ... ] com N linhas por tipo (geral não entra).
        * Retorna: "residencial" | "comercial" | "industrial"
        */
-      function determineConsumerType(pares) {
-        // pares índices: 0-2=residencial, 3-5=comercial, 6-8=industrial, 9=geral (ignorado)
-        const tiposPorIdx = [
-          "residencial",
-          "residencial",
-          "residencial",
-          "comercial",
-          "comercial",
-          "comercial",
-          "industrial",
-          "industrial",
-          "industrial",
-        ];
+      function determineConsumerType(grupos) {
         let maxVal = -1;
         let tipoMax = "";
 
-        for (let i = 0; i < 9; i++) {
-          const [qtd, disjNome] = pares[i] || [0, ""];
-          if (!qtd || !disjNome) continue;
-          const mA = (disjNome || "").match(/(\d+)\s*A/i);
-          const corrente = mA ? parseInt(mA[1]) : 0;
-          const val = corrente * (Math.abs(parseInt(qtd)) || 0);
-          if (val > maxVal) {
-            maxVal = val;
-            tipoMax = tiposPorIdx[i];
+        for (const [pares, tipo] of grupos) {
+          for (const [qtd, disjNome] of pares) {
+            if (!qtd || !disjNome) continue;
+            const mA = (disjNome || "").match(/(\d+)\s*A/i);
+            const corrente = mA ? parseInt(mA[1]) : 0;
+            const val = corrente * (Math.abs(parseInt(qtd)) || 0);
+            if (val > maxVal) {
+              maxVal = val;
+              tipoMax = tipo;
+            }
           }
         }
         return tipoMax || "residencial"; // padrão residencial
@@ -2787,10 +2384,10 @@
           const lon = parseDMSCoordinate(lonRaw);
           validarLatLon(lat, lon);
           utmOut.value = latLonToUTM(lat, lon).label;
-          utmOut.style.color = "#1b5e20";
+          utmOut.style.color = "var(--cmg-accent)";
         } catch (e) {
           utmOut.value = "⚠ " + e.message;
-          utmOut.style.color = "#c62828";
+          utmOut.style.color = "var(--cmg-error-500)";
         }
       }
 
@@ -2809,10 +2406,10 @@
             const lon2 = parseDMSCoordinate(lonRedeRaw);
             validarLatLon(lat2, lon2);
             utmRedeOut.value = latLonToUTM(lat2, lon2).label;
-            utmRedeOut.style.color = "#1b5e20";
+            utmRedeOut.style.color = "var(--cmg-accent)";
           } catch (e) {
             utmRedeOut.value = "⚠ " + e.message;
-            utmRedeOut.style.color = "#c62828";
+            utmRedeOut.style.color = "var(--cmg-error-500)";
           }
         } else if (utmRedeOut) {
           utmRedeOut.value = "";
@@ -2832,10 +2429,10 @@
           validarLatLon(lat2, lon2);
           const dist = haversineDistance(lat1, lon1, lat2, lon2);
           distOut.value = dist.toLocaleString("pt-BR") + " m";
-          distOut.style.color = "#1b5e20";
+          distOut.style.color = "var(--cmg-accent)";
         } catch (e) {
           distOut.value = "⚠ " + e.message;
-          distOut.style.color = "#c62828";
+          distOut.style.color = "var(--cmg-error-500)";
         }
       }
 
@@ -2886,28 +2483,73 @@
           atualizarDistancia();
         });
 
-      /* ======================= Main calcular ======================= */
-      document.getElementById("btnCalc").addEventListener("click", calcular);
+      /* ======================= Main calcular (automático) ======================= */
+      // Normaliza o código do Transformador p/ o formato aceito XXXXX-N-XXX:
+      // espaços em volta dos hífens, outros separadores (espaço, ., /, ;, _)
+      // e hífens repetidos viram UM hífen. "18759 - 3 - 45", "18759 3 45" e
+      // "18759.3.45" => "18759-3-45".
+      function normalizarTrafo(valor) {
+        return String(valor || "")
+          .trim()
+          .replace(/[\s/.,;_]+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+      }
+      // Enquanto digita: só deriva a potência (não reescreve o campo, para
+      // não brigar com o cursor do usuário). partes[2] (XXX) é a potência.
       document.getElementById("trafo").addEventListener("input", function () {
-        const valor = this.value;
-        const partes = valor.split("-");
-        if (partes.length === 3) {
-          const potencia = partes[2]; // XXX é a terceira parte
-          if (!isNaN(potencia)) {
-            document.getElementById("pottr").value = potencia;
-          }
+        const partes = normalizarTrafo(this.value).split("-");
+        if (partes.length === 3 && partes[2] !== "" && !isNaN(partes[2])) {
+          document.getElementById("pottr").value = partes[2];
+        }
+      });
+      // Ao sair do campo: grava o valor já no formato padrão.
+      document.getElementById("trafo").addEventListener("blur", function () {
+        const norm = normalizarTrafo(this.value);
+        if (norm !== this.value) {
+          this.value = norm;
+          if (podeCalcular()) calcular();
         }
       });
 
-      // Auto-calcular ao alterar qualquer campo, se botão habilitado
+      // Auto-calcular ao alterar qualquer campo, quando o gate permite
       document.querySelector(".wrap").addEventListener("change", function (e) {
-        const btn = document.getElementById("btnCalc");
-        if (!btn.disabled) calcular();
+        if (podeCalcular()) calcular();
       });
       document.querySelector(".wrap").addEventListener("input", function (e) {
-        const btn = document.getElementById("btnCalc");
-        if (!btn.disabled) calcular();
+        if (podeCalcular()) calcular();
       });
+
+      // Linha "Total" da tabela de classes (informativa; não entra no
+      // cálculo — calcular() lê os campos individualmente).
+      function atualizarTotaisClasses() {
+        const soma = (ids) =>
+          ids.reduce(
+            (s, id) => s + (parseFloat(document.getElementById(id).value) || 0),
+            0,
+          );
+        const demandas = soma([
+          "demanda_residencial",
+          "demanda_comercial",
+          "demanda_industrial",
+          "demanda_rural",
+          "demanda_outros",
+          "demanda_iluminação",
+        ]);
+        const ucs = soma([
+          "uc_residencial",
+          "uc_comercial",
+          "uc_industrial",
+          "uc_rural",
+          "uc_outros",
+        ]);
+        document.getElementById("demanda_total").textContent =
+          demandas.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+        document.getElementById("uc_total").textContent = ucs;
+      }
+      document
+        .querySelector(".tabela-classes")
+        .addEventListener("input", atualizarTotaisClasses);
 
       document.getElementById("btnReset").addEventListener("click", () => {
         document
@@ -2919,6 +2561,8 @@
         document
           .querySelectorAll("select")
           .forEach((s) => (s.selectedIndex = 0));
+        // Volta cada tipo (res/com/ind) às linhas iniciais de disjuntor
+        resetLinhasDisj();
         document.getElementById("msg").innerText = "";
         // Limpar campos novos
         document.getElementById("utm_output").value = "";
@@ -2932,7 +2576,7 @@
         if (chart) chart.destroy();
         // Limpa também a aba Análise Ambiental (pino, contornos, resultado)
         if (window.limparAmbiental) window.limparAmbiental();
-        atualizarBtnCalc();
+        atualizarTotaisClasses();
       });
 
       // --- 1) Função para obter fator de diversidade (retorna [factor, key])
@@ -3058,41 +2702,22 @@
         const pottr = parseFloat(document.getElementById("pottr").value) || 0;
         const tipo_TRF =
           parseInt(document.getElementById("tipo_TRF").value) || 0;
-        const trafo = (document.getElementById("trafo").value || "").trim();
+        // Normalizado: getTransformerPhases (regex -N-) funciona mesmo se o
+        // usuário digitou "18759 - 3 - 45" e ainda não saiu do campo.
+        const trafo = normalizarTrafo(document.getElementById("trafo").value);
         const zona = document.getElementById("zona").value;
 
         // lê o nome de exibição do município selecionado
-        const municipioEl = document.getElementById("municipio");
-        const municipioNome =
-          municipioEl.options[municipioEl.selectedIndex]?.text || "";
-        // quantidades e nomes
-        const res1 = parseInt(document.getElementById("res1").value) || 0;
-        const res2 = parseInt(document.getElementById("res2").value) || 0;
-        const res3 = parseInt(document.getElementById("res3").value) || 0;
-
-        const com1 = parseInt(document.getElementById("com1").value) || 0;
-        const com2 = parseInt(document.getElementById("com2").value) || 0;
-        const com3 = parseInt(document.getElementById("com3").value) || 0;
-
-        const ind1 = parseInt(document.getElementById("ind1").value) || 0;
-        const ind2 = parseInt(document.getElementById("ind2").value) || 0;
-        const ind3 = parseInt(document.getElementById("ind3").value) || 0;
-
-        const dres1 = document.getElementById("dres1").value || "";
-        const dres2 = document.getElementById("dres2").value || "";
-        const dres3 = document.getElementById("dres3").value || "";
-
-        const dcom1 = document.getElementById("dcom1").value || "";
-        const dcom2 = document.getElementById("dcom2").value || "";
-        const dcom3 = document.getElementById("dcom3").value || "";
-
-        const dind1 = document.getElementById("dind1").value || "";
-        const dind2 = document.getElementById("dind2").value || "";
-        const dind3 = document.getElementById("dind3").value || "";
-
-        const qtd_geral =
-          parseInt(document.getElementById("qtd_geral").value) || 0;
-        const disj_geral = document.getElementById("disj_geral").value || "";
+        // Combobox: o valor do input É o nome do município
+        const municipioNome = document
+          .getElementById("municipio")
+          .value.trim();
+        // quantidades e nomes — linhas dinâmicas: [ [qtd, disj], ... ] por tipo
+        const paresRes = lerLinhasDisj("res");
+        const paresCom = lerLinhasDisj("com");
+        const paresInd = lerLinhasDisj("ind");
+        // Disjuntores GERAIS: também N linhas dinâmicas
+        const paresGer = lerLinhasDisj("ger");
 
         const uc_residencial =
           parseInt(document.getElementById("uc_residencial").value) || 0;
@@ -3118,19 +2743,17 @@
         let demanda_iluminação =
           parseFloat(document.getElementById("demanda_iluminação").value) || 0;
 
+        // Qtd. só conta quando o DISJUNTOR da linha está preenchido — linha
+        // com quantidade mas sem disjuntor não entra no total de clientes.
+        const somaQtd = (pares) =>
+          pares.reduce((s, [q, d]) => s + (d ? q : 0), 0);
         const total_customers =
-          res1 +
-          res2 +
-          res3 +
+          somaQtd(paresRes) +
           uc_residencial +
           uc_rural +
-          com1 +
-          com2 +
-          com3 +
+          somaQtd(paresCom) +
           uc_comercial +
-          ind1 +
-          ind2 +
-          ind3 +
+          somaQtd(paresInd) +
           uc_industrial +
           uc_outros;
 
@@ -3138,26 +2761,17 @@
           return a && b ? computeItemDemand(a, b, tipo, total) : null;
         }
 
-        const r1 = safeCompute(res1, dres1, "residencial", total_customers);
-        const r2 = safeCompute(res2, dres2, "residencial", total_customers);
-        const r3 = safeCompute(res3, dres3, "residencial", total_customers);
+        // Demanda simulada por tipo: soma sobre TODAS as linhas do tipo
+        const somaDemanda = (pares, tipo) =>
+          pares.reduce(
+            (s, [q, d]) =>
+              s + (safeCompute(q, d, tipo, total_customers)?.demand_kva ?? 0),
+            0,
+          );
 
-        const c1 = safeCompute(com1, dcom1, "comercial", total_customers);
-        const c2 = safeCompute(com2, dcom2, "comercial", total_customers);
-        const c3 = safeCompute(com3, dcom3, "comercial", total_customers);
-
-        const i1 = safeCompute(ind1, dind1, "industrial", total_customers);
-        const i2 = safeCompute(ind2, dind2, "industrial", total_customers);
-        const i3 = safeCompute(ind3, dind3, "industrial", total_customers);
-
-        const dem_simulada_residencial =
-          (r1?.demand_kva ?? 0) + (r2?.demand_kva ?? 0) + (r3?.demand_kva ?? 0);
-
-        const dem_simulada_comercial =
-          (c1?.demand_kva ?? 0) + (c2?.demand_kva ?? 0) + (c3?.demand_kva ?? 0);
-
-        const dem_simulada_industrial =
-          (i1?.demand_kva ?? 0) + (i2?.demand_kva ?? 0) + (i3?.demand_kva ?? 0);
+        const dem_simulada_residencial = somaDemanda(paresRes, "residencial");
+        const dem_simulada_comercial = somaDemanda(paresCom, "comercial");
+        const dem_simulada_industrial = somaDemanda(paresInd, "industrial");
 
         const curvaResTotal = consumidorRes.map(
           (v) =>
@@ -3236,37 +2850,75 @@
         const pico_total = Math.max(...curva_simulada);
         const hora_pico = Hora[curva_simulada.indexOf(pico_total)];
 
-        // limite municipal baseado no município e zona
-        const lim_Municipio = verificarLimite(municipioNome, zona);
+        // Limites municipais por FASE (ED/PS Tabela 1)
+        const limTri = verificarLimite(municipioNome, zona, "tri");
+        const limMono = verificarLimite(municipioNome, zona, "mono");
         console.log(
-          `Limite municipal: ${lim_Municipio} kVA (${municipioNome} / ${zona})`,
+          `Limites (${municipioNome}/${zona}): trifásica ${limTri} · monofásica ${limMono}`,
         );
         // ================================================================
         // CONSTRUÇÃO DOS PARES (antecipada para uso em determineConsumerType)
+        // gruposUC preserva o tipo de cada linha (N linhas por tipo);
+        // pares é a lista achatada + os gerais (p/ somas e fases)
         // ================================================================
-        const pares = [
-          [res1, dres1],
-          [res2, dres2],
-          [res3, dres3],
-          [com1, dcom1],
-          [com2, dcom2],
-          [com3, dcom3],
-          [ind1, dind1],
-          [ind2, dind2],
-          [ind3, dind3],
-          [qtd_geral, disj_geral],
+        const gruposUC = [
+          [paresRes, "residencial"],
+          [paresCom, "comercial"],
+          [paresInd, "industrial"],
         ];
+        const pares = [...paresRes, ...paresCom, ...paresInd, ...paresGer];
 
-        // kva selecionados (para checar municipal)
-        const kva_selecionados = [];
-        for (const [qtd, disj] of pares) {
-          if (!disj || disj === "") continue;
-          const entry = getEntry(disj);
-          if (!entry || entry.idx === 0) continue;
-          const idx = entry.idx;
-          const kva_base = entry.kva;
-          const kva_valor = idx >= 12 ? kva_base * (qtd || 0) : kva_base;
-          kva_selecionados.push({ nome: disj, kva: kva_valor });
+        // ---- Gatilho "análise pelo Planejamento" (ED/PS, premissas) ----
+        // "Os limites se referem à liberação da CARGA TOTAL... agrupamento" e
+        // "a demanda a ser considerada será definida pela capacidade da
+        // PROTEÇÃO GERAL (disjuntor)". Critério:
+        //   • Disjuntor(es) Geral(is) informado(s) → SOMA das capacidades
+        //     deles (× qtd, mín. 1) por fase, comparada com a Tabela 1;
+        //   • senão → SOMA dos kVA × qtd de todas as linhas por fase
+        //     (TRI vs MONO/BI), cada soma comparada com a sua coluna.
+        // Quantidades negativas (reduções) abatem a soma — sem carga líquida
+        // nova, não dispara.
+        const faseColuna = (nome) => (/TRI/i.test(nome) ? "tri" : "mono");
+        const motivos_planejamento = [];
+        // Soma kVA × qtd por fase de uma lista de pares; `minimo1` trata
+        // qtd vazia como 1 (proteção geral informada sem quantidade).
+        function somasPorFase(lista, minimo1) {
+          let tri = 0;
+          let mono = 0;
+          for (const [qtd, disj] of lista) {
+            if (!disj || disj === "") continue;
+            const e = getEntry(disj);
+            if (!e || e.idx === 0) continue;
+            const n = minimo1
+              ? Math.max(1, Math.abs(parseInt(qtd) || 0))
+              : parseInt(qtd) || 0;
+            const v = e.kva * n;
+            if (faseColuna(disj) === "tri") tri += v;
+            else mono += v;
+          }
+          return { tri, mono };
+        }
+        const geraisValidos = paresGer.filter(([, d]) => d);
+        if (geraisValidos.length > 0) {
+          const g = somasPorFase(geraisValidos, true);
+          if (g.tri > limTri)
+            motivos_planejamento.push(
+              `proteção geral trifásica ${g.tri.toFixed(0)} kVA acima do limite municipal (${limTri})`,
+            );
+          if (g.mono > limMono)
+            motivos_planejamento.push(
+              `proteção geral mono/bifásica ${g.mono.toFixed(0)} kVA acima do limite municipal (${limMono})`,
+            );
+        } else {
+          const s = somasPorFase(pares, false);
+          if (s.tri > limTri)
+            motivos_planejamento.push(
+              `carga trifásica total ${s.tri.toFixed(0)} kVA acima do limite municipal (${limTri})`,
+            );
+          if (s.mono > limMono)
+            motivos_planejamento.push(
+              `carga mono/bifásica total ${s.mono.toFixed(0)} kVA acima do limite municipal (${limMono})`,
+            );
         }
 
         // ================================================================
@@ -3296,7 +2948,7 @@
         }
 
         // --- Tipo de UC inferido automaticamente ---
-        const tipoUC = determineConsumerType(pares);
+        const tipoUC = determineConsumerType(gruposUC);
         const limites_queda = { residencial: 9, comercial: 7, industrial: 5 };
 
         // --- Queda de tensão ---
@@ -3314,19 +2966,9 @@
 
         // --- Fases: extraídas automaticamente do campo Transformador ---
         const fasesTrf = getTransformerPhases(trafo);
-        const disjGeralNome = document.getElementById("disj_geral").value;
-        const fasesDisj = getFasesDisjuntor(
-          disjGeralNome,
-          dres1,
-          dres2,
-          dres3,
-          dcom1,
-          dcom2,
-          dcom3,
-          dind1,
-          dind2,
-          dind3,
-        );
+        // Nomes de TODOS os disjuntores informados (pares já inclui o geral)
+        const nomesDisj = pares.map(([, d]) => d);
+        const fasesDisj = getFasesDisjuntor(...nomesDisj);
 
         function pegarCorrente(...nomesDisjuntor) {
           let maior = 0;
@@ -3343,18 +2985,7 @@
           return maior;
         }
 
-        const corrente = pegarCorrente(
-          disjGeralNome,
-          dres1,
-          dres2,
-          dres3,
-          dcom1,
-          dcom2,
-          dcom3,
-          dind1,
-          dind2,
-          dind3,
-        );
+        const corrente = pegarCorrente(...nomesDisj);
         // Regra BLOQUEANTE: bifásico > 63A em rede trifásica
         if (fasesTrf === 3 && Math.max(fasesDisj) === 2 && corrente > 63) {
           if (corrente > 63) {
@@ -3421,6 +3052,21 @@
             }
           }
           motivos_obra.push("• Extensão de rede necessária");
+          // ED/PS: extensões de RDU acima de 500 m e RDR acima de 5 km
+          // devem ser encaminhadas para a área de Planejamento.
+          if (distMetrosExt !== null) {
+            const limExt = zona === "urbana" ? 500 : 5000;
+            if (distMetrosExt > limExt) {
+              const rotulo =
+                zona === "urbana" ? "RDU acima de 500 m" : "RDR acima de 5 km";
+              motivos_planejamento.push(
+                `extensão de ${rotulo} (${distMetrosExt.toLocaleString("pt-BR")} m)`,
+              );
+              motivos_obra.push(
+                `• Extensão de ${rotulo} — encaminhar à área de Planejamento`,
+              );
+            }
+          }
         }
 
         // --- Carregamento excedido ---
@@ -3456,25 +3102,29 @@
         }
         blocoTrafo += "\n";
 
-        // Cabeçalho de análise técnica
+        // Cabeçalho de análise técnica. Obra e análise do Planejamento NÃO
+        // são excludentes (ED/PS): estourar o limite municipal exige análise
+        // mesmo quando o atendimento também requer obra.
         const criarMedidas = {
-          carregamento: false,
-          planejamento: false,
+          carregamento: pico_total > limite || motivos_obra.length > 0,
+          planejamento: motivos_planejamento.length > 0,
           liberacao: false,
         };
+        criarMedidas.liberacao =
+          !criarMedidas.carregamento && !criarMedidas.planejamento;
         let textoCabFinal = "";
-        if (pico_total > limite || motivos_obra.length > 0) {
+        if (criarMedidas.carregamento && criarMedidas.planejamento) {
+          textoCabFinal =
+            "Atendimento requer obra e análise pela equipe de planejamento.\n──────────────────────────────────────────";
+        } else if (criarMedidas.carregamento) {
           textoCabFinal =
             "Atendimento requer obra.\n──────────────────────────────────────────";
-          criarMedidas.carregamento = true;
-        } else if (kva_selecionados.some((k) => k.kva > lim_Municipio)) {
+        } else if (criarMedidas.planejamento) {
           textoCabFinal =
             "Necessário análise pela equipe de planejamento.\n──────────────────────────────────────────";
-          criarMedidas.planejamento = true;
         } else {
           textoCabFinal =
             "Rede liberada para conexão.\n──────────────────────────────────────────";
-          criarMedidas.liberacao = true;
         }
 
         // Bloco de análise técnica (carregamento)
@@ -3484,12 +3134,19 @@
                           `;
 
         // Bloco disjuntores
-        const texto_disjuntores = formatTextoDisjuntores(pares);
+        const texto_disjuntores = formatTextoDisjuntores(gruposUC, paresGer);
 
         // Bloco motivos de obra
         let blocoMotivos = "";
         if (motivos_obra.length > 0) {
           blocoMotivos = `\nMotivos de obra:\n${motivos_obra.join("\n")}\n`;
+        }
+        // Bloco motivos da análise pelo Planejamento (ED/PS) — exibido
+        // SEMPRE que houver motivo, mesmo quando também há obra.
+        if (motivos_planejamento.length > 0) {
+          blocoMotivos += `\nAnálise pelo planejamento:\n${motivos_planejamento
+            .map((m) => "• " + m.charAt(0).toUpperCase() + m.slice(1))
+            .join("\n")}\n`;
         }
 
         // Bloco rede mais próxima (extensão)
@@ -3524,9 +3181,10 @@
           hora_pico,
           demTOT,
           criarMedidas,
-          kva_selecionados,
+          motivos_planejamento,
           limite,
-          lim_Municipio,
+          limTri,
+          limMono,
         };
       }
 

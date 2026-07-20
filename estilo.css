@@ -1,0 +1,974 @@
+/* ============================================================
+   Simulador de Carga — folha de estilo única, baseada no design
+   system oficial da CEMIG (shared.css dos formulários BT/MT).
+   ------------------------------------------------------------
+   • Camada 1: tokens --cmg-* (paleta institucional documentada no
+     shared.css: verde/600 #0F6C58, neutras #041E18…#F4F5F4,
+     alerta/500 #FFC107, erro/500 #C8303F, "verde on" #C4FF3F).
+   • Camada 2: temas — claro (default) e escuro. O escuro é ativado
+     por preferência do SO (prefers-color-scheme) OU explicitamente
+     via <html data-theme="dark"> (botão no header, persistido em
+     localStorage pelo core.js). data-theme SEMPRE vence o SO.
+   • Camada 3: componentes do design system consumidos pelo app
+     (botões pílula, cards, campos, banner .cmg-aviso, chips,
+     legenda do mapa, docs de restrição) + layout do simulador.
+   Aliases legados (--cemig-blue, --black, --muted, --bg, --card)
+   apontam para os tokens para compatibilidade.
+   ============================================================ */
+
+/* ============================================================
+   1. Tokens — tema CLARO (default)
+   ============================================================ */
+:root {
+  /* ---- Verdes institucionais ---- */
+  --cmg-green-600: #0f6c58;
+  --cmg-green-500: #107761;
+  --cmg-green-50: #e7f1ef;
+  --cmg-lime: #c4ff3f; /* "verde on" (destaques) */
+
+  /* ---- Neutras (escala CEMIG) ---- */
+  --cmg-neutral-0: #ffffff;
+  --cmg-neutral-50: #f4f5f4;
+  --cmg-neutral-100: #e6e9e8;
+  --cmg-neutral-200: #d1d4d3;
+  --cmg-neutral-300: #b1b9b7;
+  --cmg-neutral-400: #8c9895;
+  --cmg-neutral-500: #576864;
+  --cmg-neutral-600: #364b46;
+  --cmg-neutral-700: #041e18;
+
+  /* ---- Feedback ---- */
+  --cmg-warning-500: #ffc107;
+  --cmg-error-500: #c8303f;
+  --cmg-danger-500: #c0392b;
+
+  /* ---- Tipografia (Open Sans, como no shared.css) ---- */
+  --cmg-font-family:
+    "Open Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --cmg-fs-body-lg: 16px;
+  --cmg-lh-body-lg: 26px;
+  --cmg-fs-body: 14px;
+  --cmg-fw-regular: 400;
+  --cmg-fw-bold: 700;
+
+  /* ---- Espaçamento (grade de 4px) ---- */
+  --cmg-space-1: 4px;
+  --cmg-space-2: 8px;
+  --cmg-space-3: 12px;
+  --cmg-space-4: 16px;
+  --cmg-space-6: 24px;
+
+  /* ---- Raios (variables.css oficial) ---- */
+  --cmg-radius: 8px;
+  --cmg-radius-pill: 999px;
+
+  /* ---- Gradiente "Verde Digital" (variables.css oficial) ---- */
+  --cmg-gradient-digital: linear-gradient(
+    90deg,
+    #1fff8c 3.03%,
+    #43ff7b 26.03%,
+    #7aff61 49.03%,
+    #a2ff4f 68.03%,
+    #c4ff40 103.03%
+  );
+
+  /* ---- Semânticos (mudam com o tema) ---- */
+  --cmg-bg: var(--cmg-neutral-50);
+  --cmg-surface: var(--cmg-neutral-0);
+  --cmg-surface-accent: var(--cmg-green-50);
+  --cmg-surface-disabled: var(--cmg-neutral-100);
+  --cmg-text: var(--cmg-neutral-600);
+  --cmg-text-strong: var(--cmg-neutral-700);
+  --cmg-text-muted: var(--cmg-neutral-500);
+  --cmg-border: var(--cmg-neutral-400);
+  --cmg-divider: var(--cmg-neutral-300); /* linhas divisórias (oficial) */
+  --cmg-border-subtle: var(--cmg-neutral-200); /* bordas de card/banner */
+  --cmg-thead-bg: var(--cmg-neutral-200); /* cabeçalho de tabela (#D1D4D3) */
+  --cmg-accent: var(--cmg-green-600); /* aba ativa, links, foco */
+  --cmg-focus-ring: rgba(15, 108, 88, 0.18);
+  --cmg-shadow-card: 0 6px 18px rgba(2, 6, 23, 0.06);
+
+  /* header institucional: verde no claro, superfície escura no escuro */
+  --cmg-header-bg: var(--cmg-green-600);
+  --cmg-header-text: var(--cmg-neutral-0);
+  --cmg-header-border: transparent;
+
+  /* feedback dependente do tema (chips/avisos) */
+  --cmg-warn-text: #9a6b00;
+  --cmg-warn-bg: #fff6e0;
+  --cmg-err-bg: #fdecea;
+  --cmg-aviso-warn-bg: #fffaf0;
+
+  /* gráfico (lido pelo plotCurve via getComputedStyle) */
+  --chart-line: #0f6c58;
+  --chart-fill: rgba(15, 108, 88, 0.28);
+  --chart-line-2: #9f1ab9;
+  --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-text: #364b46;
+
+  /* Aliases legados do simulador */
+  --cemig-blue: var(--cmg-green-600);
+  --cemig-accent: var(--cmg-green-500);
+  --black: var(--cmg-text-strong);
+  --muted: var(--cmg-text-muted);
+  --bg: var(--cmg-bg);
+  --card: var(--cmg-surface);
+
+  color-scheme: light;
+}
+
+/* ============================================================
+   2. Tema ESCURO — mesmos overrides em dois seletores:
+   (a) escolha explícita data-theme="dark";
+   (b) preferência do SO, quando NÃO houver escolha explícita.
+   Superfícies derivadas das neutras escuras institucionais
+   (#041E18 base) e destaque no "verde on" (#C4FF3F).
+   ============================================================ */
+:root[data-theme="dark"] {
+  --cmg-bg: #121417;
+  --cmg-surface: #1c1f22;
+  --cmg-surface-accent: #24282c;
+  --cmg-surface-disabled: #24282c;
+  --cmg-text: #d6dad9;
+  --cmg-text-strong: #f2f4f3;
+  --cmg-text-muted: #9aa4a1;
+  --cmg-border: #4a5154;
+  --cmg-divider: #3a4043;
+  --cmg-border-subtle: #2e3336;
+  --cmg-thead-bg: #24282c;
+  --cmg-accent: var(--cmg-lime);
+  --cmg-focus-ring: rgba(196, 255, 63, 0.25);
+  --cmg-shadow-card: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  --cmg-header-bg: #1c1f22;
+  --cmg-header-text: #f2f4f3;
+  --cmg-header-border: #2e3336;
+
+  --cmg-warn-text: #ffd54f;
+  --cmg-warn-bg: rgba(255, 193, 7, 0.12);
+  --cmg-err-bg: rgba(200, 48, 63, 0.16);
+  --cmg-aviso-warn-bg: rgba(255, 193, 7, 0.07);
+
+  --chart-line: #c4ff3f;
+  --chart-fill: rgba(196, 255, 63, 0.18);
+  --chart-line-2: #ce93d8;
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --chart-text: #d6dad9;
+
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --cmg-bg: #121417;
+    --cmg-surface: #1c1f22;
+    --cmg-surface-accent: #24282c;
+    --cmg-surface-disabled: #24282c;
+    --cmg-text: #d6dad9;
+    --cmg-text-strong: #f2f4f3;
+    --cmg-text-muted: #9aa4a1;
+    --cmg-border: #4a5154;
+    --cmg-divider: #3a4043;
+    --cmg-border-subtle: #2e3336;
+    --cmg-thead-bg: #24282c;
+    --cmg-accent: var(--cmg-lime);
+    --cmg-focus-ring: rgba(196, 255, 63, 0.25);
+    --cmg-shadow-card: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+    --cmg-header-bg: #1c1f22;
+    --cmg-header-text: #f2f4f3;
+    --cmg-header-border: #2e3336;
+
+    --cmg-warn-text: #ffd54f;
+    --cmg-warn-bg: rgba(255, 193, 7, 0.12);
+    --cmg-err-bg: rgba(200, 48, 63, 0.16);
+    --cmg-aviso-warn-bg: rgba(255, 193, 7, 0.07);
+
+    --chart-line: #c4ff3f;
+    --chart-fill: rgba(196, 255, 63, 0.18);
+    --chart-line-2: #ce93d8;
+    --chart-grid: rgba(255, 255, 255, 0.08);
+    --chart-text: #d6dad9;
+
+    color-scheme: dark;
+  }
+}
+
+/* ============================================================
+   3. Base
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  background: var(--cmg-bg);
+  color: var(--cmg-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Header institucional (fixo) =====
+   Verde/600 no tema claro; no escuro vira superfície grafite com
+   divisor inferior (tokens --cmg-header-*). */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  background: var(--cmg-header-bg);
+  color: var(--cmg-header-text);
+  border-bottom: 1px solid var(--cmg-header-border);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 22px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+}
+
+/* Logo contido na barra (64px): 40px de altura, sem estourar */
+.header img {
+  height: 30px;
+  width: auto;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Botão de alternar tema (🌙/☀️) no header */
+.theme-toggle {
+  min-height: 0;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--cmg-radius-pill);
+  color: var(--cmg-header-text);
+  font-size: 15px;
+  line-height: 1;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: none;
+  font-weight: 400;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* ===== Layout geral ===== */
+.wrap {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 18px;
+}
+
+.page-layout {
+  display: grid;
+  grid-template-columns: 1fr 600px;
+  gap: 5px;
+  align-items: start;
+  padding-top: 22px;
+  padding-left: 100px;
+  padding-right: 15px;
+}
+
+.card {
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-border-subtle);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: var(--cmg-shadow-card);
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: var(--cmg-fw-bold);
+  color: var(--cmg-text-strong);
+}
+
+h3 {
+  color: var(--cmg-text-strong);
+  font-size: 15px;
+  margin: 10px 0 8px;
+}
+
+p.lead {
+  margin: 0;
+  color: var(--cmg-text-muted);
+  font-size: 13px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 74px; /* libera o header fixo (64px) */
+  align-self: start;
+  height: fit-content;
+}
+
+/* ===== Linha Qtd | Disjuntor | remover =====
+   Colunas dimensionadas p/ os controles de 48px do spec: Qtd fixa
+   (64px, padding lateral reduzido) e o select ocupa o restante. */
+.row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 20px;
+  gap: 8px;
+  align-items: center;
+}
+
+.row .qtd {
+  width: 100%;
+  padding-left: 10px;
+  padding-right: 6px;
+}
+
+.row .dq {
+  min-width: 0;
+}
+
+/* Botão × que remove uma linha de disjuntor */
+.rm-disj {
+  min-height: 0;
+  border: none;
+  background: none;
+  color: var(--cmg-error-500);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+/* Botão "+ Adicionar disjuntor" abaixo de cada coluna */
+.add-disj {
+  min-height: 0;
+  margin-top: 8px;
+  background: none;
+  border: 1px dashed var(--cmg-border);
+  border-radius: var(--cmg-radius);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--cmg-text);
+  padding: 4px 10px;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.add-disj:hover {
+  border-color: var(--cmg-accent);
+  color: var(--cmg-accent);
+  background: none;
+}
+
+/* ===== Campos — spec oficial do .cemig-form .field (shared.css):
+   controle de 48px, padding 12px 16px, fonte 16/26, raio 4px. ===== */
+/* Rótulos em cor FORTE (quase-preto/quase-branco): os tons muted da
+   escala oficial ficaram com pouco contraste neste layout denso. */
+label {
+  font-size: 14px;
+  color: var(--cmg-text-strong);
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+input[type="number"],
+input[type="text"],
+select,
+textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px var(--cmg-space-4);
+  border-radius: 4px; /* spec Figma dos campos */
+  border: 1px solid var(--cmg-border);
+  background: var(--cmg-surface);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body-lg);
+  line-height: 1.4;
+  color: var(--cmg-text-strong);
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--cmg-accent);
+  box-shadow: 0 0 0 3px var(--cmg-focus-ring);
+}
+
+input[readonly] {
+  background: var(--cmg-surface-disabled);
+  color: var(--cmg-text-muted);
+}
+
+input::placeholder {
+  color: var(--cmg-text-muted);
+  opacity: 0.8;
+}
+
+.small {
+  font-size: 12px;
+  color: var(--cmg-text-muted);
+  margin-top: 6px;
+}
+
+.muted-note {
+  font-size: 12px;
+  color: var(--cmg-text-muted);
+  margin-top: 2px;
+}
+
+/* ===== Botões (pílula CEMIG: 100px de raio, Open Sans 600) ===== */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px; /* spec oficial dos botões pílula */
+  background: var(--cmg-green-600);
+  color: var(--cmg-neutral-0);
+  padding: 10px 16px;
+  border-radius: var(--cmg-radius-pill);
+  border: 1px solid var(--cmg-green-600);
+  cursor: pointer;
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--cmg-green-500);
+  border-color: var(--cmg-green-500);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cmg-focus-ring);
+}
+
+/* Outlined (ghost) — ex.: Limpar */
+button.secondary {
+  background: transparent;
+  color: var(--cmg-text-strong);
+  border: 1px solid var(--cmg-border);
+  box-shadow: none;
+}
+
+button.secondary:hover:not(:disabled) {
+  background: transparent;
+  border-color: var(--cmg-accent);
+  color: var(--cmg-accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ===== Resultado ===== */
+.result {
+  white-space: pre-line;
+  background: var(--cmg-surface);
+  padding: 14px;
+  border-radius: var(--cmg-radius);
+  border: 1px solid var(--cmg-border-subtle);
+  margin-top: 12px;
+  color: var(--cmg-text);
+  font-size: 12px;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 700px;
+  gap: 18px;
+}
+
+canvas {
+  background: var(--cmg-surface);
+  border-radius: var(--cmg-radius);
+  padding: 8px;
+}
+
+footer {
+  font-size: 12px;
+  color: var(--cmg-text-muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ===== Botões fixos (Calcular/Limpar) ===== */
+#fixed-actions {
+  position: fixed;
+  top: 74px; /* libera o header fixo (64px) */
+  left: 18px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#fixed-actions button {
+  width: 90px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+/* ===== Caixa "extensão de rede" (Local de atendimento) ===== */
+.box-extensao {
+  padding: 12px;
+  background: var(--cmg-surface-accent);
+  border-radius: var(--cmg-radius);
+  border: 1px solid var(--cmg-border-subtle);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.box-extensao-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.box-extensao-head input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--cmg-green-600);
+}
+
+.box-extensao-head label {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--cmg-text-strong);
+}
+
+/* ===== Combobox de município (busca digitada) ===== */
+.combo-municipio {
+  position: relative;
+}
+
+.combo-lista {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 500;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-border);
+  border-radius: var(--cmg-radius);
+  box-shadow: var(--cmg-shadow-card);
+}
+
+.combo-item {
+  padding: 10px var(--cmg-space-4);
+  font-size: var(--cmg-fs-body);
+  color: var(--cmg-text);
+  cursor: pointer;
+}
+
+.combo-item:hover,
+.combo-item.on {
+  background: var(--cmg-surface-accent);
+  color: var(--cmg-text-strong);
+}
+
+/* ===== Tabela de classes (Demanda × Consumidores) =====
+   Visual da tabela de UCs do Figma: cabeçalho em superfície neutra,
+   linhas divididas por borda sutil, inputs em caixa centrados e
+   rodapé Total em destaque. Os inputs mantêm os ids antigos. */
+.tabela-classes-wrap {
+  margin-top: var(--cmg-space-4);
+  border: 1px solid var(--cmg-border-subtle);
+  border-radius: var(--cmg-radius);
+  overflow-x: auto;
+}
+
+.tabela-classes {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  color: var(--cmg-text);
+}
+
+.tabela-classes th {
+  background: var(--cmg-thead-bg);
+  color: var(--cmg-text-strong);
+  font-weight: 700;
+  text-align: left;
+  padding: 12px var(--cmg-space-4);
+  white-space: nowrap;
+}
+
+.tabela-classes td {
+  padding: 10px var(--cmg-space-4);
+  border-top: 1px solid var(--cmg-border-subtle);
+}
+
+/* 1ª coluna: nome da classe */
+.tabela-classes td:first-child {
+  font-weight: 600;
+  color: var(--cmg-text-strong);
+  white-space: nowrap;
+}
+
+.tabela-classes input {
+  width: 130px;
+  min-height: 44px;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+/* célula sem dado (Ilum. Pública não tem contagem de consumidores) */
+.tabela-classes .tabela-nd {
+  color: var(--cmg-text-muted);
+}
+
+.tabela-classes tfoot td {
+  font-weight: 700;
+  color: var(--cmg-text-strong);
+  background: var(--cmg-thead-bg); /* mesmo cinza do cabeçalho */
+}
+
+/* ===== Grades responsivas ===== */
+.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+}
+
+.form-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .three-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .two-col,
+  .grid,
+  .form-two-col,
+  .three-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Abas (Simulador | Análise Ambiental) =====
+   Empilhadas na coluna fixa (#fixed-actions), acima do Limpar.
+   Ativa = pílula verde preenchida; inativa = ghost. */
+.abas-fixas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#fixed-actions .aba-btn {
+  min-height: 0;
+  width: 110px;
+  padding: 10px 8px;
+  font-size: 13px;
+  white-space: normal; /* "Análise Ambiental" quebra em 2 linhas */
+  line-height: 1.25;
+  background: transparent;
+  border: 1px solid var(--cmg-border);
+  color: var(--cmg-text-muted);
+  box-shadow: none;
+}
+
+#fixed-actions .aba-btn:hover:not(.on) {
+  background: transparent;
+  border-color: var(--cmg-accent);
+  color: var(--cmg-accent);
+}
+
+#fixed-actions .aba-btn.on {
+  background: var(--cmg-green-600);
+  border-color: var(--cmg-green-600);
+  color: var(--cmg-neutral-0);
+}
+
+.aba-painel {
+  display: none;
+  /* limpa o header fixo (64px) — antes era a barra de abas que empurrava */
+  padding-top: 72px;
+}
+
+.aba-painel.show {
+  display: block;
+}
+
+/* ===== Aba Análise Ambiental ===== */
+#aba-ambiental .wrap-amb {
+  max-width: 1100px;
+  margin: 8px auto;
+  padding: 18px;
+}
+
+.amb-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.6fr;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 900px) {
+  .amb-coords {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mapa-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.mapa-status {
+  font-size: 13px;
+  color: var(--cmg-text-muted);
+}
+
+.mapa-status.err {
+  color: var(--cmg-danger-500);
+}
+
+.mapa-canvas {
+  height: 480px;
+  border-radius: var(--cmg-radius);
+  border: 1px solid var(--cmg-border-subtle);
+}
+
+.mapa-hint {
+  display: block;
+  margin: 0 0 var(--cmg-space-2);
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-regular);
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: 0.2px;
+  color: var(--cmg-text);
+}
+
+/* Legenda do mapa — inserida pelo geo.js após .mapa-canvas */
+.mapa-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cmg-space-2) var(--cmg-space-4);
+  margin-top: var(--cmg-space-2);
+}
+
+.mapa-legenda-item {
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-2);
+}
+
+.mapa-legenda-cor {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+/* Rótulo da restrição — spec Figma corpo/médio: 14/22 regular,
+   letter-spacing 0.25px. */
+.mapa-legenda-rotulo {
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-regular);
+  font-size: var(--cmg-fs-body);
+  line-height: 22px;
+  letter-spacing: 0.25px;
+  color: var(--cmg-text-muted);
+}
+
+/* ============================================================
+   4. Banner de aviso oficial (.cmg-aviso, markup do core.js):
+   coluna de ícone com fundo colorido + área de texto, como no
+   shared.css (neutra/200 + info; alerta/500 + warn). Os SVGs
+   originais (imgs/info.svg, imgs/warn.svg) viram data-URIs para
+   o app continuar sem pasta de assets. Coluna reduzida de 72px
+   p/ 48px — proporção adequada à densidade deste simulador.
+   ============================================================ */
+.cmg-aviso {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  margin: var(--cmg-space-4) 0;
+  border: 1px solid var(--cmg-border-subtle);
+  border-radius: var(--cmg-radius);
+  overflow: hidden;
+}
+
+.cmg-aviso-icon {
+  flex: none;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  padding: 12px;
+  background: var(--cmg-neutral-200);
+}
+
+.cmg-aviso-icon::before {
+  content: "";
+  display: block;
+  width: 24px;
+  height: 24px;
+  /* glifo "info" (círculo-i) em neutra/600 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23364B46' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cline x1='12' y1='11' x2='12' y2='16'/%3E%3Ccircle cx='12' cy='8' r='0.5' fill='%23364B46'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 24px 24px;
+}
+
+.cmg-aviso-texto {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: var(--cmg-space-3) var(--cmg-space-4);
+  background: var(--cmg-surface);
+  font-family: var(--cmg-font-family);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-text);
+}
+
+/* Variante alerta — borda + coluna do ícone em alerta/500 */
+.cmg-aviso--warn {
+  border-color: var(--cmg-warning-500);
+}
+
+.cmg-aviso--warn .cmg-aviso-icon {
+  background: var(--cmg-warning-500);
+}
+
+.cmg-aviso--warn .cmg-aviso-icon::before {
+  /* glifo "warn" (triângulo-!) em neutra/700 sobre o amarelo */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23041E18' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 2.5 20h19L12 3z'/%3E%3Cline x1='12' y1='10' x2='12' y2='14'/%3E%3Ccircle cx='12' cy='17' r='0.5' fill='%23041E18'/%3E%3C/svg%3E");
+}
+
+.cmg-aviso--warn .cmg-aviso-texto {
+  background: var(--cmg-aviso-warn-bg);
+}
+
+/* ===== Documentos exigidos (restricaoDocsHTML do geo.js) ===== */
+.restricao-docs {
+  margin: var(--cmg-space-3) 0;
+  padding: var(--cmg-space-3) var(--cmg-space-4);
+  border: 1px solid var(--cmg-border-subtle);
+  border-radius: var(--cmg-radius);
+  background: var(--cmg-surface-accent);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  color: var(--cmg-text);
+}
+
+.restricao-docs-intro {
+  margin: 0 0 var(--cmg-space-2);
+  font-weight: 700;
+}
+
+.restricao-docs-lista {
+  margin: 0 0 var(--cmg-space-2);
+  padding-left: 20px;
+}
+
+.restricao-docs-lista li {
+  margin-bottom: var(--cmg-space-1);
+  line-height: 20px;
+}
+
+/* Marcador verde institucional (shared.css) */
+.restricao-docs-lista li::marker {
+  color: var(--cmg-accent);
+}
+
+.restricao-docs-nota {
+  margin: var(--cmg-space-2) 0 0;
+  font-size: 12px;
+  color: var(--cmg-text-muted);
+}
+
+/* ===== Chips de camadas (resultado da consulta ambiental) ===== */
+.restricao-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cmg-space-2);
+  margin-top: var(--cmg-space-3);
+}
+
+.chip {
+  padding: 4px 10px;
+  border-radius: var(--cmg-radius-pill);
+  font-size: 12px;
+  border: 1px solid var(--cmg-border-subtle);
+  background: var(--cmg-surface);
+  color: var(--cmg-text-muted);
+}
+
+.chip-on {
+  border-color: var(--cmg-warning-500);
+  background: var(--cmg-warn-bg);
+  color: var(--cmg-warn-text);
+  font-weight: 700;
+}
+
+.chip-err {
+  border-color: var(--cmg-error-500);
+  background: var(--cmg-err-bg);
+  color: var(--cmg-error-500);
+}

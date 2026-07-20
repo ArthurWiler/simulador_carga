@@ -444,7 +444,7 @@ function _htmlCAR(car) {
   return (
     `<p class="mapa-hint" style="margin:8px 0 0">Cadastro Ambiental Rural (CAR) — ` +
     `<strong>${_escHtml(car.nome || "imóvel identificado")}</strong>${areaTxt} ` +
-    `<span style="color:var(--cmg-neutral-500)">(informativo)</span></p>`
+    `<span style="color:var(--cmg-text-muted)">(informativo)</span></p>`
   );
 }
 
