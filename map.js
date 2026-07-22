@@ -445,7 +445,13 @@ function _htmlResultadoAmb(lat, lng, res, car) {
   const foraQtd = res.length - dentros.length - erros.length;
   let html = `<p class="mapa-hint" style="margin-top:12px">Ponto consultado: ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>`;
   if (dentros.length) {
-    html += alertHTML("warn", restricaoSentencaHTML(det, _ambCenario));
+    // O banner fica só com o TÍTULO: a frase de abrangência foi para dentro
+    // do card de documentos (restricaoDocsHTML), p/ o resultado ser lido como
+    // um texto contínuo em vez de caixas soltas.
+    html += alertHTML(
+      "warn",
+      `<strong>${_escHtml(RESTRICAO_AVISO_TITULO)}</strong>`,
+    );
     // ctx leva { lat, lng } (placeholder {coord} do texto de APP) e o
     // cenário zona/rede (redação da Unidade de Conservação).
     html += restricaoDocsHTML(det, {

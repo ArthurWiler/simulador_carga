@@ -998,7 +998,10 @@ footer {
   background: var(--cmg-aviso-warn-bg);
 }
 
-/* ===== Documentos exigidos (restricaoDocsHTML do geo.js) ===== */
+/* ===== Documentos exigidos (restricaoDocsHTML do geo.js) =====
+   Card ÚNICO: cada restrição (UC, APP, …) é uma .restricao-docs-secao
+   dentro dele, separada por divisória — as listas ficam distintas porque a
+   exigência de cada uma é diferente (ver comentário em restricaoDocsHTML). */
 .restricao-docs {
   margin: var(--cmg-space-3) 0;
   padding: var(--cmg-space-3) var(--cmg-space-4);
@@ -1008,6 +1011,20 @@ footer {
   font-family: var(--cmg-font-family);
   font-size: var(--cmg-fs-body);
   color: var(--cmg-text);
+}
+
+/* Divisória só ENTRE seções — a primeira não ganha borda/espaço extra. */
+.restricao-docs-secao + .restricao-docs-secao {
+  margin-top: var(--cmg-space-4);
+  padding-top: var(--cmg-space-4);
+  border-top: 1px solid var(--cmg-border-subtle);
+}
+
+/* Frase de abrangência (seção de abertura do card): texto corrido, peso
+   normal — os nomes das áreas já vêm em <strong> do geo.js. */
+.restricao-docs-frase {
+  margin: 0;
+  line-height: 22px;
 }
 
 .restricao-docs-intro {
@@ -1034,6 +1051,11 @@ footer {
   margin: var(--cmg-space-2) 0 0;
   font-size: 12px;
   color: var(--cmg-text-muted);
+}
+
+/* Último elemento da seção não deixa margem sobrando no rodapé do card. */
+.restricao-docs-secao > :last-child {
+  margin-bottom: 0;
 }
 
 /* ===== Chips de camadas (resultado da consulta ambiental) ===== */

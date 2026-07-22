@@ -129,12 +129,12 @@ const DOC_INTRO =
    `introPropria` — ver restricaoDocsMesclado(). */
 const DOC_APP = {
   introPropria:
-    "Como o imóvel de V.Sa. está localizado dentro de uma APP, para que possamos dar continuidade ao seu atendimento, V.Sa. deverá comprovar à Cemig que sua residência ou benfeitoria na coordenada {coord}, encontra-se regular através de um dos documentos a seguir:",
+    "Além disso, considerando que a residência ou benfeitoria localizada nas coordenadas {coord} encontra-se inserida em Área de Preservação Permanente, é necessária a comprovação da regularidade da ocupação para subsidiar a análise junto ao órgão ambiental competente. Para continuidade do atendimento, deverá ser apresentada pelo menos uma das seguintes comprovações:",
   bullets: [
-    "Termo de Ajustamento de Conduta;",
+    "Termo de Ajustamento de Conduta (TAC);",
     "Comprovação de Uso Antrópico Consolidado;",
-    "Declaração de Interesse Social ou Utilidade Pública, no caso de propriedade rural; ou",
-    "Simples Declaração do órgão ambiental.",
+    "Declaração de Interesse Social ou Utilidade Pública, quando se tratar de propriedade rural;",
+    "Declaração emitida pelo órgão ambiental competente atestando a regularidade da ocupação.",
   ],
   notas: [],
 };
@@ -173,7 +173,7 @@ const UC_INTRO_REDE = {
 // restricaoSentencaSegmentos(). Sem rede à porta a obra é da CEMIG, e é ela
 // quem precisa da autorização do órgão gestor.
 const UC_COMPLEMENTO_EXTENSAO =
-  "Neste caso a CEMIG necessitará solicitar autorização do órgão responsável pela administração Unidade de Conservação, para a execução de obras/projetos de extensão de rede de distribuição de energia elétrica.";
+  "Nessas condições, a execução de obras ou projetos de extensão de rede de distribuição de energia elétrica depende de autorização prévia do órgão responsável pela administração da respectiva Unidade de Conservação, não sendo possível o prosseguimento da solicitação sem a devida regularização e análise ambiental.";
 // Monta o objeto `documentos` da UC para o cenário escolhido. Usa
 // `introPropria` (em vez do DOC_INTRO compartilhado) porque as duas
 // introduções acima são específicas da UC — assim o bloco da UC não se
@@ -712,27 +712,30 @@ const RESTRICAO_ACEITE_LABEL =
 function restricaoSentencaSegmentos(detalhe, cenario) {
   const areas = detalhe || [];
   if (!areas.length) return [];
-  const plural = areas.length > 1;
   const segs = [
     {
       t:
-        "O ponto de ligação está localizado " +
-        (plural ? "nas áreas" : "na área") +
-        " de abrangência de ",
+        "O ponto de ligação solicitado está localizado em área sujeita a " +
+        "restrições ambientais, abrangida por ",
     },
   ];
+  // Cada área vira "Tipo (Nome)" — o nome entre parênteses, em negrito. Sem
+  // nome próprio, só o tipo. Enumeração com vírgulas e "e" antes do último.
   areas.forEach((a, i) => {
     if (i > 0) segs.push({ t: i === areas.length - 1 ? " e " : ", " });
     if (a.nome) {
-      segs.push({ t: a.tipoNome + ": " });
+      segs.push({ t: a.tipoNome + " (" });
       segs.push({ t: a.nome, b: true });
+      segs.push({ t: ")" });
     } else {
       segs.push({ t: a.tipoNome, b: true });
     }
   });
   segs.push({ t: "." });
   // Complemento da extensão de rede: só faz sentido quando há UC no ponto.
-  const temUC = areas.some((a) => a.documentos && a.documentos.unidadeConservacao);
+  const temUC = areas.some(
+    (a) => a.documentos && a.documentos.unidadeConservacao,
+  );
   if (temUC && normalizarCenario(cenario).rede === "extensao")
     segs.push({ t: " " + UC_COMPLEMENTO_EXTENSAO });
   return segs;
@@ -803,14 +806,22 @@ function restricaoDocsMesclado(detalhe, ctx) {
   const b = restricaoDocsBlocos(detalhe, ctx);
   return b[0] || { intro: "", bullets: [], notas: [] };
 }
-// Versão em HTML do(s) bloco(s) de documentos (intro + <ul> + notas).
-// ctx = { lat, lng } para os placeholders ({coord}).
+// Versão em HTML dos documentos — UM card só. Cada bloco (UC, APP, …) vira
+// uma SEÇÃO dentro dele, com sua própria introdução e sua própria lista.
+// A unificação é visual/redacional: as listas continuam separadas de
+// propósito, porque a exigência de cada uma é diferente — os documentos da
+// UC são obrigatórios, enquanto os da APP são alternativos entre si ("pelo
+// menos uma das seguintes"). Fundir tudo numa lista só faria parecer que
+// qualquer item basta, afrouxando a exigência da UC.
+// A FRASE de abrangência entra como primeira seção do mesmo card (o banner
+// de alerta fica só com o título), de modo que o resultado seja lido como um
+// documento contínuo: onde está → o que isso implica → o que apresentar.
+// ctx = { lat, lng, zona, rede }; { coord } sai de lat/lng.
 function restricaoDocsHTML(detalhe, ctx) {
-  const blocos = restricaoDocsBlocos(detalhe, ctx);
-  const partes = blocos
+  const secoes = restricaoDocsBlocos(detalhe, ctx)
     .map((d) => {
       if (!d.bullets.length && !d.notas.length) return "";
-      let html = '<div class="restricao-docs">';
+      let html = '<div class="restricao-docs-secao">';
       if (d.intro)
         html += `<p class="restricao-docs-intro">${_escHtml(d.intro)}</p>`;
       if (d.bullets.length)
@@ -825,5 +836,14 @@ function restricaoDocsHTML(detalhe, ctx) {
       return html;
     })
     .filter(Boolean);
-  return partes.join("");
+  // Frase de abrangência como seção de abertura, em texto corrido.
+  const frase = restricaoSentencaSegmentos(detalhe, ctx)
+    .map((s) => (s.b ? `<strong>${_escHtml(s.t)}</strong>` : _escHtml(s.t)))
+    .join("");
+  if (frase)
+    secoes.unshift(
+      `<div class="restricao-docs-secao"><p class="restricao-docs-frase">${frase}</p></div>`,
+    );
+  if (!secoes.length) return "";
+  return `<div class="restricao-docs">${secoes.join("")}</div>`;
 }
