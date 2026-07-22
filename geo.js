@@ -120,7 +120,7 @@ const FBDS_APP_CIRCUNSCRICAO = [
 ];
 
 const DOC_INTRO =
-  "Para que o cliente obtenha ligação de energia elétrica, é necessário anexar os seguintes documentos no Cemig Atende:";
+  "Para que o cliente obtenha ligação de energia elétrica, é necessário anexar os seguintes documentos:";
 /* ---- Área de Preservação Permanente (APP) — texto de indeferimento ----
    O texto cita a COORDENADA consultada: use o placeholder {coord}, que o
    builder (restricaoDocsHTML) substitui por "(-lat, -lng)". Como não há
@@ -138,15 +138,67 @@ const DOC_APP = {
   ],
   notas: [],
 };
-const DOC_UNIDADE_CONSERVACAO = {
-  bullets: [
-    "Comprovação da posse e regularidade do imóvel simultaneamente (IPTU, Registro do Imóvel, Escritura Pública, etc.); ou",
-    "Comprovação de posse (Contrato de Compra e Venda, Contrato de Locação, Termo de Doação, Termo de Permissão de Uso, etc.) e regularidade (Certidão de número/Habite-se/Declaração da Prefeitura, Planta de Arquitetura Aprovada) separadamente.",
+/* ---- Unidade de Conservação — texto VARIÁVEL por dois eixos ----
+   A redação da UC depende de duas escolhas do atendente (switches na aba
+   Análise Ambiental, ver ambCenario() no map.js):
+   - zona: "urbana" | "rural"        → muda a LISTA de documentos
+   - rede: "porta" | "extensao"      → muda a INTRODUÇÃO
+   Regra de negócio: com rede à porta basta o cliente apresentar os
+   documentos; sem rede à porta (extensão) a própria CEMIG precisa pedir
+   autorização ao órgão gestor da UC, então a frase de localização ganha um
+   complemento e a introdução dos documentos muda para "subsidiar a análise".
+   A nota final do órgão ambiental vale nos quatro cenários.
+   Resolvido em docsUnidadeConservacao(cenario), abaixo. */
+const UC_NOTA_ORGAO =
+  "A critério do órgão ambiental responsável pela administração da Unidade de Conservação, outros documentos e informações complementares poderão ser solicitadas posteriormente.";
+// Documentos por ZONA.
+const UC_BULLETS_ZONA = {
+  urbana: [
+    "Documentos que comprovem posse e regularidade do imóvel simultaneamente (IPTU, Registro de Imóvel, Escritura Pública, etc) ou;",
+    "Documentos que comprovem posse (Contrato de Compra e Venda, Contrato de Locação, Termo de Doação, Termo de Permissão de Uso, etc) e regularidade (Certidão de número/Habite-se/Declaração da Prefeitura, Planta de Arquitetura Aprovada) separadamente.",
   ],
-  notas: [
-    "Outros documentos e informações complementares poderão ser solicitadas posteriormente a critério do órgão ambiental responsável pela administração da Unidade de Conservação.",
+  rural: [
+    "Escritura do Imóvel e/ou Certidão de Inteiro Teor da matrícula do imóvel, e o CAR – Cadastro Ambiental Rural.",
   ],
 };
+// Introdução da lista por REDE.
+const UC_INTRO_REDE = {
+  porta:
+    "Para que o cliente obtenha a ligação de energia elétrica, é necessário apresentar:",
+  extensao:
+    "Visando subsidiar a análise do órgão ambiental, o requerente deve apresentar os seguintes documentos:",
+};
+// Complemento da FRASE de localização — só no cenário de extensão de rede.
+// Entra logo após o ponto final da sentença montada por
+// restricaoSentencaSegmentos(). Sem rede à porta a obra é da CEMIG, e é ela
+// quem precisa da autorização do órgão gestor.
+const UC_COMPLEMENTO_EXTENSAO =
+  "Neste caso a CEMIG necessitará solicitar autorização do órgão responsável pela administração Unidade de Conservação, para a execução de obras/projetos de extensão de rede de distribuição de energia elétrica.";
+// Monta o objeto `documentos` da UC para o cenário escolhido. Usa
+// `introPropria` (em vez do DOC_INTRO compartilhado) porque as duas
+// introduções acima são específicas da UC — assim o bloco da UC não se
+// mistura com o de outras camadas em restricaoDocsBlocos().
+function docsUnidadeConservacao(cenario) {
+  const c = normalizarCenario(cenario);
+  return {
+    introPropria: UC_INTRO_REDE[c.rede],
+    bullets: UC_BULLETS_ZONA[c.zona].slice(),
+    notas: [UC_NOTA_ORGAO],
+  };
+}
+// Normaliza/valida o cenário vindo da UI. Padrão: urbana + rede à porta.
+function normalizarCenario(cenario) {
+  const c = cenario || {};
+  return {
+    zona: c.zona === "rural" ? "rural" : "urbana",
+    rede: c.rede === "extensao" ? "extensao" : "porta",
+  };
+}
+// Marcador de identidade da camada de UC. As entradas de camada apontam para
+// ESTE objeto; o texto real é resolvido por cenário em restricaoDocsBlocos().
+// Mantido como objeto próprio (e não um doc pronto) para que a dedup por
+// referência continue tratando todas as UCs como um bloco só.
+const DOC_UNIDADE_CONSERVACAO = { unidadeConservacao: true };
 const DOC_TERRA_QUILOMBOLA = {
   bullets: [
     "Certidão/Registro de Autodefinição emitido pela Fundação Cultural Palmares, comprovando o vínculo do(s) interessado(s) com a comunidade quilombola;",
@@ -654,7 +706,10 @@ const RESTRICAO_ACEITE_LABEL =
 // { t:texto, b:true? } p/ o consumidor destacar em negrito. Trata singular/
 // plural (1 vs N áreas) e destaca o NOME de cada área (ou o tipo, quando a
 // camada não traz nome). Consumido em HTML pela aba Análise Ambiental.
-function restricaoSentencaSegmentos(detalhe) {
+// `cenario` ({ zona, rede }) é opcional: com rede === "extensao" e alguma
+// Unidade de Conservação entre as áreas, acrescenta o complemento sobre a
+// autorização que a CEMIG precisa pedir ao órgão gestor.
+function restricaoSentencaSegmentos(detalhe, cenario) {
   const areas = detalhe || [];
   if (!areas.length) return [];
   const plural = areas.length > 1;
@@ -676,11 +731,15 @@ function restricaoSentencaSegmentos(detalhe) {
     }
   });
   segs.push({ t: "." });
+  // Complemento da extensão de rede: só faz sentido quando há UC no ponto.
+  const temUC = areas.some((a) => a.documentos && a.documentos.unidadeConservacao);
+  if (temUC && normalizarCenario(cenario).rede === "extensao")
+    segs.push({ t: " " + UC_COMPLEMENTO_EXTENSAO });
   return segs;
 }
 // Versão em HTML da frase (título em negrito + segmentos) — usada pelo MT.
-function restricaoSentencaHTML(detalhe) {
-  const corpo = restricaoSentencaSegmentos(detalhe)
+function restricaoSentencaHTML(detalhe, cenario) {
+  const corpo = restricaoSentencaSegmentos(detalhe, cenario)
     .map((s) => (s.b ? `<strong>${_escHtml(s.t)}</strong>` : _escHtml(s.t)))
     .join("");
   return `<strong>${_escHtml(RESTRICAO_AVISO_TITULO)}</strong>. ${corpo}`;
@@ -709,9 +768,12 @@ function restricaoDocsBlocos(detalhe, ctx) {
   const proprios = [];
   const vistos = new Set();
   for (const a of areas) {
-    const doc = a.documentos;
+    let doc = a.documentos;
     if (!doc || vistos.has(doc)) continue; // dedup por tipo (referência)
     vistos.add(doc);
+    // A UC não tem texto fixo: resolve agora, conforme os switches
+    // zona/rede que vêm no ctx. Dedup já feita pela referência marcadora.
+    if (doc.unidadeConservacao) doc = docsUnidadeConservacao(ctx);
     const bullets = (doc.bullets || []).map((b) => _interpTexto(b, ctx));
     const notas = (doc.notas || []).map((n) => _interpTexto(n, ctx));
     if (doc.introPropria) {

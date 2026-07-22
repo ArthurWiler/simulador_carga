@@ -21,6 +21,14 @@ let restricaoLayerAmb = null;
 let carLayerAmb = null; // perímetro do imóvel CAR (SICAR), desenhado à parte
 let _ambDebounce = null;
 let _ambLastKey = "";
+// Último resultado da consulta, guardado p/ re-renderizar o texto quando os
+// switches de cenário mudam — trocar Zona/Rede não refaz a consulta WFS.
+let _ambUltimo = null; // { lat, lng, res, car }
+// Cenário do atendimento (switches da aba). Zona é semeada a partir do
+// select #zona do Simulador na primeira abertura da aba; a partir daí o
+// switch é independente (mudá-lo não volta para o Simulador).
+let _ambCenario = { zona: "urbana", rede: "porta" };
+let _ambZonaSemeada = false;
 
 // Contorno do imóvel CAR no mapa — tracejado AMARELO de alto contraste
 // (informativo). Legibilidade sobre satélite E ruas via halo escuro por baixo
@@ -199,7 +207,67 @@ function initMapaAmbiental() {
 function onAbaAmbiental() {
   initMapaAmbiental();
   if (mapaAmb) setTimeout(() => mapaAmb.invalidateSize(), 150);
+  _semearZonaDoSimulador();
   sincronizarAmbientalDoFormulario();
+}
+
+// Semeia o switch de Zona com o select #zona do Simulador — UMA vez, na
+// primeira abertura da aba em que o Simulador já tenha zona escolhida. Depois
+// disso o switch é do atendente: reabrir a aba não desfaz a escolha dele, e
+// mudar o switch nunca escreve de volta no Simulador.
+function _semearZonaDoSimulador() {
+  if (_ambZonaSemeada) return;
+  const sel = document.getElementById("zona");
+  const v = sel && sel.value;
+  if (v !== "urbana" && v !== "rural") return; // vazio: tenta de novo depois
+  _ambZonaSemeada = true;
+  if (v === _ambCenario.zona) return;
+  _ambCenario.zona = v;
+  _pintarSwitchesAmb();
+}
+
+// Toggles binários da aba: id do switch → [campo do cenário, valor quando
+// LIGADO, valor quando desligado]. Fonte única p/ pintar e p/ o clique.
+const _AMB_SWITCHES = {
+  "is-rural": ["zona", "rural", "urbana"],
+  "is-extensao": ["rede", "extensao", "porta"],
+};
+
+// Reflete _ambCenario nos switches: data-state/aria-checked no botão (o CSS
+// desliza o polegar) e .on no rótulo do lado vigente.
+function _pintarSwitchesAmb() {
+  Object.keys(_AMB_SWITCHES).forEach((id) => {
+    const [campo, ligado] = _AMB_SWITCHES[id];
+    const on = _ambCenario[campo] === ligado;
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.dataset.state = on ? "checked" : "unchecked";
+      btn.setAttribute("aria-checked", on ? "true" : "false");
+    }
+    const lblOn = document.querySelector(`[data-amb-on="${id}"]`);
+    const lblOff = document.querySelector(`[data-amb-off="${id}"]`);
+    if (lblOn) lblOn.classList.toggle("on", on);
+    if (lblOff) lblOff.classList.toggle("on", !on);
+  });
+}
+
+// Troca de cenário: repinta os switches e re-renderiza o texto a partir do
+// último resultado em cache (sem refazer a consulta WFS). Sem consulta ainda,
+// só guarda a escolha — a próxima consulta já sai no cenário certo.
+function _aplicarCenarioAmb(campo, valor) {
+  if (_ambCenario[campo] === valor) return;
+  _ambCenario[campo] = valor;
+  if (campo === "zona") _ambZonaSemeada = true; // escolha manual trava a semente
+  _pintarSwitchesAmb();
+  if (!_ambUltimo) return;
+  const box = document.getElementById("ambResultado");
+  if (box)
+    box.innerHTML = _htmlResultadoAmb(
+      _ambUltimo.lat,
+      _ambUltimo.lng,
+      _ambUltimo.res,
+      _ambUltimo.car,
+    );
 }
 
 // Clique no mapa / arrasto do pino → escreve nos campos da aba e do
@@ -347,6 +415,7 @@ async function consultarAmbiental(lat, lng) {
     _limparCamadasAmb();
     if (errosTodos) {
       _ambLastKey = "";
+      _ambUltimo = null;
       if (box) box.innerHTML = "";
       _ambStatus(
         "Não foi possível consultar a restrição ambiental (verifique conexão/camadas).",
@@ -356,6 +425,7 @@ async function consultarAmbiental(lat, lng) {
     }
     restricaoLayerAmb = desenharRestricoesNoMapa(window.L, mapaAmb, res);
     carLayerAmb = desenharCARNoMapa(car);
+    _ambUltimo = { lat, lng, res, car };
     if (box) box.innerHTML = _htmlResultadoAmb(lat, lng, res, car);
     const comErro = res.filter((r) => r.erro).length;
     _ambStatus(
@@ -375,9 +445,15 @@ function _htmlResultadoAmb(lat, lng, res, car) {
   const foraQtd = res.length - dentros.length - erros.length;
   let html = `<p class="mapa-hint" style="margin-top:12px">Ponto consultado: ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>`;
   if (dentros.length) {
-    html += alertHTML("warn", restricaoSentencaHTML(det));
-    // ctx { lat, lng } alimenta o placeholder {coord} do texto de APP.
-    html += restricaoDocsHTML(det, { lat, lng });
+    html += alertHTML("warn", restricaoSentencaHTML(det, _ambCenario));
+    // ctx leva { lat, lng } (placeholder {coord} do texto de APP) e o
+    // cenário zona/rede (redação da Unidade de Conservação).
+    html += restricaoDocsHTML(det, {
+      lat,
+      lng,
+      zona: _ambCenario.zona,
+      rede: _ambCenario.rede,
+    });
   } else {
     html += alertHTML(
       "ok",
@@ -449,6 +525,7 @@ function _htmlCAR(car) {
 // legenda e resultado, e permite reconsultar a mesma coordenada.
 function limparAmbiental() {
   _ambLastKey = "";
+  _ambUltimo = null; // sem resultado em cache: switches não têm o que re-render
   clearTimeout(_ambDebounce);
   _limparCamadasAmb();
   if (mapaAmb && marcadorAmb) {
@@ -466,6 +543,16 @@ function limparAmbiental() {
 window.limparAmbiental = limparAmbiental;
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Switches de cenário (Zona / Rede): alternam e re-renderizam na hora.
+  Object.keys(_AMB_SWITCHES).forEach((id) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    const [campo, ligado, desligado] = _AMB_SWITCHES[id];
+    btn.addEventListener("click", () => {
+      const on = btn.dataset.state === "checked";
+      _aplicarCenarioAmb(campo, on ? desligado : ligado);
+    });
+  });
   // Digitação de coordenada no simulador → sincroniza com debounce (600 ms,
   // como no BT). O dispatch de input feito por aplicarCoordDoMapa também cai
   // aqui, mas a deduplicação por _ambLastKey evita consulta dupla.

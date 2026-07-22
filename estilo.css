@@ -769,6 +769,100 @@ footer {
   color: var(--cmg-text-muted);
 }
 
+/* ===== Switches de cenário da aba Ambiental (Zona / Rede) =====
+   Controle segmentado: dois botões colados numa pílula, o ativo (.on) em
+   verde institucional. Alteram a redação do texto de Unidade de Conservação
+   (ver _aplicarCenarioAmb no map.js). */
+.amb-cenario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 12px 0 0;
+}
+
+.amb-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Rótulos dos dois lados do trilho: o lado vigente acende (.on). Sem isso o
+   significado dependeria só da posição do polegar. */
+.amb-switch-side {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cmg-text-muted);
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.amb-switch-side.on {
+  font-weight: 600;
+  color: var(--cmg-text);
+}
+
+/* Trilho. Geometria do padrão shadcn (18.4×32px, polegar 16px).
+   Dois cuidados por causa das regras globais deste CSS:
+   - justify-content:flex-start ANULA o center herdado da regra `button`
+     (senão o polegar nasce no meio do trilho);
+   - box-sizing é border-box no projeto todo, então a borda de 1px consome
+     a largura: o curso do polegar usa --switch-inner (largura já sem as
+     bordas), e não --switch-w, senão o polegar estoura a borda direita. */
+.switch {
+  --switch-h: 1.15rem;
+  --switch-w: 2rem;
+  --thumb: 1rem;
+  --switch-inner: calc(var(--switch-w) - 2px); /* -2px = bordas L+R */
+  --gap: 1px; /* folga entre polegar e borda */
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  border: 1px solid transparent;
+  border-radius: var(--cmg-radius-pill);
+  background: var(--cmg-neutral-200);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.switch[data-state="checked"] {
+  background: var(--cmg-green-600);
+}
+
+.switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 119, 97, 0.45);
+}
+
+/* Polegar. Curso = largura interna − polegar − 2×folga, de modo que sobre a
+   mesma folga dos dois lados nos estados ligado e desligado. */
+.switch-thumb {
+  pointer-events: none;
+  flex: none;
+  display: block;
+  width: var(--thumb);
+  height: var(--thumb);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transform: translateX(var(--gap));
+  transition: transform 0.15s ease;
+}
+
+.switch[data-state="checked"] .switch-thumb {
+  transform: translateX(
+    calc(var(--switch-inner) - var(--thumb) - var(--gap))
+  );
+}
+
 .mapa-status.err {
   color: var(--cmg-danger-500);
 }
@@ -870,9 +964,11 @@ footer {
 }
 
 .cmg-aviso-texto {
+  display: block;
+  /* NÃO usar display:flex aqui: o conteúdo é texto corrido com <strong>
+     inline, e cada filho viraria um item de flex (palavras empilhadas em
+     colunas). A centralização vertical fica por conta do .cmg-aviso. */
   flex: 1 1 auto;
-  display: flex;
-  align-items: center;
   margin: 0;
   padding: var(--cmg-space-3) var(--cmg-space-4);
   background: var(--cmg-surface);

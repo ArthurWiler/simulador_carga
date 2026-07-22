@@ -483,6 +483,58 @@
               >
             </div>
           </div>
+          <!-- Cenário do atendimento: muda a REDAÇÃO do texto de Unidade
+               de Conservação (docsUnidadeConservacao no geo.js). Zona inicia
+               espelhando o select #zona da aba Simulador; depois é
+               independente. Trocar qualquer switch re-renderiza o resultado
+               sem refazer a consulta às camadas. -->
+          <!-- Toggles binários (padrão switch: trilho + polegar deslizante).
+               O estado vive em data-state=checked|unchecked, lido pelo CSS.
+               Desligado = Urbana / Rede à porta. O rótulo de cada lado
+               acende conforme o estado, p/ o significado não depender só da
+               posição do polegar. -->
+          <div
+            class="amb-cenario"
+            role="group"
+            aria-label="Cenário do atendimento"
+          >
+            <div class="amb-switch">
+              <span class="amb-switch-side on" data-amb-off="is-rural"
+                >Urbana</span
+              >
+              <button
+                type="button"
+                role="switch"
+                aria-checked="false"
+                data-state="unchecked"
+                class="switch"
+                id="is-rural"
+                aria-label="Zona rural"
+              >
+                <span class="switch-thumb"></span>
+              </button>
+              <span class="amb-switch-side" data-amb-on="is-rural">Rural</span>
+            </div>
+            <div class="amb-switch">
+              <span class="amb-switch-side on" data-amb-off="is-extensao"
+                >Rede à porta</span
+              >
+              <button
+                type="button"
+                role="switch"
+                aria-checked="false"
+                data-state="unchecked"
+                class="switch"
+                id="is-extensao"
+                aria-label="Extensão de rede"
+              >
+                <span class="switch-thumb"></span>
+              </button>
+              <span class="amb-switch-side" data-amb-on="is-extensao"
+                >Extensão de rede</span
+              >
+            </div>
+          </div>
           <div class="mapa-toolbar">
             <button id="btnConsultarAmb" type="button">
               🌿 Consultar restrição ambiental
