@@ -269,13 +269,6 @@ const SISEMA_CAMADAS = [
   //   nomeFeicao(props) — extrator de rótulo específico da camada (tem
   //     prioridade sobre a heurística genérica nomeFeicaoRestricao)
   {
-    id: "ape",
-    rotulo: "Área de Proteção Especial",
-    typeName: "IDE:ide_2010_mg_areas_protecao_especial_pol",
-    tipoNome: "Área de Proteção Especial",
-    documentos: DOC_UNIDADE_CONSERVACAO,
-  },
-  {
     id: "uce",
     rotulo: "Unidade de Conservação Estadual",
     typeName: "IDE:ide_2010_mg_unidades_conservacao_estaduais_pol",
