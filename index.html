@@ -570,7 +570,7 @@
         ["H4-BI 125 A", 7, 30.0],
         ["H5-BI 150 A", 8, 36.0],
         ["H6-BI 200 A", 9, 50.0],
-        ["C1-TRI 40", 10, 15.0],
+        ["C1-TRI 40 A", 10, 15.0],
         ["C2-TRI 63 A", 11, 23.0],
         ["C3-TRI 80 A", 12, 27.0],
         ["C4-TRI 100 A", 13, 38.0],
@@ -579,7 +579,7 @@
         ["C7-TRI 175 A", 16, 66.0],
         ["C8-TRI 200 A", 17, 75.0],
         ["F1-TRI 225 A", 18, 86.0],
-        ["F2-TRI 250", 19, 95.0],
+        ["F2-TRI 250 A", 19, 95.0],
         ["F3-TRI 300/315/320 A", 20, 114.0],
         ["F4-TRI 400 A", 21, 152.0],
         ["F5-TRI 450 A", 22, 171.0],
@@ -593,6 +593,127 @@
         ["TRI 1800 A", 30, 685.0],
         ["TRI 2100 A", 31, 800.0],
       ];
+
+      /* ===== Limite de liberação: potência do trafo × disjuntor =====
+         Cada potência de transformador libera um conjunto de disjuntores;
+         acima dele o atendimento exige troca do transformador (obra).
+         As faixas são CUMULATIVAS: cada potência libera tudo o que a
+         potência anterior liberava, mais os disjuntores acrescentados.
+         Obs.: os rótulos seguem os nomes de DISJUNTORES — "A3/G3-MONO 63 A"
+         = 63/70 A, "B2/H2-BI 63 A" = 60/63 A, "C2-TRI 63 A" = 60/63 A,
+         "C3-TRI 80 A" = 70/80 A e "C5-TRI 125 A" = 120/125 A. */
+
+      // --- Transformador MONOFÁSICO (código XXXXX-1-XXX) ---
+      const DISJ_LIB_MONO_5 = [
+        "A1/G1-MONO 40 A",
+        "A2/G2-MONO 50 A",
+        "A3/G3-MONO 63 A",
+        "B1/H1-BI 40 A",
+        "B2/H2-BI 63 A",
+      ];
+      const DISJ_LIB_MONO_10 = [...DISJ_LIB_MONO_5, "H3-BI 100 A"];
+      const DISJ_LIB_MONO_15 = [
+        ...DISJ_LIB_MONO_10,
+        "H4-BI 125 A",
+        "H5-BI 150 A",
+      ];
+      const DISJ_LIB_MONO_25 = [...DISJ_LIB_MONO_15, "H6-BI 200 A"];
+      const DISJ_LIB_MONO_37 = [...DISJ_LIB_MONO_25];
+      const LIMITE_DISJ_TRAFO_MONO = {
+        5: DISJ_LIB_MONO_5,
+        10: DISJ_LIB_MONO_10,
+        15: DISJ_LIB_MONO_15,
+        25: DISJ_LIB_MONO_25,
+        37: DISJ_LIB_MONO_37,
+      };
+
+      /* --- Transformador TRIFÁSICO (código XXXXX-3-XXX) ---
+         Só entram os disjuntores BI até 63 A: BI acima disso já é
+         BLOQUEANTE em rede trifásica (ver erro_bloqueante em calcular). */
+      const DISJ_LIB_TRI_15 = [
+        "A1/G1-MONO 40 A",
+        "A2/G2-MONO 50 A",
+        "A3/G3-MONO 63 A",
+        "B1/H1-BI 40 A",
+        "B2/H2-BI 63 A",
+        "C1-TRI 40 A",
+        "C2-TRI 63 A",
+        "C3-TRI 80 A",
+        "C4-TRI 100 A",
+      ];
+      const DISJ_LIB_TRI_30 = [...DISJ_LIB_TRI_15, "C5-TRI 125 A"];
+      const DISJ_LIB_TRI_45 = [...DISJ_LIB_TRI_30, "C6-TRI 150 A"];
+      const DISJ_LIB_TRI_75 = [
+        ...DISJ_LIB_TRI_45,
+        "C8-TRI 200 A",
+        "F1-TRI 225 A",
+        "F2-TRI 250 A",
+        "F3-TRI 300/315/320 A",
+      ];
+      const DISJ_LIB_TRI_112 = [...DISJ_LIB_TRI_75, "F4-TRI 400 A"];
+      const DISJ_LIB_TRI_150 = [
+        ...DISJ_LIB_TRI_112,
+        "F5-TRI 450 A",
+        "F6-TRI 500 A",
+        "F7-TRI 600/630 A",
+        "F8-TRI 700 A",
+        "F9-TRI 800 A",
+      ];
+      const DISJ_LIB_TRI_225 = [
+        ...DISJ_LIB_TRI_150,
+        "TRI 1000 A",
+        "TRI 1200 A",
+      ];
+      const DISJ_LIB_TRI_300 = [...DISJ_LIB_TRI_225, "TRI 1500 A"];
+      const DISJ_LIB_TRI_400 = [...DISJ_LIB_TRI_300, "TRI 1800 A"];
+      const DISJ_LIB_TRI_500 = [...DISJ_LIB_TRI_400, "TRI 2100 A"];
+      const DISJ_LIB_TRI_600 = [...DISJ_LIB_TRI_500];
+      const LIMITE_DISJ_TRAFO_TRI = {
+        15: DISJ_LIB_TRI_15,
+        30: DISJ_LIB_TRI_30,
+        45: DISJ_LIB_TRI_45,
+        75: DISJ_LIB_TRI_75,
+        112: DISJ_LIB_TRI_112,
+        150: DISJ_LIB_TRI_150,
+        225: DISJ_LIB_TRI_225,
+        300: DISJ_LIB_TRI_300,
+        400: DISJ_LIB_TRI_400,
+        500: DISJ_LIB_TRI_500,
+        600: DISJ_LIB_TRI_600,
+      };
+
+      /* Disjuntores FORA da regra potência × disjuntor: só existem como
+         proteção geral, então nenhuma faixa os relaciona e eles não podem
+         ser cobrados como "acima da faixa". */
+      const DISJ_FORA_DA_REGRA = ["C7-TRI 175 A"];
+
+      /**
+       * disjuntoresLiberados — disjuntores que a potência do transformador
+       * libera sem obra (LIMITE_DISJ_TRAFO_MONO / _TRI).
+       *   • potência entre faixas       → maior faixa tabelada ≤ potência
+       *   • potência abaixo da 1ª faixa → menor faixa tabelada
+       *   • potência acima da última    → última faixa (libera todos)
+       * Retorna null quando não há regra a aplicar (fases ou potência não
+       * identificadas) — nesse caso o chamador não valida.
+       */
+      function disjuntoresLiberados(fasesTrf, pottr) {
+        // getTransformerPhases: 2 = trafo monofásico (2F), 3 = trifásico
+        const tabela =
+          fasesTrf === 2
+            ? LIMITE_DISJ_TRAFO_MONO
+            : fasesTrf === 3
+              ? LIMITE_DISJ_TRAFO_TRI
+              : null;
+        if (!tabela) return null;
+        const pot = parseFloat(pottr) || 0;
+        if (pot <= 0) return null;
+        const faixas = Object.keys(tabela)
+          .map(Number)
+          .sort((a, b) => a - b);
+        const faixa = faixas.filter((f) => f <= pot).pop() ?? faixas[0];
+        return tabela[faixa];
+      }
+
       const municipios = [
         "Abadia dos Dourados",
         "Abaete",
@@ -2762,9 +2883,7 @@
 
         // lê o nome de exibição do município selecionado
         // Combobox: o valor do input É o nome do município
-        const municipioNome = document
-          .getElementById("municipio")
-          .value.trim();
+        const municipioNome = document.getElementById("municipio").value.trim();
         // quantidades e nomes — linhas dinâmicas: [ [qtd, disj], ... ] por tipo
         const paresRes = lerLinhasDisj("res");
         const paresCom = lerLinhasDisj("com");
@@ -3067,6 +3186,39 @@
                 ? "trifásico (3F)"
                 : `${fasesDisj}F`;
           motivos_obra.push(`• Conversão de rede necessária`);
+        }
+
+        // --- Limite de liberação: potência do trafo × disjuntor ---
+        // Cada potência de transformador libera até um certo disjuntor
+        // (LIMITE_DISJ_TRAFO_MONO / _TRI); acima disso é preciso trocar o
+        // transformador. Ficam de fora da cobrança:
+        //   • a proteção GERAL — a regra vale só para os disjuntores das
+        //     UCs (res/com/ind), qualquer que seja o disjuntor geral;
+        //   • DISJ_FORA_DA_REGRA — sem faixa definida;
+        //   • disjuntor TRI em trafo MONOFÁSICO — já cai na regra de
+        //     conversão de rede logo acima.
+        const disjLiberados = disjuntoresLiberados(fasesTrf, pottr);
+        if (disjLiberados) {
+          const nomesDisjUC = [...paresRes, ...paresCom, ...paresInd].map(
+            ([, d]) => d,
+          );
+          const foraDaCobranca = (n) =>
+            DISJ_FORA_DA_REGRA.includes(n) ||
+            (fasesTrf === 2 && /TRI/i.test(n));
+          const acimaDaFaixa = [
+            ...new Set(
+              nomesDisjUC.filter(
+                (n) => n && !foraDaCobranca(n) && !disjLiberados.includes(n),
+              ),
+            ),
+          ];
+          if (acimaDaFaixa.length > 0) {
+            const maxLiberado = disjLiberados[disjLiberados.length - 1];
+            const tipoTrf = fasesTrf === 2 ? "monofásico" : "trifásico";
+            motivos_obra.push(
+              `• Troca do transformador necessária — ${pottr} kVA ${tipoTrf} não suporta ${acimaDaFaixa.join(", ")} (máx. ${maxLiberado})`,
+            );
+          }
         }
 
         if (corrente > 250) {
