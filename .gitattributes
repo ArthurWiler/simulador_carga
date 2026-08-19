@@ -1,0 +1,12 @@
+# O manifest.json guarda o sha256 de cada arquivo do conteúdo web, e o
+# updater compara com o que o raw.githubusercontent.com serve. Se o Git
+# converter fim de linha, os bytes no repositório deixam de bater com o hash
+# medido no working copy e o updater rebaixa o mesmo arquivo para sempre, sem
+# nunca convergir. Aconteceu com o vendor/leaflet.css, que veio do CDN em CRLF.
+#
+# Fixar LF nos dois lados elimina a classe inteira do problema.
+* text=auto eol=lf
+
+# Binários: nunca converter
+*.png binary
+*.ico binary
