@@ -3,19 +3,45 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!-- Content-Security-Policy: o conteúdo web é atualizado pela internet
+         (ver src/updater.js), então o ponto que realmente importa é
+         script-src sem host externo - nenhum JS de fora entra, mesmo que
+         alguém consiga injetar uma tag <script src>. connect-src/img-src
+         ficam em https: generico de propósito: os WFS do Sisema/SICAR/
+         AgroTag e os tiles OSM/Esri redirecionam entre hosts, e fixá-los
+         quebraria a aba Análise Ambiental de forma silenciosa.
+         'unsafe-eval' é exigência do vendor/turf.min.js: o bundle do Turf 6.5
+         traz rbush e robust-orientation, que montam funções com new Function
+         no carregamento do módulo. Sem ele o Turf nem inicializa e o teste
+         ponto-em-polígono para de funcionar. Um bundle só com turf.point e
+         turf.booleanPointInPolygon (o único uso, em geo.js) dispensaria o
+         'unsafe-eval' e cortaria ~580 KB — fica como melhoria possível. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' 'unsafe-inline' 'unsafe-eval';
+               style-src 'self' 'unsafe-inline';
+               img-src 'self' data: blob: https:;
+               connect-src 'self' https:;
+               font-src 'self' data:;
+               object-src 'none';
+               base-uri 'none'"
+    />
     <title>Simulador de Carga - CEMIG</title>
 
-    <!-- Chart.js para plot da curva -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bibliotecas VENDORIZADAS em vendor/ (não mais via CDN): o app
+         portable roda em rede corporativa que pode bloquear unpkg/jsdelivr,
+         e sem elas o gráfico e o mapa simplesmente não carregam.
+         Chart.js 4.5.1 - plot da curva -->
+    <script src="vendor/chart.umd.js"></script>
 
-    <!-- Leaflet + Turf.js para a aba Análise Ambiental (mapa e teste
-         ponto-em-polígono das camadas WFS do Sisema/SICAR/AgroTag) -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+    <!-- Leaflet 1.9.4 + Turf 6.5.0 para a aba Análise Ambiental (mapa e teste
+         ponto-em-polígono das camadas WFS do Sisema/SICAR/AgroTag).
+         O leaflet.css referencia images/ por caminho relativo - por isso
+         vendor/images/ precisa existir junto, senão os pinos somem. -->
+    <link rel="stylesheet" href="vendor/leaflet.css" />
+    <script src="vendor/leaflet.js"></script>
+    <script src="vendor/turf.min.js"></script>
 
     <!-- Estilo único do app — design system oficial CEMIG (tokens --cmg-*)
          com temas claro/escuro. Ver estilo.css. -->
@@ -2684,7 +2710,72 @@
           this.value = norm;
           if (podeCalcular()) calcular();
         }
+        preencherDoBanco();
       });
+
+      /* ===== Preenchimento automático pelo SQL Server =====
+         Só existe rodando dentro do app portable: window.api é criado pelo
+         preload.js do Electron. Aberto no navegador comum window.api não
+         existe, tudo aqui vira no-op e o simulador segue 100% manual — é o
+         que mantém o repositório sendo um app web que funciona sozinho.
+
+         SILÊNCIO É REQUISITO: fora da rede interna o host do banco não
+         resolve e nada é preenchido. Sem mensagem, sem aviso, sem indicador
+         na tela — o app se comporta como se o preenchimento automático nao
+         existisse. Quem impede o acesso externo é a rede, não o aplicativo. */
+
+      // A query casa por número do trafo E município (o mesmo número existe
+      // em municípios diferentes), então a busca só dispara com os dois.
+      // Memoriza a última combinação consultada: o combobox de município
+      // dispara change com frequência e não há por que repetir a consulta.
+      let ultimaBusca = null;
+
+      async function preencherDoBanco() {
+        if (!window.api || !window.api.buscarTrafo) return;
+
+        const codigo = normalizarTrafo(document.getElementById("trafo").value);
+        const municipio = document.getElementById("municipio").value;
+        if (!codigo || !municipioValido(municipio)) return;
+
+        // O banco guarda o nome em MAIÚSCULAS, sem acento e sem cedilha.
+        // normalizeStr decompõe em NFD e remove os diacríticos, cobrindo o
+        // caso de o usuário digitar acentuado (municipioValido aceita, pois
+        // compara normalizado).
+        const cidade = normalizeStr(municipio).toUpperCase();
+
+        const chave = codigo + "|" + cidade;
+        if (chave === ultimaBusca) return;
+        ultimaBusca = chave;
+
+        let dados = null;
+        try {
+          dados = await window.api.buscarTrafo(codigo, cidade);
+        } catch (e) {
+          return; // silencioso por design
+        }
+        if (!dados) return;
+
+        // As chaves devolvidas por src/db.js JÁ SÃO ids de input — o de-para
+        // com as colunas do SELECT vive só lá, não em dois lugares.
+        let preencheu = false;
+        for (const [id, valor] of Object.entries(dados)) {
+          const el = document.getElementById(id);
+          if (!el || valor == null) continue;
+          if (String(el.value).trim() !== "") continue; // usuário tem prioridade
+          el.value = valor;
+          el.dataset.origem = "banco"; // rastreia o que veio do banco
+          preencheu = true;
+        }
+        if (preencheu && podeCalcular()) calcular();
+      }
+
+      // Município também dispara: quem preenche o trafo primeiro só tem os
+      // dois dados completos quando escolhe a cidade.
+      ["change", "blur"].forEach((ev) =>
+        document
+          .getElementById("municipio")
+          .addEventListener(ev, () => preencherDoBanco()),
+      );
 
       // Auto-calcular ao alterar qualquer campo, quando o gate permite
       document.querySelector(".wrap").addEventListener("change", function (e) {

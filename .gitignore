@@ -1,0 +1,23 @@
+# Dependências e artefatos de build
+node_modules/
+dist/
+build/
+
+# Credenciais — NUNCA versionar (ver src/db.js)
+.env
+.env.*
+!.env.example
+
+# Queries do SQL Server — NUNCA versionar. O repositório é PÚBLICO e os
+# arquivos carregam a modelagem interna do sistema
+# de distribuição. São embutidas no .exe pelo build, não pelo Git.
+# query/* e não query/ — com o diretório inteiro excluído o Git não desce nele
+# e a exceção do README não teria efeito.
+query/*
+!query/README.example.md
+
+# Logs e temporários
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

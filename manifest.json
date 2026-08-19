@@ -1,0 +1,81 @@
+{
+  "version": "2.0.1",
+  "gerado": "2026-08-19T20:14:20.522Z",
+  "files": [
+    {
+      "path": "core.js",
+      "sha256": "6ae244d82b0e7bd402bab153114ab29c8a448f96701c58705b43bb584404019c",
+      "bytes": 3588
+    },
+    {
+      "path": "estilo.css",
+      "sha256": "a7c0cedb48bedecf421090a0f78d68578f8cfaf2cbd600ede61049bc713ce11a",
+      "bytes": 27571
+    },
+    {
+      "path": "geo.js",
+      "sha256": "26c52af872dc7acf7c95f9d048716ec0e1143fa4cd828b7b5d7c5f96527277b1",
+      "bytes": 37379
+    },
+    {
+      "path": "index.html",
+      "sha256": "6c42fcffedc07d79f507fe98bccc6e32f1e58aa50076e3d3a80a2827ef8c68fb",
+      "bytes": 120090
+    },
+    {
+      "path": "logo.png",
+      "sha256": "75374f2c5a289e69f85ae1d9a8a25a8694d1f22873387df5f43802e33b8161b6",
+      "bytes": 5302
+    },
+    {
+      "path": "map.js",
+      "sha256": "ab619f43732598d741a6a914939f8e22769cfdd7cbb0e14f02f115c7d4237fa7",
+      "bytes": 23490
+    },
+    {
+      "path": "vendor/chart.umd.js",
+      "sha256": "ecc3cd1eeb8c34d2178e3f59fd63ec5a3d84358c11730af0b9958dc886d7652a",
+      "bytes": 208518
+    },
+    {
+      "path": "vendor/images/layers-2x.png",
+      "sha256": "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf",
+      "bytes": 1259
+    },
+    {
+      "path": "vendor/images/layers.png",
+      "sha256": "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6",
+      "bytes": 696
+    },
+    {
+      "path": "vendor/images/marker-icon-2x.png",
+      "sha256": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528",
+      "bytes": 2464
+    },
+    {
+      "path": "vendor/images/marker-icon.png",
+      "sha256": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
+      "bytes": 1466
+    },
+    {
+      "path": "vendor/images/marker-shadow.png",
+      "sha256": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
+      "bytes": 618
+    },
+    {
+      "path": "vendor/leaflet.css",
+      "sha256": "a7837102824184820dfa198d1ebcd109ff6d0ff9a2672a074b9a1b4d147d04c6",
+      "bytes": 14806
+    },
+    {
+      "path": "vendor/leaflet.js",
+      "sha256": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a",
+      "bytes": 147552
+    },
+    {
+      "path": "vendor/turf.min.js",
+      "sha256": "d00f3e8ff8a8f9c103dad61c2fd4bb58143e1404aadfdf09e29b6db1a2de0a3f",
+      "bytes": 604610
+    }
+  ]
+}
