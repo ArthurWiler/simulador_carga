@@ -47,13 +47,21 @@ const SAIDA = resolverSaida();
    A casca (main.js, preload.js, src/) NÃO entra: ela só muda com um
    .exe novo. */
 const CONTEUDO_WEB = [
+  "home.html",
+  "home.js",
   "index.html",
+  "textos.html",
+  "textos.js",
+  "textos-dados.js",
   "core.js",
   "geo.js",
   "map.js",
   "estilo.css",
   "logo.png",
   "vendor",
+  // PDFs das NDs. Entram no manifest como qualquer outro arquivo, então
+  // acompanham o auto-update — ver docs/README.md.
+  "docs",
 ];
 
 const c = {
@@ -71,10 +79,16 @@ const sep = () => console.log(c.bold("\n" + "-".repeat(52)));
 
 /* ---------------- manifest.json ---------------- */
 
+/* Documentação que mora dentro de uma pasta de conteúdo (docs/README.md)
+   é para quem mantém o repositório, não para o app: fora do manifest ela
+   não ocupa espaço no .exe nem viaja no auto-update a cada correção de
+   texto. */
+const ehDoc = (rel) => rel.toLowerCase().endsWith(".md");
+
 function listarArquivos(rel) {
   const abs = path.join(RAIZ, rel);
   if (!fs.existsSync(abs)) return [];
-  if (fs.statSync(abs).isFile()) return [rel];
+  if (fs.statSync(abs).isFile()) return ehDoc(rel) ? [] : [rel];
   return fs
     .readdirSync(abs)
     .flatMap((n) => listarArquivos(path.posix.join(rel.split(path.sep).join("/"), n)));

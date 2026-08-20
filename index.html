@@ -574,15 +574,10 @@
     </div>
 
     <script>
-      /* ======================= Dados (31 disjuntores, fatores, perfis) ======================= */
-
-      // Gate do cálculo automático (substitui o antigo botão Calcular):
-      // só calcula com Zona, Município e Transformador preenchidos.
       function podeCalcular() {
         const zona = document.getElementById("zona").value;
         const municipio = document.getElementById("municipio").value;
         const trafo = document.getElementById("trafo").value;
-        // município precisa EXISTIR na lista (combobox de busca digitada)
         return Boolean(zona && trafo && municipioValido(municipio));
       }
       const DISJUNTORES = [

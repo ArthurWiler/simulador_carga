@@ -10,3 +10,4 @@
 # Binários: nunca converter
 *.png binary
 *.ico binary
+*.pdf binary

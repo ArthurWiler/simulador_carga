@@ -21,6 +21,12 @@ contextBridge.exposeInMainWorld("api", {
   statusDb: () => ipcRenderer.invoke("db:status"),
   versao: () => ipcRenderer.invoke("app:versao"),
 
+  // Abre um item do portal (homepage). Recebe apenas a CHAVE do item —
+  // nunca uma URL nem um caminho: quem traduz chave -> destino são as
+  // allowlists ROTAS/SITES/DOCUMENTOS do main.js, que só mudam com um
+  // .exe novo. Retorna {ok, motivo?}.
+  abrir: (tipo, alvo) => ipcRenderer.invoke("app:abrir", tipo, alvo),
+
   // Atualização do conteúdo web
   aplicarAtualizacao: () => ipcRenderer.invoke("update:aplicar"),
   aoAtualizar: (cb) =>

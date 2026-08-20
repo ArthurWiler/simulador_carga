@@ -1,16 +1,26 @@
 {
   "version": "2.0.1",
-  "gerado": "2026-08-19T20:15:55.939Z",
+  "gerado": "2026-08-20T16:50:15.250Z",
   "files": [
     {
       "path": "core.js",
-      "sha256": "6ae244d82b0e7bd402bab153114ab29c8a448f96701c58705b43bb584404019c",
-      "bytes": 3588
+      "sha256": "535ba56e73da47d6ce2e8c9eafdab28957276793a1abdcf62321410acc75b6c3",
+      "bytes": 4688
+    },
+    {
+      "path": "docs/ND-5.1.pdf",
+      "sha256": "ffdbd926d0eb331cd3951227482a94534ae8746bff98bfeb7a50afc298972f75",
+      "bytes": 8407204
+    },
+    {
+      "path": "docs/ND-5.2.pdf",
+      "sha256": "72b3345fd3dc892311e3f0fd01ce0d9ff1234cc8078f84cd7a9c65ad36abc2ef",
+      "bytes": 12075560
     },
     {
       "path": "estilo.css",
-      "sha256": "a7c0cedb48bedecf421090a0f78d68578f8cfaf2cbd600ede61049bc713ce11a",
-      "bytes": 27571
+      "sha256": "d2331b8226618e5fde765fbeef9cf948679c85300d502e3243f7407cff2d8226",
+      "bytes": 35068
     },
     {
       "path": "geo.js",
@@ -18,9 +28,19 @@
       "bytes": 37379
     },
     {
+      "path": "home.html",
+      "sha256": "776beddddf74c7d8d67ff1b737839752b64e42db4ae2dbd57fbc2a22fa540858",
+      "bytes": 2799
+    },
+    {
+      "path": "home.js",
+      "sha256": "c2737c0b843cff659b00969d2422d64b5f0e94fce5d2cacea791bfcec47bcc5a",
+      "bytes": 6805
+    },
+    {
       "path": "index.html",
-      "sha256": "6c42fcffedc07d79f507fe98bccc6e32f1e58aa50076e3d3a80a2827ef8c68fb",
-      "bytes": 120090
+      "sha256": "fa527adb3dfe034f14ec312c2ff4e4d373cbbd6286224ce2621e39e2c0ed676d",
+      "bytes": 119766
     },
     {
       "path": "logo.png",
@@ -31,6 +51,21 @@
       "path": "map.js",
       "sha256": "ab619f43732598d741a6a914939f8e22769cfdd7cbb0e14f02f115c7d4237fa7",
       "bytes": 23490
+    },
+    {
+      "path": "textos-dados.js",
+      "sha256": "2a608a9044d7ef6117e20b1d2a3fcbe8a5ea74d2ab1e545bbbeacbb5d4799c83",
+      "bytes": 44154
+    },
+    {
+      "path": "textos.html",
+      "sha256": "418a28007ec2f8da88f1271aeaec6dd5f043366c568bdce3378bc20930c2f6f3",
+      "bytes": 2328
+    },
+    {
+      "path": "textos.js",
+      "sha256": "7bd4def24117a21c5f903d2a067c59b5568fb1e892b8e38605a1d8a979347bf6",
+      "bytes": 7152
     },
     {
       "path": "vendor/chart.umd.js",

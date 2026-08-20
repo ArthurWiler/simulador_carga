@@ -35,7 +35,10 @@ function lerJson(arquivo) {
 }
 
 function sha256Arquivo(arquivo) {
-  return crypto.createHash("sha256").update(fs.readFileSync(arquivo)).digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(fs.readFileSync(arquivo))
+    .digest("hex");
 }
 
 /* Identidade do conteúdo embutido: hash do próprio manifest. Qualquer
@@ -67,7 +70,11 @@ function garantirConteudoWeb(app, log = () => {}) {
     return raiz;
   }
 
-  log(estado ? "bundle novo detectado — re-semeando" : "primeira execução — semeando");
+  log(
+    estado
+      ? "bundle novo detectado - re-semeando"
+      : "primeira execução — semeando",
+  );
   fs.rmSync(raiz, { recursive: true, force: true });
   fs.mkdirSync(raiz, { recursive: true });
 
@@ -86,7 +93,11 @@ function garantirConteudoWeb(app, log = () => {}) {
 
   fs.writeFileSync(
     statePath(app),
-    JSON.stringify({ semeadoDe: bundleId, em: new Date().toISOString() }, null, 2),
+    JSON.stringify(
+      { semeadoDe: bundleId, em: new Date().toISOString() },
+      null,
+      2,
+    ),
   );
   log(`${arquivos.length} arquivos copiados para ${raiz}`);
   return raiz;
@@ -97,4 +108,11 @@ function versaoLocal(app) {
   return m ? m.version : null;
 }
 
-module.exports = { BUNDLE_DIR, webRoot, garantirConteudoWeb, versaoLocal, lerJson, sha256Arquivo };
+module.exports = {
+  BUNDLE_DIR,
+  webRoot,
+  garantirConteudoWeb,
+  versaoLocal,
+  lerJson,
+  sha256Arquivo,
+};

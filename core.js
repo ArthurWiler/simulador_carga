@@ -36,10 +36,33 @@ function ativarAba(id) {
   if (id === "ambiental" && typeof onAbaAmbiental === "function")
     onAbaAmbiental();
 }
+/* Janela dedicada a UMA aba (?aba=simulador | ?aba=ambiental).
+
+   A homepage abre cada ferramenta na sua própria janela, e essas janelas
+   carregam este mesmo index.html — o documento continua sendo um só, com
+   as duas abas dentro. A query string escolhe qual aba nasce ativa, e
+   .janela-solo esconde a barra de abas (o Limpar continua visível).
+   Sem a query, nada muda: o modo com abas segue valendo no navegador. */
+function _abaDaURL() {
+  const aba = new URLSearchParams(location.search).get("aba");
+  // Só aceita valor que corresponda a uma aba existente no documento.
+  return aba && $(`.aba-btn[data-aba="${aba}"]`) ? aba : null;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   $$(".aba-btn").forEach((b) =>
     b.addEventListener("click", () => ativarAba(b.dataset.aba)),
   );
+  const solo = _abaDaURL();
+  if (solo) {
+    document.body.classList.add("janela-solo");
+    ativarAba(solo);
+    // Sem isto as duas ferramentas herdam o <title> do documento e a barra
+    // de tarefas mostra entradas idênticas — o rótulo da aba é o nome que
+    // o usuário já associa à ferramenta.
+    const rotulo = $(`.aba-btn[data-aba="${solo}"]`).textContent.trim();
+    document.title = `${rotulo} - Simulador de Carga`;
+  }
   _initTema();
 });
 

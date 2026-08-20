@@ -37,11 +37,30 @@ const RAW_BASE =
   "https://raw.githubusercontent.com/ArthurWiler/simulador_carga/main";
 const TIMEOUT_MS = 15000;
 
+/* Teto de download proporcional ao tamanho declarado no manifest.
+
+   O timeout fixo de 15 s foi dimensionado para os arquivos de texto de
+   alguns KB que formavam o conteúdo web original. Com os PDFs das NDs
+   (vários MB) ele estoura em rede lenta — e como o staged é montado em
+   bloco, UM arquivo lento aborta a atualização inteira, inclusive as
+   correções do simulador, e o app nunca mais converge.
+
+   O piso de 50 KB/s é pessimista de propósito: é a velocidade abaixo da
+   qual não vale mais a pena esperar. O teto absoluto evita que um
+   arquivo gigante prenda a verificação para sempre. */
+const PISO_BYTES_POR_S = 50 * 1024;
+const TIMEOUT_MAX_MS = 5 * 60 * 1000;
+
+function timeoutPara(bytes) {
+  if (!bytes) return TIMEOUT_MS;
+  return Math.min(TIMEOUT_MS + (bytes / PISO_BYTES_POR_S) * 1000, TIMEOUT_MAX_MS);
+}
+
 const stagedDir = (app) => path.join(app.getPath("userData"), "web-staged");
 
-async function baixar(url, comoTexto = false) {
+async function baixar(url, comoTexto = false, bytes = 0) {
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const t = setTimeout(() => ctrl.abort(), timeoutPara(bytes));
   try {
     // cache-buster: o CDN do raw guarda ~5 min, mas proxies corporativos
     // podem guardar bem mais
@@ -132,7 +151,7 @@ async function verificarAtualizacao(app, log = () => {}) {
         fs.copyFileSync(path.join(raiz, f.path), destino); // inalterado
         continue;
       }
-      const buf = await baixar(`${RAW_BASE}/${f.path}`);
+      const buf = await baixar(`${RAW_BASE}/${f.path}`, false, f.bytes);
       const hash = crypto.createHash("sha256").update(buf).digest("hex");
       if (hash !== f.sha256)
         throw new Error(`sha256 divergente em ${f.path}`);

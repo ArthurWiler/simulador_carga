@@ -736,6 +736,14 @@ footer {
   display: block;
 }
 
+/* Janela dedicada a UMA aba (index.html?aba=…, aplicado pelo core.js).
+   A homepage já escolheu a ferramenta, então a barra de abas viraria uma
+   forma de a janela deixar de ser o que o título dela promete. O Limpar
+   continua na coluna fixa. */
+body.janela-solo .abas-fixas {
+  display: none;
+}
+
 /* ===== Aba Análise Ambiental ===== */
 #aba-ambiental .wrap-amb {
   max-width: 1100px;
@@ -1086,4 +1094,313 @@ footer {
   border-color: var(--cmg-error-500);
   background: var(--cmg-err-bg);
   color: var(--cmg-error-500);
+}
+
+/* ============================================================
+   Homepage (home.html) — o portal do aplicativo.
+   Só tokens já existentes: tema claro/escuro sai de graça.
+   ============================================================ */
+.home {
+  max-width: 1100px;
+  margin: 0 auto;
+  /* 72px limpa o header fixo de 64px (mesmo valor de .aba-painel);
+     56px embaixo limpam o rodapé fixo de versão. */
+  padding: 72px 18px 56px;
+}
+
+.home-intro {
+  margin-bottom: var(--cmg-space-6);
+}
+
+.home-intro h1 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: var(--cmg-fw-bold);
+  color: var(--cmg-text-strong);
+}
+
+.home-secao {
+  margin-bottom: var(--cmg-space-6);
+}
+
+.home-secao h2 {
+  padding-bottom: var(--cmg-space-2);
+  border-bottom: 1px solid var(--cmg-divider);
+  margin-bottom: var(--cmg-space-4);
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--cmg-space-4);
+}
+
+/* Ferramentas principais: cards maiores, no máximo dois por linha. */
+.home-grid--destaque {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* Card clicável. É um <button> para herdar teclado e foco do navegador,
+   então precisa desfazer o pílula verde do botão padrão — daí o seletor
+   qualificado (button.home-card), que empata em especificidade com
+   `button:hover:not(:disabled)` e vence por vir depois. */
+button.home-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "icone titulo"
+    "icone desc";
+  align-items: start;
+  gap: 2px var(--cmg-space-3);
+  width: 100%;
+  min-height: 0;
+  padding: var(--cmg-space-4);
+  text-align: left;
+  background: var(--cmg-surface);
+  color: var(--cmg-text);
+  border: 1px solid var(--cmg-border-subtle);
+  border-radius: 10px;
+  box-shadow: var(--cmg-shadow-card);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: normal;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+button.home-card:hover:not(:disabled) {
+  background: var(--cmg-surface);
+  border-color: var(--cmg-accent);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.12);
+  transform: translateY(-2px);
+}
+
+button.home-card:active:not(:disabled) {
+  transform: none;
+}
+
+.home-card-icone {
+  grid-area: icone;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--cmg-radius-pill);
+  background: var(--cmg-surface-accent);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.home-card-titulo {
+  grid-area: titulo;
+  font-size: 15px;
+  font-weight: var(--cmg-fw-bold);
+  color: var(--cmg-text-strong);
+}
+
+.home-card-desc {
+  grid-area: desc;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--cmg-text-muted);
+}
+
+.home-grid--destaque .home-card-icone {
+  width: 48px;
+  height: 48px;
+  font-size: 23px;
+}
+
+.home-grid--destaque .home-card-titulo {
+  font-size: 17px;
+}
+
+/* Rodapé fixo com a versão do app e do conteúdo (home.js). Fixo para não
+   flutuar no meio da página quando há poucos cards. */
+.home-rodape {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 8px 22px;
+  background: var(--cmg-surface);
+  border-top: 1px solid var(--cmg-border-subtle);
+  font-size: 12px;
+  color: var(--cmg-text-muted);
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .home-grid,
+  .home-grid--destaque {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   Textos padrão (textos.html) — lista, busca e cópia.
+   ============================================================ */
+.textos {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 72px 18px 40px;
+}
+
+/* Busca colada no topo: a lista é longa e o campo é o caminho
+   normal para chegar ao texto certo — rolar até ele de volta
+   seria atrito puro. O 64px é a altura do header fixo. */
+.tx-busca {
+  position: sticky;
+  top: 64px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-3);
+  padding: var(--cmg-space-3) 0;
+  background: var(--cmg-bg);
+  border-bottom: 1px solid var(--cmg-divider);
+  margin-bottom: var(--cmg-space-4);
+}
+
+.tx-busca input {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.tx-contagem {
+  flex: none;
+  font-size: 13px;
+  color: var(--cmg-text-muted);
+  white-space: nowrap;
+}
+
+.tx-contagem.tx-vazio {
+  color: var(--cmg-error-500);
+  font-weight: var(--cmg-fw-bold);
+}
+
+.tx-grupo {
+  margin-bottom: var(--cmg-space-6);
+}
+
+.tx-grupo > h2 {
+  padding-bottom: var(--cmg-space-2);
+  border-bottom: 1px solid var(--cmg-divider);
+  margin-bottom: var(--cmg-space-3);
+}
+
+.tx-sub > h3 {
+  margin: var(--cmg-space-4) 0 var(--cmg-space-2);
+  color: var(--cmg-text-muted);
+  font-size: 13px;
+  font-weight: var(--cmg-fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.tx-item {
+  border: 1px solid var(--cmg-border-subtle);
+  border-radius: var(--cmg-radius);
+  background: var(--cmg-surface);
+  margin-bottom: var(--cmg-space-2);
+  overflow: hidden;
+}
+
+.tx-cab {
+  display: flex;
+  align-items: stretch;
+  gap: var(--cmg-space-2);
+}
+
+/* Título ocupa a linha inteira para virar um alvo de clique generoso;
+   desfaz o botão-pílula padrão, como em .home-card. */
+button.tx-toggle {
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: flex-start;
+  text-align: left;
+  padding: var(--cmg-space-3) var(--cmg-space-4);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--cmg-text-strong);
+  font-size: 14px;
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: normal;
+  box-shadow: none;
+}
+
+button.tx-toggle:hover:not(:disabled) {
+  background: var(--cmg-surface-accent);
+  border: none;
+}
+
+button.tx-toggle::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: var(--cmg-space-2);
+  color: var(--cmg-text-muted);
+  transition: transform 0.15s ease;
+}
+
+button.tx-toggle[aria-expanded="true"]::before {
+  transform: rotate(90deg);
+}
+
+button.tx-copiar {
+  flex: none;
+  align-self: center;
+  min-height: 0;
+  margin-right: var(--cmg-space-3);
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+button.tx-copiar.tx-copiado:not(:disabled) {
+  background: var(--cmg-green-600);
+  border-color: var(--cmg-green-600);
+  color: var(--cmg-neutral-0);
+}
+
+button.tx-copiar.tx-falhou:not(:disabled) {
+  background: transparent;
+  border-color: var(--cmg-error-500);
+  color: var(--cmg-error-500);
+}
+
+/* pre-wrap: o texto vai para a área de transferência com as mesmas
+   quebras que aparecem aqui — o que se vê é o que se cola. */
+.tx-corpo {
+  padding: 0 var(--cmg-space-4) var(--cmg-space-4);
+  border-top: 1px solid var(--cmg-border-subtle);
+  margin-top: 0;
+  padding-top: var(--cmg-space-3);
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--cmg-text);
+}
+
+/* Valor de exemplo que precisa ser trocado antes do envio. */
+.tx-ph {
+  background: var(--cmg-warn-bg);
+  color: var(--cmg-warn-text);
+  border-radius: 3px;
+  padding: 0 4px;
+  font-weight: var(--cmg-fw-bold);
+}
+
+@media (max-width: 640px) {
+  .tx-cab {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  button.tx-copiar {
+    align-self: flex-end;
+    margin: 0 var(--cmg-space-3) var(--cmg-space-3);
+  }
 }
