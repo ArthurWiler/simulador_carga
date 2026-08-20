@@ -1,6 +1,6 @@
 {
   "name": "simulador-carga",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "Simulador de Carga CEMIG - dimensionamento de transformador e análise ambiental",
   "author": "Arthur Wieler Campos <arthurwcampos@gmail.com>",
   "license": "UNLICENSED",

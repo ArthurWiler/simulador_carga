@@ -1,6 +1,6 @@
 {
-  "version": "2.0.1",
-  "gerado": "2026-08-20T16:50:15.250Z",
+  "version": "3.0.0",
+  "gerado": "2026-08-20T17:51:54.611Z",
   "files": [
     {
       "path": "core.js",
@@ -34,12 +34,12 @@
     },
     {
       "path": "home.js",
-      "sha256": "c2737c0b843cff659b00969d2422d64b5f0e94fce5d2cacea791bfcec47bcc5a",
-      "bytes": 6805
+      "sha256": "b31133a1eea770289626f890191aebdc18f1d6c0984846514bf27e55dfd1c0a9",
+      "bytes": 6790
     },
     {
       "path": "index.html",
-      "sha256": "fa527adb3dfe034f14ec312c2ff4e4d373cbbd6286224ce2621e39e2c0ed676d",
+      "sha256": "ad24d499b366fe12f6f154d23aa7a8c7ae46e71fad9821757e70b8a34ccf0c46",
       "bytes": 119766
     },
     {

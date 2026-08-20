@@ -74,8 +74,8 @@ const ITENS = [
 
   {
     grupo: "Ferramentas",
-    titulo: "Gerenciamento de Produção",
-    desc: "Distribuição de notas para técnicos, painel e prazos. Requer login e internet.",
+    titulo: "Distribuição de notas",
+    desc: "Distribuição de notas para técnicos, painel e prazos.",
     icone: "📊",
     tipo: "site",
     alvo: "principal",
@@ -161,9 +161,11 @@ function renderizar() {
   for (const [titulo, indices] of grupos) html.push(secao(titulo, indices));
   alvo.innerHTML = html.join("");
 
-  alvo.querySelectorAll(".home-card").forEach((btn) =>
-    btn.addEventListener("click", () => abrirItem(ITENS[+btn.dataset.item])),
-  );
+  alvo
+    .querySelectorAll(".home-card")
+    .forEach((btn) =>
+      btn.addEventListener("click", () => abrirItem(ITENS[+btn.dataset.item])),
+    );
 }
 
 /* ===== Rodapé: versão e status da atualização =====
