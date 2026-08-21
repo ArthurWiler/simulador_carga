@@ -232,6 +232,58 @@ function criarJanelaSite(url, titulo) {
     }
   });
 
+  /* Bloqueio de NAVEGADOR pelo proxy corporativo (Zscaler Browser Control).
+
+     O Chromium embutido no Electron se anuncia como "Chrome/130" — versão
+     que a política da CEMIG não aprova —, então nas máquinas atrás do
+     agente Zscaler esta janela recebe uma página de bloqueio no lugar do
+     site. Ela chega com HTTP 200, e por isso o did-fail-load abaixo NÃO
+     dispara: sem o tratamento daqui o usuário fica olhando a tela do
+     proxy, que não explica o que ela tem a ver com o Simulador.
+
+     A saída é entregar o endereço ao navegador padrão da máquina — que é,
+     esse sim, um navegador homologado. Mascarar o User-Agent também
+     "funcionaria", mas seria contornar a política da empresa e voltaria a
+     quebrar assim que a lista de versões aprovadas andasse (o Chromium do
+     Electron está sempre atrás do Chrome estável). Onde não há agente
+     Zscaler — a VM dos usuários — nada disto dispara. */
+  const proxyBloqueou = (texto) => /zscaler|internet security by/i.test(texto);
+  let entregue = false;
+
+  function entregarAoNavegador(sinal) {
+    if (entregue || win.isDestroyed()) return;
+    entregue = true;
+    log(`site ${origem} barrado pelo proxy (${sinal}) — indo para o navegador padrão`);
+
+    // Fecha ANTES do diálogo. O did-navigate vem antes do ready-to-show,
+    // então a janela pode nem ter aparecido — e um diálogo modal preso a
+    // uma janela invisível corre o risco de não ser visto. Sem pai, ele
+    // pertence ao aplicativo e sempre aparece.
+    win.close();
+    shell.openExternal(url).catch((e) => log(`openExternal falhou: ${e.message}`));
+    dialog.showMessageBox({
+      type: "info",
+      title: "Abrindo no navegador",
+      message: "O site foi aberto no seu navegador padrão.",
+      detail:
+        `${origem}\n\nA rede da CEMIG não permite abrir este endereço dentro ` +
+        `do aplicativo: o proxy só aceita navegadores homologados. Se a janela ` +
+        `do navegador não aparecer, copie o endereço acima para ele.`,
+      buttons: ["Fechar"],
+    });
+  }
+
+  // Dois sinais porque o Zscaler ora redireciona para um host próprio, ora
+  // devolve a página de bloqueio na própria URL do site (com inspeção SSL,
+  // como no caso relatado). Um dos dois pega cada caso; entregarAoNavegador
+  // é idempotente para quando os dois baterem.
+  win.webContents.on("did-navigate", (_e, destino) => {
+    if (proxyBloqueou(destino)) entregarAoNavegador("url");
+  });
+  win.webContents.on("page-title-updated", (_e, tituloPagina) => {
+    if (proxyBloqueou(tituloPagina)) entregarAoNavegador("título");
+  });
+
   /* Sem rede ou com o host bloqueado pelo proxy da CEMIG, o padrão do
      Chromium é uma tela branca sem explicação. Aqui o usuário recebe o
      motivo e a janela some. -3 (ABORTED) é ruído normal de navegação. */
