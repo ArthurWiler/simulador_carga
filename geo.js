@@ -367,7 +367,7 @@ async function consultarImovelCAR(lat, lng) {
   if (!window.turf) throw new Error("Turf.js não carregado.");
   const ponto = window.turf.point([lng, lat]);
   try {
-    const resp = await fetch(_urlWfs(SICAR_CAM_IMOVEL, lat, lng));
+    const resp = await _fetchWfs(_urlWfs(SICAR_CAM_IMOVEL, lat, lng));
     if (!resp.ok) return { erro: `HTTP ${resp.status}` };
     const gj = await resp.json();
     const feats = (gj && gj.features) || [];
@@ -386,9 +386,135 @@ async function consultarImovelCAR(lat, lng) {
       feicao: completa || f,
     };
   } catch (e) {
-    return { erro: "Falha de rede/CORS" };
+    return { erro: _erroWfs(e) };
   }
 }
+/* ------------------------------------------------------------------
+   Timeout e repetição das consultas WFS.
+
+   O GeoServer do Sisema (62 das 64 camadas) deixa conexões PENDURADAS
+   com frequência: medido fora do navegador, ~1 em 8 GetFeature fica sem
+   resposta e só estoura no timeout do sistema, 20-40 s. O fetch nu não
+   tem prazo próprio — quem manda é o SO. Como consultarRestricoesObra
+   percorre 64 camadas, um punhado de penduradas transforma uma consulta
+   de 8 s em vários minutos (medido: 858 s), a aba fica presa em
+   "Consultando restrições…" e o atendente conclui que a análise
+   ambiental parou de funcionar.
+
+   Prazo curto por tentativa + repetição resolve porque a falha é
+   transitória: quando a conexão pendura, a tentativa seguinte costuma
+   responder em ~0,3 s. Resposta HTTP de erro (o 502 do AgroTag, por
+   exemplo) não é repetida — chega como resposta e é definitiva.
+   ------------------------------------------------------------------ */
+const WFS_TIMEOUT_MS = 12000;
+// Duas tentativas: quando a conexão pendura, quem resolve é a tentativa
+// SEGUINTE (medido: ~0,3 s). Uma terceira quase nunca muda o resultado e
+// custa mais 12 s de espera justamente na camada que interessa.
+//
+// As duas constantes existem separadas porque o fetch do navegador é
+// OPACO: conexão pendurada, host bloqueado pelo proxy e 502 sem cabeçalho
+// CORS chegam todos como o mesmo TypeError. Só o estouro do nosso próprio
+// prazo se identifica (TimeoutError). Hoje as duas valem 2; separadas,
+// mexer no comportamento de uma falha não arrasta a outra junto.
+const WFS_TENTATIVAS_TIMEOUT = 2;
+const WFS_TENTATIVAS_REDE = 2;
+// Disjuntor por servidor. Repetir é certo quando UMA camada pendura, e
+// desastroso quando o servidor inteiro está fora: 62 camadas x 2 tentativas
+// x 12 s, mesmo 6 a 6, dá minutos de espera para no fim não responder nada
+// (medido: 5 min). Após WFS_DISJUNTOR_FALHAS timeouts SEGUIDOS no host, as
+// consultas restantes àquele host falham na hora, sem ir à rede. Qualquer
+// resposta zera a contagem — um servidor instável (~1 em 8 penduradas, que
+// é o comportamento real do Sisema) nunca chega a abrir o disjuntor.
+const WFS_DISJUNTOR_FALHAS = 3;
+const WFS_DISJUNTOR_MS = 20000;
+// Camadas consultadas ao mesmo tempo. Sequencial (o que era feito antes)
+// paga a latência de 64 idas e voltas em série; paralelismo alto derruba
+// mais conexões no Sisema, que já é o elo fraco. 6 mantém a consulta na
+// casa dos segundos sem virar carga para o servidor.
+const WFS_PARALELO = 6;
+
+// Rótulo do erro mostrado no chip da camada. Separar "sem resposta" de
+// "falha de rede" importa no atendimento: a primeira é o Sisema pendurando
+// (vale reconsultar), a segunda costuma ser proxy/bloqueio da rede.
+function _erroWfs(e) {
+  if (e && e.name === "ServidorIndisponivel") return "Servidor sem resposta";
+  if (e && e.name === "TimeoutError") return "Sem resposta (timeout)";
+  return "Falha de rede/CORS";
+}
+
+// host -> { seguidas, abertoAte }. Vive entre consultas de propósito: se o
+// servidor acabou de se mostrar fora do ar, a consulta seguinte não precisa
+// redescobrir isso do zero. A janela curta (WFS_DISJUNTOR_MS) faz o estado
+// se desfazer sozinho, sem ninguém precisar reiniciar nada.
+const _wfsDisjuntor = new Map();
+
+function _hostDe(url) {
+  try {
+    return new URL(url).host;
+  } catch (e) {
+    return url;
+  }
+}
+
+class ServidorIndisponivel extends Error {
+  constructor(host) {
+    super("servidor " + host + " sem resposta");
+    this.name = "ServidorIndisponivel";
+  }
+}
+
+async function _fetchWfs(url) {
+  const host = _hostDe(url);
+  const d = _wfsDisjuntor.get(host);
+  if (d && d.abertoAte > Date.now()) throw new ServidorIndisponivel(host);
+
+  for (let i = 0; ; i++) {
+    try {
+      const resp = await fetch(url, {
+        signal: AbortSignal.timeout(WFS_TIMEOUT_MS),
+      });
+      // Respondeu — inclusive 4xx/5xx: o servidor está de pé, o disjuntor
+      // não tem nada a ver com o conteúdo da resposta.
+      _wfsDisjuntor.delete(host);
+      return resp;
+    } catch (e) {
+      if (e && e.name === "ServidorIndisponivel") throw e;
+
+      if (e && e.name === "TimeoutError") {
+        const atual = _wfsDisjuntor.get(host) || { seguidas: 0, abertoAte: 0 };
+        atual.seguidas++;
+        if (atual.seguidas >= WFS_DISJUNTOR_FALHAS)
+          atual.abertoAte = Date.now() + WFS_DISJUNTOR_MS;
+        _wfsDisjuntor.set(host, atual);
+        if (atual.abertoAte > Date.now()) throw new ServidorIndisponivel(host);
+      }
+
+      const limite =
+        e && e.name === "TimeoutError"
+          ? WFS_TENTATIVAS_TIMEOUT
+          : WFS_TENTATIVAS_REDE;
+      if (i + 1 >= limite) throw e;
+      // Espera curta e crescente antes de repetir (200 ms, 600 ms, …).
+      await new Promise((r) => setTimeout(r, 200 * Math.pow(3, i)));
+    }
+  }
+}
+
+// Executa fn sobre itens com no máximo `limite` em voo, PRESERVANDO a
+// ordem de `itens` no resultado (a UI lista as camadas nessa ordem).
+async function _emParalelo(itens, limite, fn) {
+  const out = new Array(itens.length);
+  let proximo = 0;
+  const trabalhador = async () => {
+    for (let i = proximo++; i < itens.length; i = proximo++)
+      out[i] = await fn(itens[i]);
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(limite, itens.length) }, trabalhador),
+  );
+  return out;
+}
+
 // Monta a URL de GetFeature por bbox usando o endpoint/versão/ordem de BBOX
 // DA CAMADA (cam.wfs/version/flipBBox), com fallback nos defaults do Sisema —
 // assim camadas de outros GeoServers (SICAR) usam o MESMO fluxo de consulta.
@@ -447,7 +573,7 @@ async function geometriaCompletaFeicao(cam, featureId) {
       maxFeatures: "1",
       featureID: featureId,
     });
-    const resp = await fetch(`${cam.wfs || SISEMA_WFS}?${q.toString()}`);
+    const resp = await _fetchWfs(`${cam.wfs || SISEMA_WFS}?${q.toString()}`);
     if (!resp.ok) return null;
     const gj = await resp.json();
     const f = gj && gj.features && gj.features[0];
@@ -465,16 +591,15 @@ async function consultarRestricoesObra(lat, lng) {
   if (typeof SISEMA_CAMADAS === "undefined")
     throw new Error("Configuração do Sisema (geo.js) não carregada.");
   const ponto = window.turf.point([lng, lat]);
-  const out = [];
-  for (const cam of SISEMA_CAMADAS) {
+  // Uma camada por vez levava a consulta a minutos quando o Sisema
+  // pendurava (ver _fetchWfs); em paralelo limitado o pior caso volta a
+  // ser a camada mais lenta, não a soma das 64.
+  return _emParalelo(SISEMA_CAMADAS, WFS_PARALELO, async (cam) => {
     try {
       // URL única de GetFeature (fonte: _urlWfs) — respeita endpoint/versão/
       // flip de BBOX POR CAMADA (Sisema ou SICAR).
-      const resp = await fetch(_urlWfs(cam, lat, lng));
-      if (!resp.ok) {
-        out.push({ ...cam, erro: `HTTP ${resp.status}` });
-        continue;
-      }
+      const resp = await _fetchWfs(_urlWfs(cam, lat, lng));
+      if (!resp.ok) return { ...cam, erro: `HTTP ${resp.status}` };
       const gj = await resp.json();
       const feats = (gj && gj.features) || [];
       const dentro = feats.filter(
@@ -504,7 +629,7 @@ async function consultarRestricoesObra(lat, lng) {
           : cam.documentos || null;
         areas.push({ nome, documentos, geometria: completa || f });
       }
-      out.push({
+      return {
         ...cam,
         dentro: dentro.length > 0,
         areas,
@@ -512,12 +637,11 @@ async function consultarRestricoesObra(lat, lng) {
         // desenho legados) derivam de `areas`.
         nomes: areas.map((a) => a.nome).filter(Boolean),
         geometrias: areas.map((a) => a.geometria),
-      });
+      };
     } catch (e) {
-      out.push({ ...cam, erro: "Falha de rede/CORS" });
+      return { ...cam, erro: _erroWfs(e) };
     }
-  }
-  return out;
+  });
 }
 // Desenha, num mapa Leaflet, o contorno das reservas intersectadas e devolve
 // a camada criada (L.geoJSON) — ou null se não houver geometria. Uso idêntico

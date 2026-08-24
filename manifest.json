@@ -1,6 +1,6 @@
 {
   "version": "3.0.0",
-  "gerado": "2026-08-20T17:55:37.676Z",
+  "gerado": "2026-08-24T14:05:41.492Z",
   "files": [
     {
       "path": "core.js",
@@ -24,8 +24,8 @@
     },
     {
       "path": "geo.js",
-      "sha256": "26c52af872dc7acf7c95f9d048716ec0e1143fa4cd828b7b5d7c5f96527277b1",
-      "bytes": 37379
+      "sha256": "7e66b8722535486e27118ed2c5e7c59fec66142a52be131b9cdb1e544a1a1ed0",
+      "bytes": 42910
     },
     {
       "path": "home.html",
@@ -49,8 +49,8 @@
     },
     {
       "path": "map.js",
-      "sha256": "ab619f43732598d741a6a914939f8e22769cfdd7cbb0e14f02f115c7d4237fa7",
-      "bytes": 23490
+      "sha256": "5f381914e10cd323b21f3a3822328f2667159106b72c2c76d101377baf796b6a",
+      "bytes": 24965
     },
     {
       "path": "textos-dados.js",

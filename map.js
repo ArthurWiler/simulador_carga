@@ -438,6 +438,15 @@ async function consultarAmbiental(lat, lng) {
   }
 }
 
+// Nomes das camadas que falharam, para o aviso de consulta incompleta.
+// Três é o suficiente para o atendente reconhecer a fonte sem transformar
+// o banner em lista; o resto vira contagem (os chips abaixo trazem todas).
+function _listaCamadasErro(erros) {
+  const nomes = erros.map((r) => _escHtml(r.rotulo));
+  if (nomes.length <= 3) return nomes.join(", ");
+  return nomes.slice(0, 3).join(", ") + ` e mais ${nomes.length - 3}`;
+}
+
 function _htmlResultadoAmb(lat, lng, res, car) {
   const det = detalhesRestricoes(res);
   const dentros = res.filter((r) => r.dentro);
@@ -460,6 +469,23 @@ function _htmlResultadoAmb(lat, lng, res, car) {
       zona: _ambCenario.zona,
       rede: _ambCenario.rede,
     });
+  } else if (erros.length) {
+    /* Camada que falhou NÃO é camada sem interseção.
+
+       Antes este ramo caía no banner verde: com o Sisema pendurando a
+       camada de Unidade de Conservação, um ponto DENTRO do Parque
+       Estadual da Serra do Rola-Moça era apresentado como "nenhuma
+       restrição encontrada" — o erro só aparecia num chip cinza no fim
+       do bloco. É um falso negativo que o atendente não tem como
+       perceber, e ele decide a ligação em cima disso. Sem resposta de
+       todas as camadas, a consulta é INCONCLUSIVA, não negativa. */
+    html += alertHTML(
+      "warn",
+      `<strong>Consulta incompleta — não é possível afirmar que o ponto está livre de restrição.</strong> ` +
+        `As demais camadas não apresentaram interseção, mas ${_listaCamadasErro(erros)} ` +
+        `não respondeu(ram). Refaça a consulta em alguns instantes; se persistir, ` +
+        `a fonte está indisponível e a verificação dessa(s) camada(s) precisa ser feita à parte.`,
+    );
   } else {
     html += alertHTML(
       "ok",
