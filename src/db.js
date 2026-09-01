@@ -1,26 +1,36 @@
 /* ============================================================
    Acesso ao SQL Server — preenchimento automático dos dados do
-   transformador. Roda SOMENTE no processo main: o renderer nunca
-   vê credenciais, string de conexão nem SQL (ver preload.js).
+   transformador.
+
+   HOJE NADA CHAMA ESTE ARQUIVO. O site é estático e o navegador
+   não fala TDS: o SQL Server só é alcançável por código Node
+   rodando DENTRO da rede da CEMIG. Este módulo é a metade que já
+   está pronta desse serviço — falta a casca HTTP em volta. Ver a
+   seção "Ligar o preenchimento pelo banco" no README, e
+   tools/check-db.js, que já o exercita pela linha de comando.
+
+   O contrato importa: buscarTrafo(codigo, municipio) devolve um
+   objeto cujas chaves JÁ SÃO ids de input do simulador.html, ou
+   null. Uma API que apenas repasse esse retorno como JSON é tudo
+   o que simulador.html espera.
 
    Driver: mssql/tedious, JS puro. Não exige nenhum driver ODBC
-   instalado na máquina do usuário — o que deixaria o app
-   "portable" só no nome. O suporte a Azure AD do tedious é
-   substituído por stubs no build (ver stubs/README.md).
+   instalado na máquina.
 
-   Configuração: .env na raiz do app. Em desenvolvimento é o .env
-   do repositório (gitignored); no build, o electron-builder o
-   embute no asar. Um caminho de código só para os dois casos.
+   Configuração: .env na raiz do repositório (gitignored — o
+   repositório é público).
 
    FALHAR EM SILÊNCIO É REQUISITO. Fora da rede interna o host não
-   resolve, e o app precisa simplesmente não preencher: sem
+   resolve, e a interface precisa simplesmente não preencher: sem
    mensagem, sem aviso, sem indicador na tela. Quem impede o acesso
-   externo é a rede, não o aplicativo.
+   externo é a rede, não a aplicação.
    ============================================================ */
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { BUNDLE_DIR } = require("./webcontent");
+
+// Raiz do repositório — onde ficam .env e query/.
+const BUNDLE_DIR = path.join(__dirname, "..");
 
 /* ---- .env: parser mínimo (não vale uma dependência para isto) ----
    Importante: NÃO removemos comentário inline. A senha do banco contém
@@ -96,7 +106,7 @@ function montarConfig() {
 const config = montarConfig();
 
 /* ---- A query vive em query/, fora do Git (o repositório é público e os
-   nomes de tabela são internos). O electron-builder embute a pasta no asar.
+   nomes de tabela são internos).
 
    O carregador descarta as linhas iniciais que começam com ' — é a
    convenção de comentário usada nos arquivos de query, então eles podem
@@ -122,7 +132,7 @@ const SQL_DADOS_TRAFO = carregarQuery("query_dadosTransformador.txt");
 const SQL_DIAG_TRAFO = carregarQuery("diag_trafo.txt");
 const SQL_DIAG_MUNICIPIO = carregarQuery("diag_municipio.txt");
 
-/* Colunas do SELECT → ids dos inputs em index.html. A query devolve mais
+/* Colunas do SELECT → ids dos inputs em simulador.html. A query devolve mais
    colunas do que o formulário tem campo (IDTRAFO, TRAFO, DEMANDA_TOTAL,
    DEMANDA_FASE_A/B/C); o que não está aqui é simplesmente ignorado.
 
@@ -148,13 +158,13 @@ let ultimoErro = null;
 
 /* Log de diagnóstico.
 
-   Vai para ARQUIVO, não só para o console: a máquina onde o app roda de
-   verdade é uma VM da rede interna que tem apenas o .exe — sem terminal,
-   sem Node, sem repositório. Um .log em userData é a única forma de saber
-   o que aconteceu lá.
+   Vai para ARQUIVO, não só para o console: a máquina que alcança o banco é
+   uma VM da rede interna, e um .log é a forma de saber o que aconteceu lá
+   sem estar na frente dela. configurarLog(dir) escolhe onde; sem chamada,
+   só o console sob SIMULADOR_DEBUG.
 
-   Isso NÃO viola o requisito de silêncio: nada aparece na tela. O arquivo
-   é invisível para quem só usa o app e não contém credencial nenhuma. */
+   Isso NÃO viola o requisito de silêncio: nada aparece na tela do usuário,
+   e o arquivo não contém credencial nenhuma. */
 let dirLog = null;
 function configurarLog(dir) {
   dirLog = dir;

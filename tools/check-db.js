@@ -30,7 +30,7 @@ const [codigoArg, cidadeArg] = process.argv.slice(2);
 const codigo = codigoArg || "368-3-150";
 const cidadeBruta = cidadeArg || "Bom Despacho";
 
-// Mesma normalização do renderer (index.html): NFD, sem diacríticos,
+// Mesma normalização do simulador.html: NFD, sem diacríticos,
 // MAIÚSCULAS — é assim que o banco guarda o nome.
 const cidade = cidadeBruta
   .normalize("NFD")

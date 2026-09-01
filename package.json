@@ -5,66 +5,10 @@
   "author": "Arthur Wieler Campos <arthurwcampos@gmail.com>",
   "license": "UNLICENSED",
   "private": true,
-  "main": "main.js",
   "scripts": {
-    "dev": "electron .",
-    "build": "node build.js",
-    "manifest": "node build.js --manifest",
-    "build:portable": "node build.js --portable",
     "db:check": "node tools/check-db.js"
   },
   "dependencies": {
     "mssql": "^11.0.1"
-  },
-  "devDependencies": {
-    "electron": "^33.0.0",
-    "electron-builder": "^25.1.8"
-  },
-  "build": {
-    "appId": "br.com.cemig.simuladorcarga",
-    "productName": "Simulador de Carga",
-    "asar": true,
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "src/**",
-      "manifest.json",
-      ".env",
-      "query/**",
-      "home.html",
-      "home.js",
-      "index.html",
-      "textos.html",
-      "textos.js",
-      "textos-dados.js",
-      "core.js",
-      "geo.js",
-      "map.js",
-      "estilo.css",
-      "logo.png",
-      "vendor/**",
-      "docs/**",
-      "!docs/README.md",
-      "!node_modules/@azure/**",
-      "!node_modules/@azure-rest/**",
-      {
-        "from": "stubs/@azure",
-        "to": "node_modules/@azure"
-      }
-    ],
-    "win": {
-      "target": [
-        "dir"
-      ],
-      "icon": "assets/icon.ico",
-      "artifactName": "SimuladorCarga-${version}.${ext}"
-    },
-    "portable": {
-      "artifactName": "SimuladorCarga-${version}.exe",
-      "unicode": true
-    }
   }
 }

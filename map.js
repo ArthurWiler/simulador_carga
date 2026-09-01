@@ -13,7 +13,7 @@
    (o que também atualiza UTM/distância de rede no simulador).
    Depende de: Leaflet (window.L), Turf (window.turf), geo.js
    (consultarRestricoesObra, desenharRestricoesNoMapa, …), core.js
-   (alertHTML) e parseDMSCoordinate/validarLatLon do index.html.
+   (alertHTML) e parseDMSCoordinate/validarLatLon do simulador.html.
    ============================================================ */
 let mapaAmb = null;
 let marcadorAmb = null;
@@ -436,6 +436,32 @@ async function consultarAmbiental(lat, lng) {
     _ambLastKey = "";
     _ambStatus((e && e.message) || "Falha na consulta de restrições.", true);
   }
+}
+
+/* Resultado da última análise desta sessão, no formato que os Textos
+   Padrão consomem: { coord, unidade } — ou null se nada foi consultado.
+
+   É a ÚNICA porta para _ambUltimo fora daqui. Os Textos Padrão precisam
+   só de dois valores, e expor o objeto cru amarraria aquele arquivo ao
+   formato de retorno do geo.js.
+
+   `unidade` sai apenas de camadas de Unidade de Conservação (tipoNome),
+   não de qualquer área intersectada: o placeholder {unidade} nos textos
+   quer o nome da UC, e uma APP ou terra quilombola cairia errado ali.
+   Com mais de uma UC no ponto, os nomes vão separados por " e " — é o que
+   o texto de indeferimento precisa dizer. */
+function ambientalUltimo() {
+  if (!_ambUltimo) return null;
+  const nomes = [];
+  for (const cam of _ambUltimo.res || []) {
+    if (cam.erro || cam.tipoNome !== "Unidade de Conservação") continue;
+    for (const a of cam.areas || [])
+      if (a.nome && !nomes.includes(a.nome)) nomes.push(a.nome);
+  }
+  return {
+    coord: `(${_ambUltimo.lat.toFixed(6)}, ${_ambUltimo.lng.toFixed(6)})`,
+    unidade: nomes.length ? nomes.join(" e ") : null,
+  };
 }
 
 // Nomes das camadas que falharam, para o aviso de consulta incompleta.

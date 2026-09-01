@@ -21,7 +21,7 @@ const TEXTOS_PADRAO = [
     sub: "Localização / Parcelamento de solo",
     titulo: "Localização",
     corpo:
-      "Em análise a solicitação e da documentação apresentada, não foi possível identificar com precisão a área correspondente à nova unidade consumidora solicitada. A correta localização do ponto de conexão é essencial para a avaliação dos aspectos técnicos e ambientais, definição da obra de menor custo global e atribuição adequada das responsabilidades financeiras entre as partes envolvidas.\nSolicitamos a complementação das informações de localização da propriedade apresentando o CAR \"Cadastro Ambiental Rural\" para identificação do ponto de atendimento. Caso seja possível localizar a área da propriedade, mas não o ponto exato do imóvel, será considerado como local de instalação do padrão o ponto no limite da propriedade cuja obra represente o menor custo global. Ressaltamos que, conforme inciso II do artigo 68 da REN ANEEL nº 1000/2021, o consumidor pode indicar um ponto de conexão de interesse, apresentando as coordenadas, o qual será objeto de análise de viabilidade técnica e econômica por parte da distribuidora.",
+      "Não foi possível identificar a localização do imóvel a ser conectado com as informações fornecidas na solicitação.\n\nPara permitir a identificação precisa do imóvel, é necessário apresentar uma das seguintes informações ou documentações:\n\n- Coordenadas geográficas indicadas no formulário de acesso (latitude e longitude);\n- CAR - Cadastro Ambiental Rural para casos de imóveis rurais (Endereço para emissão gratuita desse documento: www.car.gov.br);\n- Planta georreferenciada ou croqui com referências claras;\n- Matrícula do imóvel com descrição detalhada da localização;\n- Outros documentos oficiais que possibilitem a identificação do ponto de conexão.",
   },
   {
     grupo: "Parte documental / Fundiária",
@@ -42,7 +42,7 @@ const TEXTOS_PADRAO = [
     sub: "Localização / Parcelamento de solo",
     titulo: "Localização - referência / coordenada em outro município",
     corpo:
-      "Após análise da documentação apresentada, não foi possível identificar com precisão a área correspondente à nova unidade consumidora solicitada. Verificamos ainda que a referência ou coordenada informada pertence a um município distinto daquele indicado no pedido, o que impossibilita a confirmação da localização exata para atendimento. A correta localização do ponto de conexão é essencial para a avaliação dos aspectos técnicos e ambientais, definição da obra de menor custo global e atribuição adequada das responsabilidades financeiras entre as partes envolvidas.\nSolicitamos, portanto, a complementação das informações de localização da propriedade. Caso seja possível localizar a área da propriedade, mas não o ponto exato do imóvel, será considerado como local de instalação do padrão o ponto no limite da propriedade cuja obra represente o menor custo global.\nRessaltamos que, conforme inciso II do artigo 68 da REN ANEEL nº 1000/2021, o consumidor pode indicar um ponto de conexão de interesse, o qual será objeto de análise de viabilidade técnica e econômica por parte da distribuidora.",
+      "O local informado pertence a um município diferente do indicado na solicitação, impossibilitando a confirmação da localização exata para o atendimento. É necessária a informação correta, de acordo com a coordenada geográfica do imóvel, para a devida avaliação dos aspectos técnicos e ambientais da conexão.",
   },
   {
     grupo: "Parte documental / Fundiária",
@@ -70,35 +70,35 @@ const TEXTOS_PADRAO = [
     sub: "APR Web",
     titulo: "Coletivo sem cadastro no APR Web",
     corpo:
-      "Após análise da documentação apresentada, identificou-se a necessidade de formalização do pedido como padrão coletivo.\nConsiderando as características da instalação, que envolvem múltiplas unidades consumidoras, o atendimento deve ser realizado por meio de padrão coletivo. Essa modalidade exige que o pedido seja cadastrado no sistema APRWEB por Responsável Técnico (RT) habilitado, acompanhado da documentação técnica específica.\nPara dar continuidade à análise, é necessário que um Responsável Técnico (RT) habilitado realize o cadastro do pedido no sistema APRWEB, acompanhado dos seguintes documentos:\n - Termo de Opção de Atendimento em Baixa Tensão, quando aplicável;\n - Formulário de Orçamento de Conexão/Alteração de Carga Urbana ou Rural, devidamente preenchido;\n - Planta de Situação/Locação, contendo: Distância entre o centro de medição e o poste da Cemig; Distância entre a edificação ou o poste da Cemig que irá atender a unidade até a esquina mais próxima; Representação de toda a área comum e de livre acesso entre as unidades consumidoras até o conjunto de medidores;\n - Anotação de Responsabilidade Técnica (ART) paga, Número de registro no respectivo conselho profissional, Campos de assinatura devidamente preenchidos pelo profissional responsável.",
+      "Seu pedido foi cadastrado para um padrão de uma única caixa, sendo necessária a solicitação de conexão para um padrão coletivo. Ressaltamos que esta modalidade exige que o pedido seja cadastrado no sistema APRWEB por um responsável técnico habilitado, acompanhado da documentação técnica específica:\n\n- Termo de opção de atendimento em baixa tensão, quando aplicável;\n- Formulário de orçamento de conexão/alteração de carga urbana ou rural, devidamente preenchido;\n- Planta de situação contendo a distância entre o centro de medição e o poste da Cemig, distância entre a edificação ou o poste da Cemig que irá atender a unidade até a esquina mais próxima, representação de toda a área comum e de livre acesso entre as unidades consumidoras até o conjunto de medidores;\n- Anotação de Responsabilidade Técnica (ART) paga, com o número de registro no respectivo conselho profissional e os campos de assinatura devidamente preenchidos pelo profissional responsável.",
   },
   {
     grupo: "Parte documental / Fundiária",
     sub: "APR Web",
     titulo: "Carga acima de 75 kW sem cadastro no APR Web",
     corpo:
-      "Após análise da documentação apresentada, identificou-se que a carga instalada superior a 75 kW exige procedimento específico.\nPara solicitações de atendimento com carga instalada superior a 75 kW, é obrigatória a atuação de um Responsável Técnico (RT) habilitado, que deve cadastrar o pedido no sistema APRWEB, acompanhado da documentação técnica necessária.\nPara que a distribuidora possa analisar e apresentar as condições técnicas de atendimento, é imprescindível que o pedido seja cadastrado no sistema APRWEB pelo RT, acompanhado da seguinte documentação:\nTermo de Opção de Atendimento em Baixa Tensão, quando aplicável;\nFormulário de Orçamento de Conexão/Alteração de Carga Urbana ou Rural, devidamente preenchido;\nPlanta de Situação/Locação, contendo:\n- Termo de Opção de Atendimento em Baixa Tensão, quando aplicável;\n- Formulário de Orçamento de Conexão/Alteração de Carga Urbana ou Rural, devidamente preenchido;\n- Planta de Situação/Locação, contendo: Distância entre o centro de medição e o poste da Cemig; Distância entre a edificação ou o poste da Cemig que irá atender a unidade até a esquina mais próxima; Representação de toda a área comum e de livre acesso entre as unidades consumidoras até o conjunto de medidores;\n- Anotação de Responsabilidade Técnica (ART) paga, Número de registro no respectivo conselho profissional, Campos de assinatura devidamente preenchidos pelo profissional responsável.",
+      "A documentação apresentada possui carga instalada superior a 75 kW. Ressaltamos que esta modalidade exige que o pedido seja cadastrado no sistema APRWEB por um responsável técnico habilitado, acompanhado da seguinte documentação técnica específica:\n\n- Termo de opção de atendimento em baixa tensão, quando aplicável;\n- Formulário de orçamento de conexão/alteração de carga urbana ou rural, devidamente preenchido;\n- Planta de situação contendo a distância entre o centro de medição e o poste da Cemig, distância entre a edificação ou o poste da Cemig que irá atender a unidade até a esquina mais próxima, representação de toda a área comum e de livre acesso entre as unidades consumidoras até o conjunto de medidores;\n- Anotação de Responsabilidade Técnica (ART) paga, com o número de registro no respectivo conselho profissional e os campos de assinatura devidamente preenchidos pelo profissional responsável.",
   },
   {
     grupo: "Parte documental / Fundiária",
     sub: "APR Web",
     titulo: "Não anexou ART",
     corpo:
-      "Após análise da documentação apresentada, identificou-se a ausência da Anotação de Responsabilidade Técnica (ART), documento obrigatório para prosseguimento da solicitação.\nA ART é indispensável para comprovar a responsabilidade técnica sobre o projeto e garantir a conformidade com os requisitos de segurança e qualidade exigidos pela distribuidora. Sua ausência inviabiliza a análise técnica do pedido.\nPara dar continuidade ao processo, é necessário apresentar:\nAnotação de Responsabilidade Técnica (ART) paga, contendo:\nNúmero de registro no respectivo conselho profissional;\nCampos de assinatura devidamente preenchidos pelo profissional responsável.",
+      "A documentação da Anotação de Responsabilidade Técnica (ART) não foi apresentada. É necessário anexar este documento devidamente quitado, com o número de registro no respectivo conselho profissional e os campos de assinatura preenchidos pelo profissional responsável, juntamente com os demais documentos indispensáveis já exigidos no pedido.",
   },
   {
     grupo: "Parte documental / Fundiária",
     sub: "APR Web",
     titulo: "Não anexou planta da situação",
     corpo:
-      "Após análise da documentação apresentada, identificou-se a ausência da planta de situação, elemento técnico obrigatório para avaliação da viabilidade de atendimento.\nA planta de situação é essencial para representar graficamente a localização da unidade consumidora em relação à rede existente, permitindo a verificação das distâncias envolvidas, acessos e demais condições técnicas necessárias para elaboração do orçamento de conexão.\nPara dar continuidade ao processo, é necessário apresentar a Planta de Situação/Locação, contendo:\n- Distância entre o centro de medição e o poste da Cemig;\n- Distância entre a edificação ou o poste da Cemig que irá atender a unidade até a esquina mais próxima;\n- Representação de toda a área comum e de livre acesso entre as unidades consumidoras até o conjunto de medidores.",
+      "A documentação da planta de situação não foi apresentada. É necessário anexar este documento contendo a distância entre o centro de medição e o poste da Cemig, a distância entre a edificação ou o poste da Cemig que irá atender a unidade até a esquina mais próxima e a representação de toda a área comum e de livre acesso entre as unidades consumidoras até o conjunto de medidores, juntamente com os demais documentos indispensáveis já exigidos no pedido.",
   },
   {
     grupo: "Parte documental / Fundiária",
     sub: "APR Web",
     titulo: "Não anexou termo de baixa atendimento em baixa tensão",
     corpo:
-      "Após análise da documentação apresentada, identificou-se a ausência do Termo de Opção de Atendimento em Baixa Tensão, quando aplicável ao tipo de conexão solicitada.\nEsse documento é necessário para formalizar a escolha do atendimento em baixa tensão, especialmente em casos de carga instalada superior a 75 kW ou padrão coletivo, e deve ser emitido e assinado por Responsável Técnico (RT) habilitado.\nPara dar continuidade ao processo, é necessário apresentar:\n- Termo de Opção de Atendimento em Baixa Tensão, devidamente preenchido e assinado pelo RT responsável.",
+      "A documentação do termo de opção de atendimento em baixa tensão não foi apresentada. É necessário anexar este documento com todos os campos obrigatórios devidamente preenchidos e assinados pelo responsável técnico, juntamente com os demais documentos indispensáveis já exigidos no pedido.\n\nAcesse o termo no site: https://www.cemig.com.br/demandas-especificas",
   },
   {
     grupo: "Parte documental / Fundiária",
@@ -140,7 +140,7 @@ const TEXTOS_PADRAO = [
     sub: "",
     titulo: "Não apresentou formulário de carga",
     corpo:
-      "Após análise da documentação apresentada, identificou-se a ausência do Formulário de Orçamento de Conexão/Alteração de Carga Urbana ou Rural, documento técnico obrigatório para avaliação da viabilidade de atendimento.\nEsse formulário é essencial para detalhar as características da instalação elétrica, incluindo a carga prevista, o tipo de fornecimento solicitado e demais informações técnicas necessárias para elaboração do orçamento e definição das condições de conexão.\nPara dar continuidade ao processo, é necessário apresentar:\nFormulário de Orçamento de Conexão/Alteração de Carga Urbana ou Rural, devidamente preenchido.",
+      "O formulário de orçamento de conexão/alteração de carga urbana ou rural não foi apresentado. É obrigatório o preenchimento deste documento, com a indicação das características da instalação elétrica e da carga prevista, para que seja possível a elaboração do orçamento e definição das condições de conexão, juntamente com os demais documentos indispensáveis já exigidos no pedido.\n\nO formulário está disponível no site: https://www.cemig.com.br/demandas-especificas",
   },
   {
     grupo: "Parte documental / Fundiária",
@@ -161,91 +161,91 @@ const TEXTOS_PADRAO = [
     sub: "Disjuntor incompatível com a carga",
     titulo: "Disjuntor bifásico",
     corpo:
-      "Durante a análise da solicitação, verificou-se que o disjuntor especificado encontra-se incompatível com a carga e a demanda informadas.\nDe acordo com a Tabela 3 – Dimensionamento para Unidades Consumidoras Urbanas ou Rurais Atendidas por Redes de Distribuição Primárias Monofásicas (120/240 V) – Ligações de Baixa Tensão a 2 e 3 Fios, constante na Norma ND-5.1, o dimensionamento do disjuntor deve ser realizado considerando:\n- Corrente nominal compatível com a demanda calculada para a unidade consumidora;\n- Critérios de proteção e seletividade, garantindo a segurança da instalação e a integridade do sistema elétrico;\n- Limites estabelecidos para cada faixa de carga, conforme especificado na tabela normativa.\nA escolha de um disjuntor com capacidade inferior ou superior à prevista pode resultar em riscos como sobrecarga, disparos indevidos ou falhas na proteção, comprometendo a conformidade técnica e a segurança da instalação.\nPara dar continuidade ao processo, será necessário adequar o disjuntor às especificações normativas, observando a demanda informada e os parâmetros definidos na ND-5.1.",
+      "O disjuntor especificado é incompatível com a carga ou a demanda informada. Conforme a Tabela 3 — Dimensionamento para Unidades Consumidoras Urbanas ou Rurais Atendidas por Redes de Distribuição Primárias Monofásicas (120/240 V) — Ligações de Baixa Tensão a 2 e 3 Fios, como consta na Norma de Distribuição ND-5.1 - Fornecimento de Energia Elétrica em Tensão Secundária - Rede de Distribuição Aérea - Edificações Individuais.\nO dimensionamento do disjuntor deve observar a corrente nominal compatível com a demanda calculada para a unidade consumidora, os critérios de proteção e seletividade necessários à garantia da segurança da instalação e da integridade do sistema elétrico, e os limites estabelecidos para cada faixa de carga, conforme especificado na tabela normativa.\nA especificação de um disjuntor com capacidade inferior ou superior à prevista pode resultar em sobrecarga, disparos indevidos ou falhas na proteção, comprometendo a conformidade técnica e a segurança da instalação.\n\nAcesse o nosso site e faça a simulação do Disjuntor: https://www.cemig.com.br/demandas-especificas",
   },
   {
     grupo: "Carga e afins",
     sub: "Disjuntor incompatível com a carga",
     titulo: "Disjuntor trifásico",
     corpo:
-      "Durante a análise da solicitação, constatou-se que o disjuntor especificado se encontra incompatível com a carga e a demanda informadas.\nDe acordo com a Norma ND-5.1, especificamente a Tabela 2 – Dimensionamento para Unidades Consumidoras Urbanas ou Rurais Atendidas por Redes de Distribuição Secundárias Trifásicas, o dimensionamento do disjuntor deve observar:\n- Corrente nominal adequada à demanda calculada para a unidade consumidora;\n- Critérios de proteção e seletividade, assegurando a proteção contra sobrecargas e curtos-circuitos;\n- Faixas de capacidade definidas para cada nível de carga, conforme estabelecido na tabela normativa.\nA utilização de um disjuntor com capacidade inferior ou superior à prevista pode ocasionar sobrecarga, disparos indevidos ou falhas na proteção, comprometendo a segurança da instalação e a conformidade técnica.\nPara dar continuidade ao processo, será necessário adequar o disjuntor às especificações normativas, considerando a demanda informada e os parâmetros definidos na ND-5.1.",
+      "O disjuntor especificado é incompatível com a carga ou a demanda informada. Conforme a Tabela 2 — Dimensionamento para Unidades Consumidoras Urbanas ou Rurais Atendidas por Redes de Distribuição Secundárias Trifásicas.\nO dimensionamento do disjuntor deve observar a corrente nominal adequada à demanda calculada para a unidade consumidora, os critérios de proteção e seletividade necessários à garantia da proteção contra sobrecargas e curtos-circuitos e as faixas de capacidade definidas para cada nível de carga, conforme estabelecido na tabela normativa.\nA especificação de um disjuntor com capacidade inferior ou superior à prevista pode resultar em sobrecarga, disparos indevidos ou falhas na proteção, comprometendo a conformidade técnica e a segurança da instalação.\n\nAcesse o nosso site e faça a simulação do Disjuntor: https://www.cemig.com.br/demandas-especificas",
   },
   {
     grupo: "Carga e afins",
     sub: "Disjuntor incompatível com a carga",
     titulo: "Coletivo",
     corpo:
-      "Durante a análise da solicitação, verificou-se que o disjuntor geral informado não está adequado à demanda declarada.\nA proteção geral tem a função de proteger exclusivamente as unidades consumidoras da edificação, devendo ser dimensionada para suportar a demanda total prevista. É fundamental que a corrente nominal do disjuntor esteja compatível com a carga calculada, garantindo:\n- Segurança elétrica, evitando sobrecargas e riscos de incêndio;\n- Conformidade normativa, conforme critérios estabelecidos na ND-5.2;\n- Operação seletiva, permitindo que a proteção geral atue apenas em situações críticas, sem comprometer circuitos internos.\nImportante destacar que o disjuntor destinado à proteção do condomínio ou do sistema de combate a incêndio é instalado em paralelo ao quadro geral, atuando de forma independente, conforme exigências normativas.\nO disjuntor especificado deve estar de acordo com a Tabela 1 – Dimensionamento da Entrada de Serviço de Edificações de Uso Coletivo Atendidas por Redes de Distribuição Secundárias Trifásicas (127/220 V) – Ramal de Conexão Aéreo e Proteção Geral com Disjuntor, da Norma ND-5.2.\nPara dar continuidade ao processo, será necessário adequar a proteção geral às especificações normativas, considerando a demanda total da edificação e os parâmetros definidos na ND-5.2.",
+      "O disjuntor especificado não está adequado à demanda informada. O disjuntor geral tem a função de proteger exclusivamente as unidades consumidoras da edificação, sendo fundamental que a corrente nominal esteja compatível com a carga calculada.\n\nSerá necessário adequar a proteção geral às especificações normativas, considerando a demanda total da edificação e os parâmetros definidos na Norma de Distribuição ND-5.2 - Fornecimento de Energia Elétrica em Tensão Secundária - Rede de Distribuição Aérea - Edificações Coletivas.",
   },
   {
     grupo: "Carga e afins",
     sub: "Formulário de carga preenchido incorretamente",
     titulo: "Endereço da unidade consumidora não informado",
     corpo:
-      "Após análise da documentação apresentada, identificou-se que o Formulário de Orçamento de Conexão/Alteração de Carga Urbana ou Rural foi preenchido de forma incompleta, sem a indicação do endereço da unidade consumidora.\nA ausência dessa informação inviabiliza a identificação precisa do local de atendimento, comprometendo a análise técnica e o planejamento da conexão à rede elétrica.\nPara dar continuidade ao processo, é necessário reapresentar:\n- Formulário de Orçamento de Conexão/Alteração de Carga, devidamente preenchido, incluindo:\n  - Endereço completo da unidade consumidora;\n  - Demais campos obrigatórios conforme modelo vigente.",
+      "O formulário de orçamento de conexão/alteração de carga urbana ou rural foi preenchido sem o endereço da unidade consumidora. A ausência dessa informação inviabiliza a identificação precisa do local, comprometendo a análise técnica e o planejamento da conexão à rede elétrica.",
   },
   {
     grupo: "Carga e afins",
     sub: "Formulário de carga preenchido incorretamente",
     titulo: "Número de fases preenchido incorretamente",
     corpo:
-      "Após análise da documentação apresentada, identificou-se que o número de fases informado no Formulário de Orçamento de Conexão/Alteração de Carga está incorreto em relação à carga instalada e ao tipo de fornecimento solicitado.\nA definição do número de fases é essencial para o dimensionamento adequado da infraestrutura elétrica e para garantir a compatibilidade entre os equipamentos de proteção, o padrão de entrada e a rede de distribuição. A inconsistência entre esses dados inviabiliza a continuidade da análise técnica.\nPara dar prosseguimento ao processo, é necessário reapresentar:\n- Formulário de Orçamento de Conexão/Alteração de Carga, devidamente preenchido, com:\n  - Número de fases compatível com a carga instalada;\n  - Demais campos obrigatórios conforme modelo vigente;\n- Projeto elétrico atualizado, se aplicável;\n- Anotação de Responsabilidade Técnica (ART) compatível com o projeto revisado.",
+      "O formulário de orçamento de conexão/alteração de carga urbana ou rural foi preenchido sem a indicação do número de fases da unidade consumidora. Essa informação é indispensável para garantir a compatibilidade entre os equipamentos de proteção, o padrão de entrada e a rede de distribuição.",
   },
   {
     grupo: "Carga e afins",
     sub: "Formulário de carga preenchido incorretamente",
     titulo: "Nome do solicitante informado no formulário divergente do documento de posse",
     corpo:
-      "Após análise da documentação apresentada, constatou-se divergência entre o nome do solicitante informado no pedido e o nome constante no documento de posse do imóvel.\nPara atendimento, é obrigatória a vinculação direta entre o titular da solicitação e o documento que comprove a posse ou propriedade do imóvel. A ausência dessa correspondência inviabiliza a validação da legitimidade do pedido e o prosseguimento da análise técnica.\nPara dar continuidade ao processo, é necessário apresentar:\n - Documento de posse ou propriedade emitido em nome do solicitante;\n - Procuração com firma reconhecida, acompanhada de documento oficial de identificação do procurador.",
+      "O formulário apresenta nome do solicitante divergente do que consta no documento de posse do imóvel. É necessário anexar documento de posse ou propriedade emitido em nome do solicitante, ou, ainda, procuração com firma reconhecida, acompanhada de documento oficial de identificação do procurador.",
   },
   {
     grupo: "Carga e afins",
     sub: "Formulário de carga preenchido incorretamente",
     titulo: "Disjuntor descontinuado",
     corpo:
-      "Após análise do formulário apresentado identificou-se que o disjuntor especificado está em desacordo com os padrões técnicos exigidos para conexão nova ou alteração de carga.\nO modelo de disjuntor indicado (NEMA) não é aceito para novas conexões ou alterações de carga, conforme os critérios técnicos vigentes. O padrão atual exige o uso de disjuntores IEC conforme especificações compatíveis com os dispositivos de proteção e medição homologados pela distribuidora, garantindo segurança, seletividade e conformidade com os sistemas de proteção da rede.\nFavor verificar as informações e encaminhar um novo formulário de análise de carga, observando os critérios estabelecidos na norma de distribuição ND-5.1/5.2, possibilitando assim a realização dos estudos para apresentação das condições de atendimento da sua solicitação.",
+      "O disjuntor informado no formulário está em desacordo com os padrões técnicos exigidos. O modelo de disjuntor NEMA não é aceito para novas conexões. É necessário preencher o formulário com disjuntor IEC, em conformidade com as especificações compatíveis com os dispositivos de proteção e medição homologados pela Cemig.",
   },
   {
     grupo: "Carga e afins",
     sub: "Formulário de carga preenchido incorretamente",
     titulo: "Entrou com pedido individual o correto seria pedido coletivo",
     corpo:
-      "Após análise da documentação apresentada, identificou-se que o pedido foi formalizado como atendimento individual, embora as características da instalação indiquem a necessidade de padrão coletivo.\nEm situações que envolvem múltiplas unidades consumidoras em uma mesma edificação ou lote, o atendimento deve ser realizado por meio de padrão coletivo, com medição agrupada e infraestrutura compartilhada. Essa modalidade exige cadastro no sistema APRWEB por Responsável Técnico (RT) habilitado, acompanhado da documentação técnica específica.\nPara dar continuidade à análise, é necessário que um RT habilitado realize o cadastro do pedido como padrão coletivo no sistema APRWEB, acompanhado dos seguintes documentos:\n- Termo de Opção de Atendimento em Baixa Tensão, quando aplicável;\n- Formulário de Orçamento de Conexão/Alteração de Carga Urbana ou Rural, devidamente preenchido;\n- Planta de Situação/Locação, contendo: Distância entre o centro de medição e o poste da Cemig; Distância entre a edificação ou o poste da Cemig que irá atender a unidade até a esquina mais próxima; Representação de toda a área comum e de livre acesso entre as unidades consumidoras até o conjunto de medidores;\n- Anotação de Responsabilidade Técnica (ART) paga, com Número de registro no respectivo conselho profissional; Campos de assinatura devidamente preenchidos pelo profissional responsável.",
+      "O pedido foi cadastrado para um padrão de apenas uma caixa, sendo necessária a solicitação de conexão para um padrão coletivo. Ressaltamos que essa modalidade exige que o pedido seja cadastrado no sistema APRWEB por um responsável técnico habilitado, acompanhado de toda a documentação técnica específica, a seguir:\n\n- Termo de opção de atendimento em baixa tensão, quando aplicável;\n- Formulário de orçamento de conexão/alteração de carga urbana ou rural, devidamente preenchido;\n- Planta de situação contendo a distância entre o centro de medição e o poste da Cemig, a distância entre a edificação ou o poste da Cemig que irá atender a unidade até a esquina mais próxima e a representação de toda a área comum e de livre acesso entre as unidades consumidoras até o conjunto de medidores;\n- Anotação de Responsabilidade Técnica (ART) paga, com o número de registro no respectivo conselho profissional e os campos de assinatura devidamente preenchidos pelo profissional responsável.",
   },
   {
     grupo: "Carga e afins",
     sub: "Formulário de carga preenchido incorretamente",
     titulo: "Não informou disjuntor",
     corpo:
-      "Após análise da documentação apresentada, identificou-se que o Formulário de Orçamento de Conexão/Alteração de Carga foi preenchido de forma incompleta, sem a indicação do disjuntor previsto para a instalação.\nA especificação do disjuntor é obrigatória para avaliação da proteção da unidade consumidora, sendo essencial para o correto dimensionamento da infraestrutura elétrica e para garantir a segurança da conexão.\nPara dar continuidade ao processo, é necessário reapresentar:\n- Formulário de Orçamento de Conexão/Alteração de Carga, devidamente preenchido, incluindo:\n- Tipo e corrente nominal do disjuntor;\n- Demais campos obrigatórios conforme modelo vigente.",
+      "O formulário de orçamento de conexão foi preenchido de forma incompleta, sem a indicação do disjuntor previsto para a instalação. A especificação do disjuntor é obrigatória para avaliação da proteção da unidade consumidora, sendo essencial para o correto dimensionamento da infraestrutura e garantia de segurança na conexão.",
   },
   {
     grupo: "Carga e afins",
     sub: "Formulário de carga preenchido incorretamente",
     titulo: "Não informou a carga instalada",
     corpo:
-      "Após análise da documentação apresentada, identificou-se que o Formulário de Orçamento de Conexão/Alteração de Carga foi preenchido de forma incompleta, sem a indicação da carga instalada na unidade consumidora.\nA informação da carga instalada é essencial para o dimensionamento correto da infraestrutura elétrica, definição do tipo de fornecimento e avaliação da viabilidade técnica do atendimento. A ausência desse dado inviabiliza a continuidade da análise.\nPara dar prosseguimento ao processo, é necessário reapresentar:\n- Formulário de Orçamento de Conexão/Alteração de Carga, devidamente preenchido, incluindo:\n  - Valor total da carga instalada (em kW);\n  - Demais campos obrigatórios conforme modelo vigente.",
+      "O formulário de orçamento de conexão não apresenta a indicação da carga instalada na unidade consumidora. Essa informação é obrigatória para a avaliação da proteção da unidade consumidora, além de ser necessária para o correto dimensionamento da infraestrutura e a análise da viabilidade técnica do atendimento.",
   },
   {
     grupo: "Carga e afins",
     sub: "",
     titulo: "Seletividade",
     corpo:
-      "Após análise da documentação apresentada, identificou-se que o projeto de padrão coletivo não atende aos critérios de seletividade entre os dispositivos de proteção instalados.\nA seletividade é uma exigência técnica para instalações com múltiplas unidades consumidoras, visando garantir que, em caso de falha ou sobrecarga, apenas o circuito afetado seja desligado, preservando o funcionamento das demais unidades. A ausência dessa característica compromete a segurança e a continuidade do fornecimento.\nPara dar continuidade ao processo, é necessário:\n- Readequar o projeto elétrico, garantindo a seletividade entre os disjuntores gerais e individuais;\n- Atualizar o Formulário de Orçamento de Conexão/Alteração de Carga, refletindo os ajustes realizados;\n- Reapresentar a Anotação de Responsabilidade Técnica (ART) compatível com o projeto revisado.",
+      "O projeto de padrão coletivo não atende aos critérios de seletividade entre os dispositivos de proteção instalados. A seletividade é uma exigência técnica para instalações com múltiplas unidades consumidoras, indispensável para garantir que, em caso de falha ou sobrecarga, apenas o circuito afetado seja desligado, preservando o funcionamento das demais unidades.\nSolicitamos que atualize o projeto, assegurando a seletividade entre os disjuntores gerais e individuais, bem como a revisão do formulário de orçamento de conexão e da Anotação de Responsabilidade Técnica (ART) para compatibilidade com o projeto revisado, juntamente com os demais documentos indispensáveis já exigidos no pedido.",
   },
   {
     grupo: "Carga e afins",
     sub: "Solicitação incompatível com a rede",
     titulo: "Disjuntor bipolar acima do bipolar de 63 A em rede trifásica",
     corpo:
-      "Após análise da documentação apresentada, identificou-se a especificação de disjuntor bipolar com corrente superior a 63 A em instalação atendida por rede trifásica.\nDisjuntores bipolares com corrente nominal superior a 63 A são aplicável exclusivamente a fornecimentos bifásicos. A utilização de disjuntor bipolar acima de 63 A em rede trifásica caracteriza incompatibilidade técnica e não é aceita para novas conexões ou alterações de carga.\nPara dar continuidade ao processo, é necessário:\n- Readequar o projeto elétrico, substituindo o disjuntor por modelo tripolar compatível com a carga instalada e com a rede de distribuição;\n- Atualizar o Formulário de Orçamento de Conexão/Alteração de Carga, refletindo a nova especificação;",
+      "O disjuntor informado no formulário é incompatível com a rede trifásica. Solicitamos a consulta à Tabela 2 — Dimensionamento para Unidades Consumidoras Urbanas ou Rurais Atendidas por Redes de Distribuição Secundárias Trifásicas — da Norma de Distribuição ND-5.1, e a consequente atualização do formulário em conformidade com a relação de carga instalada no local.",
   },
   {
     grupo: "Ambiental",
     sub: "",
     titulo: "LN - Extensão de rede",
     corpo:
-      "O ponto de ligação está localizado na área de abrangência da Unidade de Conservação: APA Federal Morro da Pedreira. Neste caso a CEMIG necessitará solicitar autorização do órgão responsável pela administração Unidade de Conservação, para a execução de obras/projetos de extensão de rede de distribuição de energia elétrica. Visando subsidiar a análise do órgão ambiental, o requerente deve apresentar os seguintes documentos:\n- Comprovação de regularização fundiária: A exemplo: Escritura do Imóvel e/ou Certidão de Inteiro Teor da matrícula do imóvel, e o CAR - Cadastro Ambiental Rural (quando se tratar de propriedade rural).\nA critério do órgão ambiental responsável pela administração da Unidade de Conservação, outros documentos e informações complementares poderão ser solicitadas posteriormente.",
+      "A conexão foi solicitada, nas coordenadas {coord}, em área de abrangência da unidade de conservação {unidade}. Para que a Cemig solicite a autorização do órgão ambiental responsável, é necessário encaminhar a escritura do imóvel e/ou a Certidão de Inteiro Teor da matrícula do imóvel e, tratando-se de propriedade rural, o Cadastro Ambiental Rural (CAR), juntamente com os demais documentos indispensáveis já exigidos no pedido.\nRessaltamos que, a critério do órgão ambiental responsável pela área de conservação, outros documentos e informações complementares poderão ser solicitados posteriormente.",
   },
   {
     grupo: "Ambiental",
@@ -266,7 +266,7 @@ const TEXTOS_PADRAO = [
     sub: "",
     titulo: "LN - EXTENSÃO - Zona de amortecimento",
     corpo:
-      "O ponto de ligação está localizado na área de abrangência da Zona de amortecimento da Unidade de Conservação: Parque Estadual da Serra do Papagaio.\nNeste caso a CEMIG necessitará solicitar autorização do órgão responsável pela administração Unidade de Conservação, para a execução de obras/projetos de extensão de rede de distribuição de energia elétrica.\nVisando subsidiar a análise do órgão ambiental, o requerente deve apresentar os seguintes documentos:\n- Comprovação de regularização fundiária: A exemplo: Escritura do Imóvel e/ou Certidão de Inteiro Teor da matrícula do imóvel, e o CAR - Cadastro Ambiental Rural (quando se tratar de propriedade rural).\nA critério do órgão ambiental responsável pela administração da Unidade de Conservação, outros documentos e informações complementares poderão ser solicitadas posteriormente.",
+      "A conexão foi solicitada, nas coordenadas {coord}, em área de zona de amortecimento da unidade de conservação {unidade}. Para que a Cemig solicite a autorização do órgão ambiental responsável, é necessário encaminhar a escritura do imóvel e/ou a Certidão de Inteiro Teor da matrícula do imóvel e, tratando-se de propriedade rural, o Cadastro Ambiental Rural (CAR), juntamente com os demais documentos indispensáveis já exigidos no pedido.\nRessaltamos que, a critério do órgão ambiental responsável pela área de conservação, outros documentos e informações complementares poderão ser solicitados posteriormente.",
   },
   {
     grupo: "Ambiental",
@@ -280,28 +280,28 @@ const TEXTOS_PADRAO = [
     sub: "",
     titulo: "Rede a porta Urbano",
     corpo:
-      "O ponto encontra-se dentro da área de abrangência da APA Federal Morro da Pedreira, para que o cliente seja ligado é necessário apresentação de documento de registro do imóvel ou Certidão de Número (ou autorização emitida pelo órgão ambiental atestando conformidade ambiental. Consultar o município ou o órgão ambiental competente caso necessário.",
+      "A conexão foi solicitada, nas coordenadas {coord}, em área de abrangência da unidade de conservação {unidade}. É necessário apresentar documento de registro do imóvel, certidão de número ou autorização emitida pelo órgão ambiental, juntamente com os demais documentos indispensáveis já exigidos no pedido.",
   },
   {
     grupo: "Ambiental",
     sub: "",
     titulo: "APP",
     corpo:
-      "Como o imóvel de V.Sa. está localizado dentro de uma APP, para que possamos dar continuidade ao seu atendimento, V.Sa. deverá comprovar à Cemig que sua residência ou benfeitoria na coordenada (*762113:7989433*), encontra-se regular através de um dos documentos a seguir: Termo de Ajustamento de Conduta, Comprovação de Uso Antrópico Consolidado, Declaração de Interesse Social ou Utilidade Pública, no caso de propriedade rural ou Simples Declaração do órgão ambiental.",
+      "A conexão foi solicitada, nas coordenadas {coord}, para uma área de preservação permanente. É necessário apresentar um dos documentos a seguir: Termo de Ajustamento de Conduta, comprovação de uso antrópico consolidado, declaração de interesse social ou utilidade pública, no caso de propriedade rural ou simples declaração do órgão ambiental, juntamente com os demais documentos indispensáveis já apresentados no seu pedido.",
   },
   {
     grupo: "Ambiental",
     sub: "",
     titulo: "Reserva legal Proposta",
     corpo:
-      "Em atendimento à sua solicitação de fornecimento de energia elétrica, identificamos tratar-se de áreas de interesse de preservação ambiental, a exemplo de uma reserva legal, definidas pela lei federal 12.651/2012. Informamos que não podemos realizar o fornecimento de energia elétrica a essa unidade consumidora até que a situação seja regularizada pelos órgãos competentes.",
+      "A conexão foi solicitada, nas coordenadas {coord}, em área de interesse de preservação ambiental de uma reserva legal, nos termos da Lei Federal nº 12.651/2012. Informamos que a Cemig não pode realizar o fornecimento de energia elétrica até que a situação seja regularizada pelos órgãos competentes.",
   },
   {
     grupo: "Ambiental",
     sub: "",
     titulo: "Reserva legal averbada",
     corpo:
-      "Em atendimento à sua solicitação, identificamos que o ponto para a ligação de energia elétrica encontra-se em uma área de reserva legal averbada de interesse de preservação ambiental, definidas pela lei federal 12.651/2012. Sendo assim não podemos realizar o fornecimento de energia elétrica a essa unidade consumidora.",
+      "A conexão foi solicitada, nas coordenadas {coord}, em área de reserva legal averbada, de interesse de preservação ambiental, nos termos da Lei Federal nº 12.651/2012. Informamos que a Cemig não pode realizar o fornecimento de energia elétrica para este local.",
   },
   {
     grupo: "Ambiental",

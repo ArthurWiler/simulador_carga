@@ -63,5 +63,5 @@ município que não casa.
 
 As demais queries da pasta ainda não estão ligadas ao aplicativo e mantêm
 valores de busca hardcoded. Para entrar, cada uma precisa ser parametrizada e,
-em vários casos, ganhar campos que o `index.html` ainda não tem (número de
+em vários casos, ganhar campos que o `simulador.html` ainda não tem (número de
 instalação, busca por coordenada UTM, painel de conversão de rede).

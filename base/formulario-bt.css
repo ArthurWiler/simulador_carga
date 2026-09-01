@@ -1,0 +1,738 @@
+/* ============================================================
+   CEMIG — Formulário de Orçamento de Conexão BT — page stylesheet
+   ------------------------------------------------------------
+   Loaded after variables.css + shared.css. Holds the BT form's
+   page-specific legacy base (structure + the components the design
+   system doesn't restyle: KPIs, maps, environmental restriction,
+   modals, motor/load tables, previews, …). The CEMIG identity for
+   the shared components (header, footer, buttons, fields, cards,
+   step rail, data tables) comes from shared.css, scoped to
+   `.cemig-form` and winning on specificity over the rules below.
+   ============================================================ */
+
+body {
+  font-family: var(--cmg-font-family);
+  background: var(--bg);
+  color: var(--texto);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c2c8cd; border-radius: 4px; }
+
+/* ---------- TOPBAR ---------- */
+.topbar {
+  background: var(--verde-escuro);
+  border-bottom: 3px solid;
+  border-image: var(--grad-marca) 1;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px 32px;
+  gap: 108px;
+  /* Was a fixed `width: 1366px` which forced horizontal scroll on every
+     viewport narrower than 1366px. The shared `.cmg-container` caps the
+     max-width; here we only need it to be fluid. */
+  width: 100%;
+  max-width: 1366px;
+  background: #0F6C58;
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}
+.logo-cemig {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.logo-cemig svg { height: 34px; width: auto; }
+.logo-cemig .logo-img { height: 34px; width: auto; display: block; }
+/* .app-title styling (incl. responsive 36/32/26 sizing) lives in shared.css
+   (`.cemig-form .app-title`); the local rule was fully overridden. */
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.topbar-home {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+}
+.topbar-home:hover { background: #fff; color: var(--verde-escuro); border-color: #fff; }
+
+/* ---------- CABEÇALHO DO FORMULÁRIO ----------
+   .form-header (+ h1/p) e .flow-badge: fonte única em css/shared.css
+   (`.cemig-form .form-header*` / `.flow-badge`). As cópias locais foram
+   removidas — eram dead code, sobrepostas pela maior especificidade do
+   shared (`.cemig-form X` 0,2,0 > `X` 0,1,0). */
+
+/* ---------- LAYOUT DUAS COLUNAS (sidebar vertical) ----------
+   `.layout` e `.sidebar` (largura, padding e o `position:sticky; top:64px`)
+   viviam aqui e eram dead code: `.cemig-form .layout` / `.cemig-form .sidebar`
+   (0,2,0) do shared sempre venceram estes seletores (0,1,0). Removidos para
+   não parecerem a fonte da verdade — quem manda no grude da trilha é o `top`
+   de `.cemig-form .sidebar` em css/shared.css, casado com o `padding-top` do
+   `.layout` de lá. */
+.sidebar-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  margin-bottom: 12px;
+  padding-left: 6px;
+}
+/* Stepper vertical (.vstep / .vstep-num / .vstep-label + estados active/done e
+   a linha conectora): fonte única em css/shared.css, no escopo
+   `.cemig-form`. Cópias locais removidas — eram dead code
+   (sobrepostas pelo shared) e o conector já é ocultado lá (display:none). */
+
+.main-col {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 20px 60px;
+}
+
+/* O empilhamento mobile (layout em coluna + trilha de etapas vertical entre o
+   cabeçalho e o card) é do shared.css, no `@media (max-width: 900px)` do escopo
+   `.cemig-form`. O bloco local que virava a trilha num rail horizontal com
+   rolagem foi removido: era dead code (`.vstep` 0,1,0 nunca vencia
+   `.cemig-form .vstep` 0,2,0) e contradizia a trilha vertical. */
+
+/* ---------- CONTEÚDO ---------- */
+.content {
+  max-width: 1080px;
+  margin: 8px auto 60px;
+  padding: 20px;
+}
+.fade-in { animation: fadeIn 0.25s ease; }
+
+/* ---------- CARD ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 22px;
+  margin-bottom: 18px;
+  box-shadow: var(--sombra);
+}
+.card-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--verde-escuro);
+  margin-bottom: 4px;
+}
+.card-sub {
+  font-size: 13px;
+  color: var(--texto-suave);
+  margin-bottom: 16px;
+  line-height: 1.55;
+}
+/* .section-eyebrow: fonte única em shared.css (`.cemig-form .section-eyebrow`).
+   Cópia local removida (dead code, sobreposta pelo shared). */
+
+/* ---------- GRID ----------
+   .grid / .grid-2 / .grid-3 / .col-span-*: fonte única em css/shared.css
+   (utilitário global, vocabulário BT compartilhado por todos os forms). */
+@media (max-width: 720px) {
+  .form-header h1 { font-size: 20px; }
+}
+
+/* ---------- CAMPOS ---------- */
+/* Campos (.field / label / .req / input / select / textarea / .field-hint):
+   estilo canônico ÚNICO em css/shared.css (escopo .cemig-form), incluindo o
+   rótulo aninhado (Padrão B, default dos campos de texto). As duplicatas
+   locais foram removidas — estavam mortas (sobrepostas por `.cemig-form
+   .field*`, de maior especificidade) e violavam a regra de fonte única. */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+/* Toggle/radio: estilo canônico único em shared.css (.toggle-group/.toggle-btn). */
+select:disabled, input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- BOTÕES ----------
+   .btn / .btn-primary / .btn-dark / .btn-ghost / .btn-danger-ghost:
+   fonte única em shared.css (`.cemig-form .btn …`). Dupes locais removidos. */
+
+/* ---------- NAV INFERIOR ----------
+   .nav-bottom / .nav-step-info: fonte única em shared.css
+   (`.cemig-form .nav-bottom` / `.nav-step-info`). Cópias locais removidas
+   (dead code, sobrepostas pelo shared). */
+
+/* ---------- ORIENTAÇÕES ----------
+   Estilo centralizado em css/shared.css (`.cemig-form .orient-*`).
+   As definições locais foram removidas para evitar duplicação.
+   O aviso de orientações migrou para o componente canônico `.cmg-aviso`
+   (shared.css); a regra local `.callout` foi removida por ficar sem uso. */
+
+/* ---------- BANNERS / ALERTAS ---------- */
+.alert {
+  border-radius: var(--raio-sm);
+  padding: 11px 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.alert-ok { background: var(--verde-claro); color: var(--verde-escuro); border: 1px solid rgba(1,136,55,.25); }
+.alert-warn { background: var(--vermelho-bg); color: var(--vermelho); border: 1px solid rgba(192,57,43,.3); }
+.alert-info { background: var(--amarelo-bg); color: #8a6d1a; border: 1px solid var(--amarelo-bd); }
+
+/* ---------- BADGE / CHIP ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--verde-claro);
+  color: var(--verde-escuro);
+}
+.badge-lime { background: #e6f9d5; color: #3d6b00; }
+
+/* ---------- RESUMO / KPIs ---------- */
+.kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 720px) { .kpi-row { grid-template-columns: 1fr; } }
+.kpi {
+  background: var(--verde-claro);
+  border-radius: var(--raio-sm);
+  padding: 14px;
+  text-align: center;
+}
+.kpi.dark { background: var(--verde-escuro); }
+.kpi-label { font-size: 12px; font-weight: 600; color: var(--texto-suave); }
+.kpi.dark .kpi-label { color: #a9e6bf; }
+.kpi-value { font-size: 18px; font-weight: 800; color: var(--verde-escuro); margin-top: 2px; }
+.kpi.dark .kpi-value { color: #fff; font-size: 14px; line-height: 1.2; }
+
+/* ---------- TABELA DE CARGAS ---------- */
+.carga-min-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.carga-resumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+.carga-resumo-chip {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--verde-escuro);
+  background: var(--verde-claro);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+.carga-box {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  max-height: 380px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+}
+.carga-group-title {
+  position: sticky;
+  top: 0;
+  background: var(--verde-claro);
+  color: var(--verde-escuro);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 12px;
+  z-index: 1;
+}
+.carga-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-top: 1px solid var(--borda);
+  gap: 10px;
+}
+.carga-row .nome { font-size: 13.5px; }
+.carga-row .pot { font-size: 11px; color: var(--texto-suave); }
+.qtd-ctrl { display: flex; align-items: center; gap: 6px; }
+.qtd-ctrl button {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--borda);
+  background: var(--input-bg);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;
+}
+.qtd-ctrl button.plus { background: var(--verde); color: #fff; border-color: var(--verde); }
+.qtd-ctrl input { width: 48px; text-align: center; padding: 5px 2px; }
+
+.subbox {
+  background: var(--input-bg);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.subbox-title { font-size: 12px; font-weight: 700; color: var(--verde-escuro); }
+.motor-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.motor-row select, .motor-row input { background: var(--card); padding: 6px; font-size: 12px; width: auto; }
+
+/* ---------- UC CARD ---------- */
+.uc-card { padding: 18px; }
+.uc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.dashed-box {
+  background: var(--bg);
+  border: 1px dashed var(--borda);
+  border-radius: var(--raio-sm);
+  padding: 14px;
+}
+.divider { border-top: 1px dashed var(--borda); margin-top: 14px; padding-top: 14px; }
+
+/* ---------- PRÉVIA ---------- */
+.preview-block { margin-bottom: 18px; }
+.preview-block h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--verde-acento);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.preview-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 18px; }
+@media (max-width: 720px) { .preview-grid { grid-template-columns: 1fr; } }
+.preview-item { font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--borda); }
+.preview-item .k { color: var(--texto-suave); font-size: 11px; display: block; }
+.preview-item .v { color: var(--texto); font-weight: 600; }
+
+/* ---------- MODAL ---------- */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; padding: 20px;
+}
+.modal {
+  background: #fff; border-radius: var(--raio);
+  max-width: 720px; width: 100%;
+  max-height: 85vh; overflow-y: auto;
+  padding: 24px;
+}
+.modal-close { float: right; cursor: pointer; border: none; background: none; font-size: 22px; color: var(--texto-suave); }
+
+/* ---------- FOOTER ---------- */
+.footer {
+  background: var(--verde-escuro);
+  color: #a9e6bf;
+  text-align: center;
+  padding: 18px;
+  font-size: 12px;
+}
+.footer a { color: #fff; }
+.spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid var(--borda); border-top-color: var(--verde);
+  border-radius: 50%; animation: spin 0.6s linear infinite;
+}
+
+/* ---------- PREVISÃO DE CARGA (coletivo) ---------- */
+.prev-carga {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+@media (max-width: 720px) { .prev-carga { grid-template-columns: repeat(2, 1fr); } }
+.prev-total {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--borda);
+}
+.prev-total .kpi { flex: 1; min-width: 140px; }
+
+/* ---------- BLOCO DE UC (coletivo) ---------- */
+.uc-block {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  padding: 14px;
+  margin-bottom: 12px;
+  background: var(--input-bg);
+}
+.uc-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.uc-block-title { font-weight: 700; color: var(--verde-escuro); font-size: 14px; }
+.disj-pair { display: flex; gap: 8px; }
+.disj-pair > div { flex: 1; }
+
+/* destaque do disjuntor geral */
+.geral-box {
+  background: #fff;
+  border: 2px solid var(--verde);
+  border-radius: var(--raio-sm);
+  padding: 14px;
+  margin-top: 14px;
+}
+/* borda em erro/500 quando o disjuntor escolhido não atende à
+   seletividade/capacidade (aviso .cmg-aviso--error visível no box) */
+.geral-box--error {
+  border-color: var(--cmg-error-500);
+}
+/* ---------- DEMANDA PREVISTA (kVA) — campo destacado ---------- */
+.kpi.kpi-demanda {
+  background: var(--verde-claro);
+  border: 1.5px solid var(--verde);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.kpi.kpi-demanda .kpi-label {
+  color: var(--verde-escuro);
+  font-weight: 700;
+}
+.kpi.kpi-demanda input {
+  width: 100%;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--verde-escuro);
+  background: #fff;
+  border: 1px solid var(--verde);
+  border-radius: var(--raio-sm);
+  padding: 8px 10px;
+  text-align: right;
+}
+.kpi.kpi-demanda input:focus {
+  outline: none;
+  border-color: var(--cmg-neutral-600);
+  box-shadow: none;
+}
+
+/* ---------- UCs por TORRE/BLOCO (múltiplas torres) ---------- */
+.uc-torre-wrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--borda);
+}
+.uc-mini {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+.uc-mini-head {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--verde-escuro);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.uc-mini-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--verde-acento);
+  background: var(--verde-claro);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* Bloco de endereço da UC (segue Dados da Obra) */
+.uc-endereco {
+  border-top: 1px solid var(--borda);
+  padding-top: 12px;
+}
+
+/* ===== Previsão de carga por UC (coletivo) ===== */
+.prev-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.prev-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+}
+.prev-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 720px;
+}
+/* Visual do cabeçalho (faixa neutra/200 de 44px, spec Figma) vem de
+   shared.css (`.cemig-form .prev-table th`) — aqui só o nowrap. */
+.prev-table th {
+  white-space: nowrap;
+}
+.prev-table td {
+  padding: 6px 8px;
+  border-top: 1px solid var(--borda);
+  vertical-align: middle;
+}
+.prev-table tbody tr:nth-child(even) {
+  background: var(--input-bg);
+}
+.prev-table .uc-name {
+  font-weight: 600;
+  color: var(--texto);
+  white-space: nowrap;
+}
+.prev-table input,
+.prev-table select {
+  width: 100%;
+  min-width: 64px;
+  padding: 6px 8px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--card);
+  font-size: 13px;
+  color: var(--texto);
+}
+/* Selects carregam rótulos longos (ex: "Caixa Existente sem Alteração") —
+   largura mínima maior evita campo menor que o texto. */
+.prev-table select {
+  min-width: 130px;
+}
+.prev-table input:focus,
+.prev-table select:focus {
+  outline: none;
+  border-color: var(--cmg-neutral-600);
+  box-shadow: none;
+}
+.prev-table .carga-cell {
+  font-weight: 600;
+  color: var(--texto-suave);
+  text-align: right;
+  white-space: nowrap;
+}
+/* Campo de demanda prevista — destaque dedicado */
+.prev-table .col-demanda {
+  background: rgba(0, 168, 79, 0.06);
+  border-left: 2px solid var(--verde-acento);
+}
+.prev-table input.demanda-prev {
+  border-color: var(--verde-acento);
+  font-weight: 700;
+  color: var(--verde-escuro);
+  background: #fff;
+}
+.prev-table tfoot td {
+  border-top: 2px solid var(--verde-acento);
+  font-weight: 800;
+  background: var(--verde-claro);
+}
+.prev-table tfoot .total-dem {
+  color: var(--verde-escuro);
+  text-align: right;
+}
+
+/* Valor somente-leitura (ex.: demanda futura calculada) */
+.readonly-val {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  background: var(--input-bg);
+  color: var(--texto);
+  font-weight: 500;
+}
+
+/* ===== Mapa do endereço da obra (Leaflet) ===== */
+.mapa-obra {
+  margin-top: 14px;
+}
+.mapa-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.mapa-canvas {
+  height: 320px;
+  width: 100%;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  background: var(--input-bg);
+  z-index: 0;
+}
+.mapa-canvas .leaflet-control-attribution {
+  font-size: 10px;
+}
+
+/* ===== Consulta de restrição ambiental (IDE-Sisema) ===== */
+.restricao-amb {
+  margin-top: 14px;
+}
+.restricao-result {
+  margin-top: 8px;
+}
+.restricao-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.restricao-chips .chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  background: var(--input-bg);
+  color: var(--texto-suave);
+}
+.restricao-chips .chip-on {
+  background: var(--vermelho-bg);
+  border-color: var(--vermelho);
+  color: var(--vermelho);
+}
+.restricao-chips .chip-off {
+  background: var(--verde-claro);
+  border-color: var(--verde-acento);
+  color: var(--verde-cemig);
+}
+.restricao-chips .chip-err {
+  background: var(--amarelo-bg);
+  border-color: var(--amarelo-bd);
+  color: #8a6d1a;
+}
+
+/* .restricao-destaque foi movida para shared.css (padrão único do banner
+   .cmg-aviso, sem duplicação entre os formulários). */
+/* ===== Motores — tabela de preenchimento ===== */
+.motores-box { margin-top: 14px; }
+.motores-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.motores-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.motores-table thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--texto-suave);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--borda);
+}
+.motores-table thead th.num,
+.motores-table td.num { text-align: right; }
+.motores-table tbody td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--borda);
+  vertical-align: middle;
+}
+.motores-table td.num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--verde-cemig);
+  white-space: nowrap;
+}
+/* :not() — a ilha de cargas (busca com lupa + contadores .qtd-ctrl) vive
+   dentro da tabela de UCs (.motores-table.uc-ident-table) no coletivo/
+   torres e mantém o próprio visual (ver shared.css, bloco .motores-table). */
+.motores-table select,
+.motores-table input:not(.carga-busca input, .qtd-ctrl input) {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: var(--card);
+  font: inherit;
+}
+.motor-del {
+  border: none;
+  background: none;
+  color: var(--vermelho);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.motor-del:hover { background: rgba(220, 38, 38, 0.08); }
+.motores-total {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--verde-cemig);
+}
+/* Identificação das UCs (múltiplas torres) — variante da tabela de motores
+   em duas linhas por UC, com rótulo dentro da célula: dispensa thead e a
+   barra de rolagem horizontal (4 colunas fixas que cabem no card). */
+.uc-ident-table {
+  table-layout: fixed;
+}
+.uc-ident-table td {
+  vertical-align: top;
+}
+.uc-ident-table .cell-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--texto-suave);
+  margin-bottom: 4px;
+}
+/* 1ª linha não fecha o grupo — o separador fica só na 2ª linha da UC. */
+.uc-ident-table tr.uc-linha-1 td {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+.uc-ident-table tr.uc-linha-2 td {
+  padding-top: 2px;
+  padding-bottom: 12px;
+}
+@media (max-width: 560px) {
+  .motores-table thead { display: none; }
+  .motores-table,
+  .motores-table tbody,
+  .motores-table tr,
+  .motores-table td { display: block; width: 100%; }
+  .motores-table tr {
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 6px;
+    margin-bottom: 10px;
+  }
+  .motores-table td { border: none; padding: 4px 6px; }
+  .motores-table td.num::before {
+    content: attr(data-label);
+    float: left;
+    font-size: 11px;
+    color: var(--texto-suave);
+    text-transform: uppercase;
+  }
+}

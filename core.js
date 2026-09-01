@@ -1,11 +1,12 @@
 /* ============================================================
-   Núcleo compartilhado do Simulador de Carga — utilidades DOM,
-   navegação por abas e banners de aviso. Adaptado do núcleo dos
+   Núcleo compartilhado do Portal PE — utilidades DOM, navegação
+   entre ferramentas e banners de aviso. Adaptado do núcleo dos
    formulários vanilla da CEMIG BT (o restante daquele core —
    estado/binding, proprietário PF/CNPJ, CEP, correspondência e
    formulário de cargas — não se aplica a este projeto).
-   As abas são declaradas no HTML: botões .aba-btn[data-aba="X"]
-   e painéis .aba-painel#aba-X; o painel ativo recebe .show.
+   As ferramentas são painéis .aba-painel#aba-X no documento; os
+   botões que os alternam vivem na sidebar e são desenhados pelo
+   home.js. O painel ativo recebe .show, o botão ativo recebe .on.
    ============================================================ */
 
 /* ===== util ===== */
@@ -20,7 +21,8 @@ function alertHTML(tipo, html) {
   return `<div class="${cls}"><div class="cmg-aviso-icon" aria-hidden="true"></div><p class="cmg-aviso-texto">${html}</p></div>`;
 }
 
-/* ===== Navegação por abas ===== */
+/* ===== Navegação entre ferramentas =====
+   Única função que liga botão da sidebar a painel do documento. */
 function ativarAba(id) {
   $$(".aba-btn").forEach((b) =>
     b.classList.toggle("on", b.dataset.aba === id),
@@ -28,47 +30,42 @@ function ativarAba(id) {
   $$(".aba-painel").forEach((p) =>
     p.classList.toggle("show", p.id === "aba-" + id),
   );
-  // A coluna fixa (#fixed-actions) agora contém as PRÓPRIAS abas +
-  // Limpar, e fica sempre visível — o Limpar também zera a aba
-  // ambiental (limparAmbiental), então vale nas duas abas.
+
+  // O Limpar vive no rodapé da sidebar porque zera o simulador E a análise
+  // ambiental (limparAmbiental). Nos Textos Padrão não há o que zerar —
+  // um botão que não faz nada é pior que botão nenhum.
+  const limpar = $("#btnReset");
+  if (limpar) limpar.hidden = id === "textos";
+
   // Hook da aba ambiental (map.js): inicializa/redimensiona o Leaflet e
   // sincroniza o pino com as coordenadas digitadas no simulador.
   if (id === "ambiental" && typeof onAbaAmbiental === "function")
     onAbaAmbiental();
-}
-/* Janela dedicada a UMA aba (?aba=simulador | ?aba=ambiental).
 
-   A homepage abre cada ferramenta na sua própria janela, e essas janelas
-   carregam este mesmo index.html — o documento continua sendo um só, com
-   as duas abas dentro. A query string escolhe qual aba nasce ativa, e
-   .janela-solo esconde a barra de abas (o Limpar continua visível).
-   Sem a query, nada muda: o modo com abas segue valendo no navegador. */
+  // Hook dos Textos Padrão (textos.js): a análise ambiental pode ter
+  // rodado depois da última vez que este painel foi visto, então os
+  // {coord}/{unidade} são reinterpolados na entrada.
+  if (id === "textos" && typeof onAbaTextos === "function") onAbaTextos();
+}
+
+/* ?aba=simulador | ambiental | textos — deep link para uma ferramenta.
+
+   Valida contra o PAINEL, não contra o botão: os botões da sidebar são
+   desenhados pelo home.js, que roda depois deste DOMContentLoaded. */
 function _abaDaURL() {
   const aba = new URLSearchParams(location.search).get("aba");
-  // Só aceita valor que corresponda a uma aba existente no documento.
-  return aba && $(`.aba-btn[data-aba="${aba}"]`) ? aba : null;
+  return aba && document.getElementById("aba-" + aba) ? aba : null;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  $$(".aba-btn").forEach((b) =>
-    b.addEventListener("click", () => ativarAba(b.dataset.aba)),
-  );
-  const solo = _abaDaURL();
-  if (solo) {
-    document.body.classList.add("janela-solo");
-    ativarAba(solo);
-    // Sem isto as duas ferramentas herdam o <title> do documento e a barra
-    // de tarefas mostra entradas idênticas — o rótulo da aba é o nome que
-    // o usuário já associa à ferramenta.
-    const rotulo = $(`.aba-btn[data-aba="${solo}"]`).textContent.trim();
-    document.title = `${rotulo} - Simulador de Carga`;
-  }
+  const inicial = _abaDaURL();
+  if (inicial) ativarAba(inicial);
   _initTema();
 });
 
 /* ===== Tema claro/escuro =====
    O tema efetivo é: data-theme no <html> (escolha explícita, salva em
-   localStorage pelo boot script do index.html) OU a preferência do SO.
+   localStorage pelo boot script de cada página) OU a preferência do SO.
    O botão #btnTheme alterna e persiste; após alternar, o gráfico é
    re-plotado (via calcular()) para adotar as cores do novo tema. */
 function _temaAtivo() {

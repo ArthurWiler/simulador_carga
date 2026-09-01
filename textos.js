@@ -32,9 +32,9 @@ const _txIndice = TEXTOS_PADRAO.map((t) =>
 const _txIndiceTitulo = TEXTOS_PADRAO.map((t) => _txNorm(t.titulo));
 
 /* ===== Cópia =====
-   A Clipboard API exige contexto seguro; app://local é registrado como
-   secure (main.js) e o Live Server serve por http://localhost, que
-   também conta. O fallback cobre o resto. */
+   A Clipboard API exige contexto seguro: https conta, e http://localhost
+   também — que cobre o GitHub Pages e o Live Server. O fallback cobre o
+   resto. */
 function _txCopiarFallback(texto) {
   const ta = document.createElement("textarea");
   ta.value = texto;
@@ -77,13 +77,56 @@ async function _txCopiar(texto, btn) {
 
 /* ===== Render ===== */
 
-/* Destaca os valores de exemplo — (*762113:7989433*) e afins — para que
-   ninguém envie a coordenada de outro cliente. */
-function _txCorpoHTML(corpo) {
-  return _txEsc(corpo).replace(
-    /\(\*(.+?)\*\)/g,
-    '<mark class="tx-ph">($1)</mark>',
+/* ===== Dados da Análise Ambiental =====
+   Os textos ambientais trazem {coord} e {unidade}. Havendo uma análise
+   feita nesta sessão, saem preenchidos com a coordenada consultada e o
+   nome da unidade de conservação encontrada; sem análise, viram um
+   destaque amarelo, e o atendente vê exatamente o que falta preencher.
+
+   A fonte é ambientalUltimo() (map.js). Se ele não existir — ordem de
+   scripts diferente, ou esta ferramenta embutida sozinha em outra
+   página — tudo cai no destaque, que é a degradação certa. */
+const _TX_ROTULO = { coord: "coordenada", unidade: "unidade de conservação" };
+
+function _txDados() {
+  if (typeof ambientalUltimo !== "function") return {};
+  try {
+    return ambientalUltimo() || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+/* Troca os placeholders pelo dado real; o que não tem dado permanece como
+   {chave}. Quem o vira destaque é _txCorpoHTML, DEPOIS do escape — aqui
+   não pode entrar HTML, porque esta mesma função alimenta o Copiar e a
+   área de transferência recebe texto puro. É o que garante que o que se
+   vê e o que se cola sejam a mesma coisa. */
+function _txInterp(corpo) {
+  const d = _txDados();
+  return String(corpo).replace(/\{(coord|unidade)\}/g, (m, k) => d[k] || m);
+}
+
+/* Versão para a área de transferência: o que ficou sem dado vira
+   "(coordenada)" em vez de "{coord}". O atendente cola isto num e-mail
+   oficial — um marcador em linguagem natural é visto e corrigido; uma
+   chave de template passa despercebida. */
+function _txParaCopiar(corpo) {
+  return _txInterp(corpo).replace(
+    /{(coord|unidade)}/g,
+    (m, k) => "(" + _TX_ROTULO[k] + ")",
   );
+}
+
+/* Destaca o que precisa de conferência: os valores de exemplo no formato
+   (*762113:7989433*) e os placeholders que ficaram sem dado. */
+function _txCorpoHTML(corpo) {
+  return _txEsc(_txInterp(corpo))
+    .replace(/\(\*(.+?)\*\)/g, '<mark class="tx-ph">($1)</mark>')
+    .replace(
+      /\{(coord|unidade)\}/g,
+      (m, k) => '<mark class="tx-ph">' + _TX_ROTULO[k] + '</mark>',
+    );
 }
 
 function _txItemHTML(t, i) {
@@ -136,7 +179,7 @@ function _txRenderizar() {
     const t = TEXTOS_PADRAO[+item.dataset.i];
 
     if (e.target.closest(".tx-copiar"))
-      return void _txCopiar(t.corpo, e.target.closest(".tx-copiar"));
+      return void _txCopiar(_txParaCopiar(t.corpo), e.target.closest(".tx-copiar"));
 
     if (e.target.closest(".tx-toggle")) _txAlternar(item);
   });
@@ -187,16 +230,36 @@ function _txFiltrar(termo) {
   }
 }
 
+/* Chamado pelo ativarAba() do core.js ao entrar nos Textos Padrão. A
+   análise ambiental pode ter rodado desde a última visita, então os
+   {coord}/{unidade} são reinterpolados — mas só quando o dado mudou de
+   verdade: re-renderizar à toa fecharia os textos que o atendente
+   deixou abertos. A busca digitada é preservada. */
+let _txCtx = null;
+
+function onAbaTextos() {
+  const d = _txDados();
+  const ctx = (d.coord || "") + "|" + (d.unidade || "");
+  if (ctx === _txCtx) return;
+  _txCtx = ctx;
+  const busca = document.getElementById("txBusca");
+  _txRenderizar();
+  _txFiltrar(busca ? busca.value : "");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const aviso = document.getElementById("txAviso");
   if (aviso)
     aviso.innerHTML = alertHTML(
       "warn",
-      "Confira os dados específicos antes de enviar — coordenada, nome da " +
-        "unidade de conservação e documentos exigidos variam por caso. Os " +
-        "valores de exemplo aparecem <mark class=\"tx-ph\">destacados</mark>.",
+      "Confira os dados específicos antes de enviar — os documentos exigidos " +
+        "variam por caso. O que aparece <mark class=\"tx-ph\">destacado</mark> " +
+        "precisa ser preenchido; a coordenada e a unidade de conservação entram " +
+        "sozinhas depois que você usa a <strong>Análise Ambiental</strong>.",
     );
 
+  const d0 = _txDados();
+  _txCtx = (d0.coord || "") + "|" + (d0.unidade || "");
   _txRenderizar();
   _txFiltrar("");
 

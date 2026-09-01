@@ -1,0 +1,4749 @@
+/* ============================================================
+   CEMIG — Shared stylesheet (single source for common UI)
+   ------------------------------------------------------------
+   Loaded on every page AFTER variables.css and BEFORE the page
+   stylesheet. Holds the universal reset, shared animations and the
+   whole CEMIG design-system component layer (header/footer,
+   buttons, fields, cards, tables, the portal cards and the form
+   shells). Every component rule is SCOPED to a surface root
+   (`.cemig-portal`, `.cemig-form`, `.modalidade-screen`) so it only
+   styles the matching page. ALL forms (BT, Micro, Mini, Loteamento,
+   MT, Desistência) render under `.cemig-form`.
+
+   Token namespaces: this layer consumes the `--cmg-*` tokens from
+   variables.css exclusively.
+   ============================================================ */
+
+/* ============================================================
+   1. Universal base + shared animations
+   ============================================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  scroll-behavior: smooth;
+  /* Também no `html`, não só no `body`: o paint holding do Chrome mantém a
+     página anterior até a nova pintar, e se ela demora ele mostra o branco
+     padrão do navegador. Com a cor aqui, o primeiro paint já sai na cor certa
+     — é o que elimina o flash branco ao entrar num card da homepage.
+     Os módulos MT/Loteamento/Desistência redefinem --bg no próprio :root
+     (que é este mesmo elemento), então cada um pinta a sua cor. */
+  background: var(--bg);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   2. Base — reset / typography / utilities (portal scope)
+   ============================================================ */
+.modalidade-screen,
+.modalidade-screen *,
+.modalidade-screen *::before,
+.modalidade-screen *::after {
+  box-sizing: border-box;
+}
+.modalidade-screen :where(h1, h2, h3, p) {
+  margin: 0;
+}
+.modalidade-screen :where(button) {
+  font: inherit;
+  color: inherit;
+}
+
+.modalidade-screen {
+  font-family: var(--cmg-font-family);
+  color: var(--cmg-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---- Reusable type helpers (scoped to the portal) ---- */
+.modalidade-screen .cmg-text-display {
+  font-size: var(--cmg-fs-display);
+  line-height: var(--cmg-lh-display);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+}
+.modalidade-screen .cmg-text-title {
+  font-size: var(--cmg-fs-title);
+  line-height: var(--cmg-lh-title);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+}
+.modalidade-screen .cmg-text-subtitle {
+  font-size: var(--cmg-fs-subtitle);
+  line-height: var(--cmg-lh-subtitle);
+  letter-spacing: var(--cmg-ls-wide);
+}
+.modalidade-screen .cmg-text-subtitle-bold {
+  font-size: var(--cmg-fs-subtitle);
+  line-height: var(--cmg-lh-subtitle);
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: var(--cmg-ls-wide);
+}
+.modalidade-screen .cmg-text-body-lg {
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: var(--cmg-ls-tight);
+}
+.modalidade-screen .cmg-text-body {
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  letter-spacing: var(--cmg-ls-tight);
+}
+.modalidade-screen .cmg-text-caption {
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-tight);
+}
+
+/* ---- Global content container (INTENTIONALLY global) ----
+   Constrains header/landing/accordion/cards/footer to the usable
+   area and centers it. Sets width/centering only — side-effect free
+   on legacy screens that don't carry the class. */
+.cmg-container {
+  width: 100%;
+  max-width: var(--cmg-area-max);
+  margin-inline: auto;
+}
+.cmg-container--gutter {
+  padding-inline: var(--cmg-area-gutter); /* 252px */
+}
+@media (max-width: 1024px) {
+  .cmg-container--gutter {
+    padding-inline: 195px;
+  }
+}
+@media (max-width: 600px) {
+  .cmg-container--gutter {
+    padding-inline: var(--cmg-space-3); /* 12px */
+  }
+}
+
+.modalidade-screen .cmg-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.modalidade-screen .cmg-stack {
+  display: flex;
+  flex-direction: column;
+}
+.modalidade-screen .cmg-gap-4 {
+  gap: var(--cmg-space-4);
+}
+.modalidade-screen .cmg-gap-6 {
+  gap: var(--cmg-space-6);
+}
+.modalidade-screen .cmg-gap-8 {
+  gap: var(--cmg-space-8);
+}
+
+/* ============================================================
+   3. Navigation — shared institutional header + footer
+   (portal `.cemig-portal` + migrated form shells `.cemig-form`)
+   ============================================================ */
+.cemig-portal,
+.cemig-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--cmg-surface);
+  font-family: var(--cmg-font-family);
+}
+.cemig-portal > :not(.topbar):not(.portal-footer),
+.cemig-form > :not(.topbar):not(.portal-footer) {
+  flex: 1 0 auto;
+}
+
+/* ---- Institutional header (green bar) ---- */
+.cemig-portal .topbar,
+.cemig-form .topbar {
+  min-height: var(--cmg-header-height);
+  height: auto;
+  background: var(--cmg-green-600);
+  border: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.cemig-portal .topbar-inner,
+.cemig-form .topbar-inner {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 108px;
+  padding: 0 var(--cmg-space-8); /* 0 32px */
+  min-height: var(--cmg-header-height);
+  /* Pin the topbar frame to the design token so it matches the content
+     frame below it exactly. Some page stylesheets (Micro/Mini) still cap
+     the legacy 1360px here — without this the topbar and the .layout below
+     centre on slightly different widths and the logo/title axes drift ~3px
+     off the side-panel/body. */
+  width: 100%;
+  max-width: var(--cmg-area-max);
+}
+.cemig-portal .topbar-left,
+.cemig-form .topbar-left {
+  display: contents;
+}
+.cemig-portal .topbar .logo-img,
+.cemig-form .topbar .logo-img {
+  order: 1;
+  flex: none;
+  width: 112px;
+  height: 28px;
+}
+/* Logo clicável (volta ao portal — substitui o antigo .form-back da sidebar).
+   Com .topbar-left em display:contents, o LINK é o item flex: precisa do
+   mesmo order/flex que a .logo-img solta tinha. */
+.cemig-form .topbar .logo-link {
+  order: 1;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+}
+.cemig-portal .topbar .logo-cemig,
+.cemig-form .topbar .logo-cemig {
+  order: 1;
+  flex: none;
+}
+.cemig-portal .topbar .logo-cemig svg,
+.cemig-form .topbar .logo-cemig svg,
+.cemig-portal .topbar .logo-cemig .logo-img,
+.cemig-form .topbar .logo-cemig .logo-img {
+  height: 28px;
+  width: auto;
+}
+.cemig-portal .app-title,
+.cemig-form .app-title {
+  order: 3;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  color: var(--cmg-neutral-0);
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+  font-size: var(--cmg-fs-display); /* 36/46 — no scaling */
+  line-height: var(--cmg-lh-display);
+}
+@media (max-width: 1024px) {
+  .cemig-portal .topbar-inner,
+  .cemig-form .topbar-inner {
+    gap: 51px;
+  }
+  .cemig-portal .app-title,
+  .cemig-form .app-title {
+    font-size: 32px;
+    line-height: 42px;
+  }
+}
+@media (max-width: 600px) {
+  .cemig-portal .topbar-inner,
+  .cemig-form .topbar-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--cmg-space-6);
+    padding: var(--cmg-space-4) var(--cmg-space-3);
+  }
+  .cemig-portal .topbar .logo-img,
+  .cemig-form .topbar .logo-img {
+    width: 96px;
+    height: 24px;
+  }
+  .cemig-portal .app-title,
+  .cemig-form .app-title {
+    flex-basis: auto;
+    font-size: 26px;
+    line-height: 38px;
+  }
+}
+
+/* ---- Institutional footer (dark bar) ---- */
+.cemig-portal .portal-footer,
+.cemig-form .portal-footer {
+  margin-top: auto;
+  background: var(--cmg-neutral-700);
+  padding-block: var(--cmg-space-12);
+}
+.cemig-portal .portal-footer-inner,
+.cemig-form .portal-footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cmg-space-6);
+}
+.cemig-portal .portal-footer .logo-img,
+.cemig-form .portal-footer .logo-img {
+  width: 144px;
+  height: auto;
+}
+.cemig-portal .portal-footer .logo-cemig svg,
+.cemig-form .portal-footer .logo-cemig svg {
+  width: 144px;
+  height: auto;
+}
+.cemig-portal .portal-footer-copy,
+.cemig-form .portal-footer-copy {
+  margin: 0;
+  color: var(--cmg-neutral-0);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-tight);
+  text-align: center;
+}
+.cemig-portal .portal-footer-note,
+.cemig-form .portal-footer-note {
+  margin: 0;
+  max-width: 720px;
+  color: var(--cmg-neutral-300);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-tight);
+  text-align: center;
+}
+.cemig-portal .portal-footer-note a,
+.cemig-form .portal-footer-note a {
+  color: var(--cmg-neutral-0);
+}
+
+/* ============================================================
+   4. Portal — modality selector cards & accordion
+   (scoped to `.modalidade-screen`)
+   ============================================================ */
+.modalidade-screen .modalidade-head {
+  text-align: left;
+  margin-bottom: var(--cmg-space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-8);
+}
+.modalidade-screen .modalidade-head h1 {
+  font-size: var(--cmg-fs-title);
+  line-height: var(--cmg-lh-title);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+  color: var(--cmg-text-strong);
+}
+.modalidade-screen .modalidade-head p {
+  max-width: none;
+  margin: 0;
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text);
+}
+
+/* ============================================================
+   Grid utilities — canonical field grid for ALL forms (BT vocabulary:
+   `.grid.grid-2` / `.grid.grid-3` + `.col-span-*`). Like `.cmg-aviso`,
+   INTENTIONALLY global (unscoped): the same markup works under
+   `.cemig-form` and the vanilla shells. Moved here from
+   formulario-bt.css so every form consumes a single source.
+   ============================================================ */
+.grid {
+  display: grid;
+  gap: 14px;
+}
+.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.col-span-2 {
+  grid-column: span 2;
+}
+.col-span-3 {
+  grid-column: span 3;
+}
+/* Contêiner de aviso vazio dentro do grid: sem isto ele continua sendo um item
+   do grid e reserva uma linha, somando o `gap` acima E abaixo (~28px de vão
+   entre os campos vizinhos) mesmo sem aviso nenhum na tela. */
+.grid > .col-span-2:empty,
+.grid > .col-span-3:empty,
+/* .grid-subgrupo é display:contents — seus filhos são itens do MESMO grid,
+   mas o `>` acima deixa de alcançá-los. Sem esta linha, um contêiner de aviso
+   vazio dentro do subgrupo (ex.: #compartilhadaAlert na etapa 4 da mini)
+   volta a reservar a linha. */
+.grid > .grid-subgrupo > .col-span-2:empty,
+.grid > .grid-subgrupo > .col-span-3:empty {
+  display: none;
+}
+/* Campo sozinho na linha SEM esticar: reserva a linha inteira mas continua
+   com a largura de 1 coluna.
+   O item se coloca em `1 / -1` (ocupa a linha toda, então nada sobe para o
+   lado) e devolve a largura visual com `max-width`, calculado a partir do
+   gap real do grid (--grid-col-gap, redefinido por quem troca o gap — ver
+   `.cemig-form .grid`).
+   Regra de irmão (`.row-solo + *`) NÃO serve aqui: `+` casa com o vizinho no
+   DOM mesmo que ele esteja com display:none — e um item oculto não é
+   posicionado, então quem realmente sobe para o lado é o item seguinte, que
+   a regra nunca alcança. Era o caso da fonte primária na etapa 4 da
+   microgeração, cujo vizinho (modalidade de operação) some fora de Solar. */
+.grid {
+  --grid-col-gap: 14px;
+}
+.grid-2 > .row-solo {
+  grid-column: 1 / -1;
+  max-width: calc((100% - var(--grid-col-gap)) / 2);
+}
+.grid-3 > .row-solo {
+  grid-column: 1 / -1;
+  max-width: calc((100% - 2 * var(--grid-col-gap)) / 3);
+}
+/* Subgrupo condicional DENTRO de um .grid: um wrapper só existe para o JS
+   poder mostrar/esconder vários campos de uma vez, mas ele não deve virar um
+   item de grid — senão os campos que ele embrulha perdem as colunas do grid
+   de cima e o vão entre wrapper e vizinhos deixa de ser o `gap`.
+   `display: contents` faz o wrapper sumir da caixa e promove os filhos a
+   itens do grid pai. O JS continua alternando `style.display` entre "" e
+   "none": com "" a regra volta a valer (a declaração inline some), com
+   "none" o subgrupo inteiro desaparece, como antes.
+
+   DESCENDENTE, não filho direto, caso os subgrupos venham a se aninhar: como
+   um subgrupo já é `display: contents`, ele não é um `.grid`, e um seletor `>`
+   só alcançaria o primeiro nível — os mais fundos voltariam a ser blocos
+   comuns, empilhando os campos em 1 coluna e sem `gap`. Hoje os dois usos
+   (#atendimentoBloco e #armBloco) são filhos diretos de um .grid. */
+.grid .grid-subgrupo {
+  display: contents;
+}
+@media (max-width: 720px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .col-span-2,
+  .col-span-3 {
+    grid-column: span 1;
+  }
+  /* Coluna única: sozinho na linha já é o padrão, e o recorte de largura
+     sairia estreito demais — o campo ocupa a linha como os demais. */
+  .grid-2 > .row-solo,
+  .grid-3 > .row-solo {
+    max-width: none;
+  }
+}
+/* Composição por pavimento (só-leitura, card das torres): as linhas de faixa
+   (cada uma um .grid-3) empilham com o mesmo respiro vertical do grid do card. */
+.faixas-composicao {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+/* Card só-leitura de faixa (Andar inicial/final/Unidades por andar) — spec
+   Figma: padding 20px, altura 77px, borda neutra/200, radius 8px; rótulo em
+   cima e valor embaixo. .field--plain já removeu o rótulo flutuante. */
+.faixa-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-height: 77px;
+  padding: 20px;
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-neutral-200);
+  border-radius: 8px;
+}
+.faixa-card .faixa-card-label {
+  font-family: var(--cmg-font-family);
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-500);
+}
+.faixa-card .faixa-card-valor {
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  font-weight: 600;
+  color: var(--cmg-text-strong);
+}
+
+/* ============================================================
+   Aviso — canonical informational banner (icon column + text).
+   SINGLE SOURCE for every info banner: the portal home, the BT
+   modalidade screen and the BT orientações/gerador notes. Like
+   `.cmg-container`, it is INTENTIONALLY global (unscoped) so it works
+   under any surface root (`.cemig-portal`, `.modalidade-screen`,
+   `.cemig-form`). The box GROWS WITH ITS CONTENT — no fixed width or
+   height; paddings are fixed and the height follows the text (Figma's
+   74px/98px are just 2- vs 3-line content, not values to pin).
+   Figma: neutra/200 (#D1D4D3) border + grey icon column, info.svg
+   glyph (neutra/600 #364B46) on a 32px area, Open Sans 14/24 text on
+   white. Replaces the old `.modalidade-aviso*` and `.callout` styles.
+   Variants: `.cmg-aviso--warn` (alerta/500 #FFC107 + warn.svg) and
+   `.cmg-aviso--error` (erro/500 #C8303F + error.svg, glyph em branco). */
+.cmg-aviso {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  /* default breathing room so the banner never hugs neighbouring blocks */
+  margin: 0px;
+  border: 1px solid var(--cmg-neutral-200); /* #D1D4D3 */
+  border-radius: 8px;
+  overflow: hidden; /* let the rounded corners clip the column backgrounds */
+}
+.cmg-aviso-icon {
+  flex: none;
+  align-self: stretch; /* icon column follows the banner height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  padding: 20px;
+  background: var(--cmg-neutral-200); /* #D1D4D3 */
+  border-radius: 8px 0 0 8px;
+}
+.cmg-aviso-icon::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 32px;
+  /* info glyph already in neutra/600 (#364B46). SVG (viewBox 0 0 32 32)
+     renders 1:1 at 32px — vector, no resolution loss at any DPI/zoom. */
+  background-image: url("../imgs/info.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 32px 32px;
+}
+.cmg-aviso-texto {
+  flex: 1 1 auto;
+  /* Bloco, NÃO flex: como filho do .cmg-aviso (flex row), este parágrafo já é
+     centralizado verticalmente por `align-self`. Com `display:flex` aqui, cada
+     <strong> do meio da frase virava um ITEM do flex e o texto deixava de
+     fluir inline — a frase quebrava palavra a palavra quando havia mais de um
+     destaque. Ver o aviso do DUB (arrendamento), que tem quatro. */
+  display: block;
+  align-self: center;
+  margin: 0;
+  /* margem interna padrão do texto (vertical + respiro lateral) */
+  padding: var(--cmg-space-3) var(--cmg-space-4);
+  background: var(--cmg-surface); /* #FFFFFF */
+  border-radius: 0 8px 8px 0;
+  font-family: var(--cmg-font-family);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600); /* #364B46 */
+}
+/* Warn variant — modifier over `.cmg-aviso`: only the border colour, the
+   icon-column background and the glyph change; layout/typography inherit
+   from the base. Markup: <div class="cmg-aviso cmg-aviso--warn">…</div>. */
+.cmg-aviso--warn {
+  border-color: var(--cmg-warning-500); /* #FFC107 — alerta/500 */
+}
+.cmg-aviso--warn .cmg-aviso-icon {
+  background: var(--cmg-warning-500); /* #FFC107 — alerta/500 */
+}
+.cmg-aviso--warn .cmg-aviso-icon::before {
+  background-image: url("../imgs/warn.svg");
+}
+/* Error variant — mesmo esquema do warn: só muda a cor da borda, o fundo da
+   coluna do ícone e o glifo (círculo-X branco sobre erro/500 #C8303F).
+   Markup: <div class="cmg-aviso cmg-aviso--error">…</div>. */
+.cmg-aviso--error {
+  border-color: var(--cmg-error-500); /* #C8303F — erro/500 */
+}
+.cmg-aviso--error .cmg-aviso-icon {
+  background: var(--cmg-error-500); /* #C8303F — erro/500 */
+}
+.cmg-aviso--error .cmg-aviso-icon::before {
+  background-image: url("../imgs/error.svg");
+}
+
+/* A prévia/PDF do MT ainda usa o texto plano de reservas com "\n" entre uma e
+   outra (geo.js/resumirRestricoes). pre-line preserva as quebras sem <br>. */
+.previa-campo-valor .restricao-destaque {
+  white-space: pre-line;
+}
+
+/* ============================================================
+   Restrição ambiental — layout inline (BT e MT). O banner .cmg-aviso--warn
+   traz o título (negrito) + a frase de localização (nomes das áreas em
+   negrito) num único <span> dentro de .cmg-aviso-texto. LOGO ABAIXO do banner,
+   .restricao-docs lista os documentos exigidos MESCLADOS (introdução única +
+   bullets unidos + notas ao final) e .restricao-aceite traz o checkbox
+   obrigatório de ciência. Estrutura idêntica gerada por React (BT) e
+   innerHTML (MT). Global (unscoped) como o próprio `.cmg-aviso`. ============ */
+.restricao-docs {
+  margin-top: 12px;
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cmg-neutral-600, #364b46);
+}
+.restricao-docs-intro {
+  margin: 0;
+}
+.restricao-docs-lista {
+  margin: 8px 0 0;
+  padding-left: 22px;
+}
+.restricao-docs-lista li {
+  margin-top: 8px;
+}
+/* Marcador verde institucional (casa com o padrão visual do form BT). */
+.restricao-docs-lista li::marker {
+  color: var(--cmg-green-600, #0f6c58);
+}
+.restricao-docs-nota {
+  margin: 12px 0 0;
+}
+/* A forma do checkbox vem da regra canônica `.cemig-form
+   input[type="checkbox"]` (final do arquivo); aqui só o layout do rótulo
+   e o alinhamento da caixa com a 1ª linha do texto. */
+label.restricao-aceite {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: var(--cmg-fw-regular, 400);
+  color: var(--cmg-neutral-600, #364b46);
+  cursor: pointer;
+}
+label.restricao-aceite input[type="checkbox"] {
+  margin: 2px 0 0;
+}
+
+/* ============================================================
+   Prévia do formulário (Figma) — etapa "Prévia & PDF" de todos os
+   formulários. Seções tituladas em verde, campos rótulo+valor em
+   grade de 2 colunas, divisor entre seções, cartões-resumo e lápis
+   (editar) que leva de volta à etapa correspondente. Como o
+   `.cmg-aviso`, é INTENCIONALMENTE global (unscoped) para servir
+   qualquer superfície. */
+.previa-secao-titulo {
+  margin: 0 0 var(--cmg-space-4);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-subtitle);
+  line-height: var(--cmg-lh-subtitle);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--cmg-green-600);
+}
+.previa-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cmg-space-4) var(--cmg-space-6);
+}
+@media (max-width: 720px) {
+  .previa-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.previa-campo--full {
+  grid-column: 1 / -1;
+}
+.previa-campo-label {
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-text);
+}
+.previa-campo-valor {
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-2);
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: var(--cmg-fw-bold, 700);
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+  overflow-wrap: anywhere;
+}
+/* Lápis de edição — leva de volta à etapa onde o campo é preenchido. */
+.previa-edit {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  line-height: 0;
+}
+.previa-edit::before {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 18px;
+  background: url("../imgs/edit.svg") center / 18px 18px no-repeat;
+}
+.previa-edit:hover::before {
+  opacity: 0.72;
+}
+.previa-edit:focus-visible {
+  outline: 2px solid var(--cmg-green-600);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.previa-divider {
+  border: 0;
+  border-top: 1px solid var(--cmg-divider);
+  margin: var(--cmg-space-6) 0;
+}
+/* Cartões-resumo (Modalidade / Demanda total / Disjuntor adequado) —
+   reutilizam o visual do .resultado-card via classe própria para
+   funcionarem também fora do .cemig-form. */
+.previa-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cmg-space-4);
+  margin: 0 0 var(--cmg-space-6);
+}
+@media (max-width: 900px) {
+  .previa-cards {
+    grid-template-columns: 1fr;
+  }
+}
+.previa-card {
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-neutral-200);
+  border-radius: var(--cmg-radius);
+  padding: var(--cmg-space-4) var(--cmg-space-6);
+}
+.previa-card-label {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+}
+.previa-card-valor {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-subtitle);
+  line-height: 26px;
+  font-weight: var(--cmg-fw-bold, 700);
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+  margin-top: var(--cmg-space-1);
+}
+
+/* ---- Prévia: painel de torre (múltiplas torres) ----
+   Figma: surface neutra/50, padding 16, gap 24 entre título, campos e tabela. */
+.previa-torre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-6);
+  border-radius: var(--cmg-radius);
+  padding: var(--cmg-space-4);
+  margin-bottom: var(--cmg-space-4);
+  background: var(--cmg-neutral-50);
+}
+.previa-torre-head {
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-2);
+}
+/* Figma: subtítulo em peso regular (400); o destaque fica no chip. */
+.previa-torre-titulo {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-subtitle);
+  line-height: var(--cmg-lh-subtitle);
+  font-weight: var(--cmg-fw-regular, 400);
+  letter-spacing: var(--cmg-ls-wide);
+  color: var(--cmg-text-strong);
+}
+.previa-torre-chip {
+  font-family: var(--cmg-font-family);
+  font-size: 12px;
+  font-weight: var(--cmg-fw-bold, 700);
+  line-height: 20px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+  background: var(--verde-on);
+  border-radius: var(--cmg-radius-pill);
+  padding: 0 var(--cmg-space-1);
+}
+/* O gap do painel já separa os campos da tabela — sem margem extra.
+   Figma: campos com gutter de linha 24 e de coluna 16. */
+.previa-torre .previa-grid {
+  margin-bottom: 0;
+  gap: var(--cmg-space-6) var(--cmg-space-4);
+}
+/* Figma: rótulo em corpo/grande (16px) e valor em neutra/600 (mesma família
+   do rótulo, só o peso muda) — dentro do painel da torre. */
+.previa-torre .previa-campo-label {
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  color: var(--cmg-neutral-600);
+}
+.previa-torre .previa-campo-valor {
+  color: var(--cmg-neutral-600);
+}
+/* Tabela de UCs da torre — rola horizontalmente em telas estreitas.
+   Corpo branco sobre o painel neutra/50; o overflow-x recorta o cabeçalho
+   cinza dentro do raio arredondado. */
+.previa-tabela-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--cmg-neutral-200);
+  border-radius: var(--cmg-radius);
+  background: var(--cmg-surface);
+}
+.previa-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+}
+.previa-tabela th,
+.previa-tabela td {
+  padding: var(--cmg-space-3);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--cmg-neutral-200);
+}
+/* Figma: cabeçalho em cinza neutra/200, texto neutra/600 em negrito. */
+.previa-tabela thead th {
+  font-weight: var(--cmg-fw-bold, 700);
+  color: var(--cmg-neutral-600);
+  background: var(--cmg-neutral-200);
+  letter-spacing: 0.2px;
+}
+.previa-tabela tbody tr:last-child td {
+  border-bottom: 0;
+}
+.previa-tabela td {
+  color: var(--cmg-neutral-600);
+}
+/* Variante estreita: larguras pelo conteúdo, encostada à esquerda. O Figma da
+   prévia do loteamento desenha assim — a tabela de 3 colunas não estica na
+   largura do card como a de UCs da torre. */
+.previa-tabela-wrap--auto {
+  width: fit-content;
+  max-width: 100%;
+}
+.previa-tabela-wrap--auto .previa-tabela {
+  width: auto;
+}
+/* Coluna só do lápis (cabeçalho vazio): botão centrado, não à esquerda. */
+.previa-tabela .previa-tabela-acao {
+  text-align: center;
+}
+/* Linha de total no <tfoot>: negrito e separada do corpo por um traço mais
+   escuro (neutra/400). O último <tr> do tbody já perde a borda de baixo,
+   então sobra só esta. */
+.previa-tabela tfoot td {
+  font-weight: var(--cmg-fw-bold, 700);
+  color: var(--cmg-neutral-600);
+  border-top: 1px solid var(--cmg-neutral-400);
+  border-bottom: 0;
+}
+.previa-tabela-disj {
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-2);
+}
+/* Paginação específica da tabela de UCs da torre: compacta e junto à tabela.
+   O painel .previa-torre já dá gap de 24px entre a tabela e este bloco, então
+   a margem padrão da .paginacao é anulada e os controles ficam menores. Os
+   seletores levam .cemig-form para vencer os padrões .cemig-form .paginacao*. */
+.cemig-form .previa-tabela-pag {
+  margin-top: calc(var(--cmg-space-6) * -1 + var(--cmg-space-2));
+}
+.cemig-form .previa-tabela-pag .paginacao {
+  margin-top: 0;
+  justify-content: center;
+  gap: var(--cmg-space-1);
+}
+.cemig-form .previa-tabela-pag .paginacao-btn {
+  width: 28px;
+  height: 28px;
+  font-size: var(--cmg-fs-body-lg);
+  
+}
+.cemig-form .previa-tabela-pag .paginacao-input {
+  width: 44px;
+  height: 28px;
+  align-items: center;
+}
+.cemig-form .previa-tabela-pag .paginacao-total {
+  margin-right: var(--cmg-space-1);
+}
+
+/* ---- Accordion section ---- */
+.modalidade-screen .modalidade-secao {
+  margin-bottom: 0;
+}
+.modalidade-screen .modalidade-secao-titulo {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-subtitle);
+  line-height: var(--cmg-lh-subtitle);
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: var(--cmg-ls-wide);
+  text-transform: none;
+  color: var(--cmg-text);
+  margin: 0;
+  padding: var(--cmg-space-4);
+  border: none;
+  border-top: 1px solid var(--cmg-divider);
+  background: transparent;
+}
+/* Linha de FECHO do acordeão: vai na última SEÇÃO, não no título dela. As
+   divisórias entre as seções são o border-top de cada título, mas a de baixo
+   precisa vir depois do corpo — no título, ela ficava presa sob o cabeçalho e
+   os cards da seção aberta transbordavam por baixo dela. Com a seção colapsada
+   o corpo tem altura zero (grid-template-rows: 0fr + padding vertical zerado),
+   então o resultado é idêntico ao de antes; só muda quando ela abre. */
+.modalidade-screen .modalidade-secao:last-of-type {
+  border-bottom: 1px solid var(--cmg-divider);
+}
+.modalidade-screen .modalidade-secao-titulo:hover {
+  opacity: 1;
+  color: var(--cmg-green-600);
+}
+.modalidade-screen .modalidade-secao-titulo:focus-visible {
+  outline: 2px solid var(--cmg-green-600);
+  outline-offset: -2px;
+}
+.modalidade-screen .modalidade-secao-chevron {
+  color: var(--cmg-neutral-600);
+  font-size: 18px;
+}
+.modalidade-screen .modalidade-secao.is-collapsed .modalidade-secao-chevron {
+  transform: none;
+}
+.modalidade-screen
+  .modalidade-secao:not(.is-collapsed)
+  .modalidade-secao-chevron {
+  transform: rotate(180deg);
+}
+
+/* ---- Expanded panel ---- */
+.modalidade-screen .modalidade-secao-corpo > .modalidade-grid {
+  padding: var(--cmg-space-4) var(--cmg-space-4) var(--cmg-space-6);
+}
+.modalidade-screen
+  .modalidade-secao.is-collapsed
+  .modalidade-secao-corpo
+  > .modalidade-grid {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.modalidade-screen .modalidade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--cmg-space-6);
+}
+
+/* ---- Modality card ---- */
+.modalidade-screen .modalidade-card {
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-border);
+  border-radius: var(--cmg-radius);
+  box-shadow: none;
+  overflow: hidden;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+.modalidade-screen .modalidade-card:not(:disabled):hover {
+  transform: translateY(-2px);
+  border-color: var(--cmg-green-600);
+  box-shadow: var(--cmg-shadow-card-hover);
+}
+.modalidade-screen .modalidade-img {
+  aspect-ratio: auto;
+  height: 200px;
+  background: var(--cmg-surface);
+}
+.modalidade-screen .modalidade-img img {
+  object-fit: cover;
+}
+.modalidade-screen .modalidade-card-body {
+  /* Figma: texto a 16px da borda; título e subtítulo próximos (~4px). */
+  padding: var(--cmg-space-6) var(--cmg-space-4);
+  gap: var(--cmg-space-1);
+  background: var(--cmg-surface);
+  transition: background 0.15s ease;
+}
+.modalidade-screen .modalidade-card:not(:disabled):hover .modalidade-card-body {
+  background: var(--cmg-surface-accent);
+}
+.modalidade-screen .modalidade-card-body strong {
+  font-size: var(--cmg-fs-subtitle);
+  line-height: var(--cmg-lh-subtitle);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+  color: var(--cmg-text);
+}
+.modalidade-screen .modalidade-sub {
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text-muted);
+}
+
+/* ---- Availability tag ---- */
+.modalidade-screen .modalidade-tag {
+  border-radius: var(--cmg-radius-pill);
+  letter-spacing: var(--cmg-ls-wide);
+}
+.modalidade-screen .modalidade-tag.avail {
+  background: var(--cmg-green-600);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ============================================================
+   5. Portal — desktop layout (scoped to `.modalidade-screen`)
+   ============================================================ */
+.modalidade-screen {
+  padding-block: var(--cmg-space-8) var(--cmg-space-15); /* 32px / 60px */
+  margin-block: 0;
+}
+@media (max-width: 1024px) {
+  .modalidade-screen .modalidade-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+/* ============================================================
+   6. Buttons (pill) — migrated form roots (`.cemig-form`)
+   ============================================================ */
+/* ---- Canonical buttons — SINGLE SOURCE for all six forms (every form
+   renders under `.cemig-form`). Figma spec: 48px tall, 100px radius,
+   Open Sans 600 14/24. The fixed 250px width is applied only to the
+   navigation buttons (see the nav-row rule at the end of this block). ---- */
+.cemig-form .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cmg-space-2); /* 8px */
+  height: 48px;
+  padding: 10px var(--cmg-space-4); /* 10px 16px */
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+/* .is-disabled acompanha aria-disabled="true": mesma aparência de desabilitado,
+   mas o botão continua clicável — clicar rola até o campo que falta
+   (ver shared/js/form-marcadores.js). */
+.cemig-form .btn:disabled,
+.cemig-form .btn.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cemig-form .btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cmg-focus-ring);
+}
+/* Arrow icon inside a button — 18×18, colour inherited from the label
+   (currentColor): white on filled, #041E18 on outlined, matching the spec. */
+.cemig-form .btn svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.cemig-form .btn-primary {
+  background: var(--cmg-green-600); /* #0F6C58 */
+  color: var(--cmg-neutral-0); /* #fff */
+  border-color: var(--cmg-green-600);
+  box-shadow: none;
+}
+.cemig-form .btn-primary:hover:not(:disabled) {
+  background: var(--cmg-green-500);
+  border-color: var(--cmg-green-500);
+}
+.cemig-form .btn-dark {
+  background: var(--cmg-neutral-700);
+  color: var(--cmg-neutral-0);
+  border-color: var(--cmg-neutral-700);
+}
+.cemig-form .btn-dark:hover:not(:disabled) {
+  background: #0a322a;
+}
+.cemig-form .btn-ghost {
+  background: transparent;
+  color: var(--cmg-neutral-700); /* #041E18 */
+  border-color: var(--cmg-neutral-400); /* #8C9895 */
+}
+.cemig-form .btn-ghost:hover:not(:disabled) {
+  /* Figma não define hover para o outlined; só a borda fica verde. */
+  border-color: var(--cmg-green-600);
+}
+/* Botão de ação secundária (outlined médio, spec Figma): 40px de altura,
+   padding 10px 24px. Aplicado às ações "Replicar torre/UC" sem afetar a
+   navegação (Voltar/Avançar), que mantêm a altura padrão de 48px. */
+.cemig-form .btn-outlined-acao {
+  height: 40px;
+  padding: 10px 24px;
+}
+.cemig-form .btn-danger-ghost {
+  background: transparent;
+  color: var(--cmg-danger-500);
+  border-color: var(--cmg-danger-500);
+}
+.cemig-form .btn-danger-ghost:hover:not(:disabled) {
+  background: #fdecea;
+}
+/* Navigation buttons (Avançar / Voltar): fixed Figma 250px width, scoped to
+   the nav row only (direct children) so action buttons elsewhere keep their
+   content width. Collapses below 250px on narrow viewports. */
+.cemig-form .nav-bottom > .btn {
+  width: 250px;
+  max-width: 100%;
+}
+
+/* ============================================================
+   7. Forms — field controls (migrated form roots `.cemig-form`)
+   ============================================================ */
+.cemig-form .field {
+  display: flex;
+  flex-direction: column;
+  /*gap: var(--cmg-space-1);*/
+}
+.cemig-form .field label {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text-muted);
+  /*margin-bottom: var(--cmg-space-1);*/
+}
+.cemig-form .field .req {
+  color: var(--cmg-danger-500);
+}
+.cemig-form .field input,
+.cemig-form .field select,
+.cemig-form .field textarea {
+  width: 100%;
+  min-height: 48px;
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-border);
+  border-radius: 4px;
+  padding: 12px var(--cmg-space-4);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text-strong);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+.cemig-form .field textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+.cemig-form .field input::placeholder {
+  color: var(--cmg-text-muted);
+}
+/* Placeholder de <textarea> — estilo GLOBAL (Figma): Open Sans itálico,
+   corpo/grande 16/26, +0.2px, neutra/600 — p.ex. o box de Observações
+   dos formulários. */
+.cemig-form textarea::placeholder {
+  font-family: var(--cmg-font-family);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 26px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600); /* #364B46 */
+}
+/* Foco (spec Figma): campo em foco NÃO ganha sombra — a única mudança é a
+   borda, de neutra/400 (repouso) para neutra/600. O anel verde
+   (--cmg-focus-ring) fica com os controles sem borda própria a escurecer
+   (botões, checkbox, rádio, toggle) e com os `:focus-visible` de teclado. */
+.cemig-form .field input:focus,
+.cemig-form .field select:focus,
+.cemig-form .field textarea:focus {
+  border-color: var(--cmg-neutral-600);
+  box-shadow: none;
+}
+.cemig-form .field input:disabled,
+.cemig-form .field select:disabled,
+.cemig-form .field textarea:disabled,
+/* O input do campo com ação (ex.: "Customizado") é só-leitura por design — o
+   valor real vem das faixas e a edição é pelo botão "Customizar" —, então NÃO
+   recebe o visual acinzentado de desabilitado. */
+.cemig-form .field input[readonly]:not(.field-acao-input) {
+  background: var(--cmg-surface-disabled);
+  color: var(--cmg-text-muted);
+  cursor: not-allowed;
+}
+/* Sinalização única de campo obrigatório não preenchido — reutilizada por
+   todos os formulários (React e vanilla, todos sob `.cemig-form`). Uma só
+   classe (.is-invalid), sem estilos de erro concorrentes. Declarada após o
+   :focus para prevalecer mesmo com o campo focado.
+   Spec Figma (erro): caixa branca, borda de 1px em erro/600 (#C8303F),
+   raio 4, TODO o texto da caixa em #C8303F e supporting-text de erro (12px)
+   abaixo do campo. A caixa NÃO tem sombra: o halo vermelho que existia aqui
+   (0 0 0 3px rgba(200,48,63,.18)) engrossava a borda de 1px num vão rosado de
+   4px e era o que fazia a cor lida na tela divergir do #C8303F do spec. */
+/* Padrão A (borda no próprio controle, ex.: campos .field--plain).
+   `box-shadow: none` é declaração, não omissão: sem ela o anel VERDE de
+   `:focus` (acima) voltaria no campo focado — e o primeiro campo inválido
+   recebe foco justamente ao clicar em "Avançar" (form-marcadores.js). */
+.cemig-form .field input.is-invalid,
+.cemig-form .field select.is-invalid,
+.cemig-form .field textarea.is-invalid {
+  border-color: var(--cmg-error-500); /* #C8303F — erro/600 */
+  box-shadow: none;
+}
+/* Padrão B (rótulo flutuante): a borda é do .field (o input não tem borda),
+   então o estado de erro (borda + rótulo) precisa ir no CONTÊINER. Restrito
+   a campos NÃO-plain com input/select (mesma heurística do Padrão B) p/ não
+   duplicar a borda dos campos Padrão A. !important vence a borda neutra do
+   Padrão B e o anel de `:focus-within` (ambos declarados depois e com
+   especificidade maior) — o erro deve sempre prevalecer. */
+.cemig-form .field:not(.field--plain):has(input.is-invalid),
+.cemig-form .field:not(.field--plain):has(select.is-invalid) {
+  border-color: var(--cmg-error-500) !important; /* #C8303F */
+  box-shadow: none !important;
+}
+/* Texto da caixa em erro: o rótulo já vai em erro/600 (regra adiante, junto do
+   rótulo flutuante) e o placeholder acompanha — nos campos que trazem exemplo
+   de formato ("Nome completo ou razão social", "email@exemplo.com") ele é o
+   texto de 16px que ocupa a caixa quando o rótulo sobe, e ficava cinza no meio
+   de uma caixa vermelha. */
+.cemig-form .field:has(input.is-invalid) input::placeholder,
+.cemig-form .field:has(textarea.is-invalid) textarea::placeholder {
+  color: var(--cmg-error-500);
+}
+/* (o rótulo em erro/600 é reforçado após o bloco do rótulo flutuante,
+   para vencer a cor do estado "placeholder" — ver adiante.) */
+/* position: relative em QUALQUER campo inválido, p/ ancorar o supporting-text
+   (::after) — inclusive nos Padrão A. */
+.cemig-form .field:has(input.is-invalid),
+.cemig-form .field:has(select.is-invalid),
+.cemig-form .field:has(textarea.is-invalid) {
+  position: relative;
+}
+/* supporting-text de erro (12px, erro/600) abaixo do campo. Gerado via
+   ::after p/ não exigir mudança de markup; posicionado como o .field-hint
+   flutuante (absoluto, bottom: -20px). Só quando o campo NÃO tem um hint
+   próprio COM TEXTO (evita sobreposição).
+   `:empty` é essencial: hints de status preenchidos por JS (#cnpjStatus,
+   #cepStatusObra) já existem no markup vazios desde o primeiro paint. Sem o
+   `:empty`, a simples PRESENÇA do <span> suprimia o "Campo obrigatório" para
+   sempre — o campo ficava só com a borda vermelha, sem dizer o que faltava. */
+.cemig-form
+  .field:has(input.is-invalid):not(:has(.field-hint:not(:empty)))::after,
+.cemig-form
+  .field:has(select.is-invalid):not(:has(.field-hint:not(:empty)))::after,
+.cemig-form
+  .field:has(textarea.is-invalid):not(:has(.field-hint:not(:empty)))::after {
+  content: "Campo obrigatório";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -20px;
+  padding: 0 var(--cmg-space-4); /* alinha ao texto do campo (16px) */
+  font-family: var(--cmg-font-family);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-error-500); /* #C8303F */
+  pointer-events: none;
+}
+.cemig-form .readonly-val {
+  min-height: 48px;
+  padding: 12px var(--cmg-space-4);
+  border: 1px solid var(--cmg-border);
+  border-radius: 4px;
+  background: var(--cmg-surface-disabled);
+  color: var(--cmg-text);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  font-weight: var(--cmg-fw-regular);
+  display: flex;
+  align-items: center;
+}
+.cemig-form .field-hint {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text-muted);
+  margin-top: var(--cmg-space-1);
+}
+/* Hint VAZIO (ex.: #cep-status-*, preenchido só depois da consulta de CEP)
+   não pode ocupar espaço: com o margin-top ele empurrava o campo e desalinhava
+   a linha em relação aos vizinhos sem hint. Mesma ideia do .col-span-2:empty. */
+.cemig-form .field-hint:empty {
+  display: none;
+}
+/* ============================================================
+   Campo com rótulo FLUTUANTE (Padrão B) — PADRÃO dos campos de texto.
+   Comportamento: com o campo VAZIO e sem foco, o rótulo OCUPA a célula
+   (parece placeholder, 16px, centralizado verticalmente); ao focar ou
+   preencher, o rótulo encolhe e sobe (12px no topo) e o valor aparece
+   abaixo. Aplicado automaticamente a qualquer .field que contenha um
+   <input>/<select> de texto — sem flag por campo. Mantém-se o Padrão A
+   (rótulo acima, fora) para:
+     • campos com <textarea> (multilinha cresce);
+     • campos com toggle/radio (.toggle-group) — não são campos de texto;
+     • opt-out manual via classe .field--plain.
+   `.field--float` continua válido como opt-in explícito. Definição ÚNICA
+   aqui; não duplicar nos formulario-*. Escopo .cemig-form (todos os
+   formulários); campos compactos/cards optam por sair via .field--plain.
+
+   "Vazio" = <input> com placeholder visível (:placeholder-shown — por isso
+   o componente Inp injeta um placeholder " " quando não há outro) OU
+   <select> com a opção placeholder (value="") selecionada. Spec Figma:
+   container 56px, borda neutra/400, label 12px/20px/0.2px neutra/600,
+   valor 16px/26px/0.2px neutra/600, chevron 24px à direita.
+   ============================================================ */
+.cemig-form .field--float,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select) {
+  box-sizing: border-box;
+  display: block;
+  position: relative;
+  min-height: 56px; /* spec 56px; min- p/ campos compostos crescerem */
+  padding: 0;
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-neutral-400);
+  border-radius: 4px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+/* Rótulo: estado "flutuado" (default) — pequeno, no topo. */
+.cemig-form .field--float > label,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select)
+  > label {
+  position: absolute;
+  left: var(--cmg-space-4);
+  right: var(--cmg-space-4);
+  top: 7px;
+  margin: 0;
+  pointer-events: none;
+  font-family: var(--cmg-font-family);
+  font-size: 12px;
+  line-height: 20px; /* spec */
+  font-weight: 400;
+  letter-spacing: 0.2px; /* spec */
+  color: var(--cmg-neutral-500); /* rótulo flutuado (preenchido): neutra/500 #576864 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    top 0.15s ease,
+    font-size 0.15s ease,
+    line-height 0.15s ease,
+    color 0.15s ease;
+}
+/* Rótulo: estado "placeholder" — campo vazio e sem foco → ocupa a célula
+   (16px, centralizado). Vale p/ input vazio (placeholder visível) e p/
+   select na opção placeholder (value=""). */
+.cemig-form
+  .field--float:is(
+    :has(input:placeholder-shown),
+    :has(select option[value=""]:checked),
+    :has(.mesano-campo-txt.is-vazio)
+  ):not(:focus-within)
+  > label,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select):is(
+    :has(input:placeholder-shown),
+    :has(select option[value=""]:checked),
+    /* mês/ano: o botão não tem :placeholder-shown — quem sinaliza "vazio" é o
+       .is-vazio do texto (ver bloco .mesano-*) */
+    :has(.mesano-campo-txt.is-vazio)
+  ):not(:focus-within)
+  > label {
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--cmg-neutral-600); /* rótulo em estado placeholder (vazio): neutra/600 #364B46 */
+}
+/* Rótulo em ERRO (erro/600). O estado "placeholder" acima tem especificidade
+   alta (muitos :has/:not) e coloriria o rótulo de muted mesmo inválido; como
+   o erro deve SEMPRE prevalecer, usamos !important (exceção pontual e clara). */
+.cemig-form .field:not(.field--plain):has(input.is-invalid) > label,
+.cemig-form .field:not(.field--plain):has(select.is-invalid) > label {
+  color: var(--cmg-error-500) !important; /* #C8303F */
+}
+/* Valor do campo: <input>/<select> preenchem a caixa, sem borda; padding
+   superior reserva espaço para o rótulo flutuado. */
+.cemig-form .field--float input,
+.cemig-form .field--float select,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select)
+  input,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select)
+  select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 54px;
+  padding: 22px var(--cmg-space-4) 4px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px; /* spec 26px; reduzido p/ caber em 56px */
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong); /* valor preenchido: neutra/700 #041E18 */
+}
+/* Chevron do select (trailing icon 24px, neutra/600) — seta nativa
+   substituída por ícone alinhado ao centro vertical, à direita; o select
+   respeita 100% da largura/altura do campo. */
+.cemig-form .field--float select,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select)
+  select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23364B46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--cmg-space-4) center;
+  background-size: 24px 24px;
+}
+/* ============================================================
+   Campo de data (input[type=date]): o ícone de calendário reusa o
+   MESMO padrão do (i) de ajuda — um <img class="field-hint-icon">
+   ancorado ao campo e sempre visível (ver bloco .field-hint-icon).
+   O <img> é decorativo (pointer-events:none); o indicador NATIVO fica
+   invisível por baixo dele, cobrindo a mesma área, para que o clique
+   ali ainda abra o seletor de data do sistema.
+   ============================================================ */
+.cemig-form input[type="date"]::-webkit-calendar-picker-indicator,
+.cemig-form input[type="month"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  width: 44px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.cemig-form input[type="date"]::-webkit-inner-spin-button,
+.cemig-form input[type="date"]::-webkit-clear-button,
+.cemig-form input[type="month"]::-webkit-inner-spin-button,
+.cemig-form input[type="month"]::-webkit-clear-button {
+  display: none;
+}
+/* Ícone de calendário: maior que o (i) padrão e apenas decorativo — cliques
+   atravessam (pointer-events:none) para o indicador nativo por baixo.
+   Ancorado a 6px da borda (e não aos 16px do (i)): o arquivo traz o slot de
+   40px do Figma com ~11px de folga em volta do traço, então o traço fica a
+   17px da borda — a mesma medida do campo mês/ano. As reservas de espaço do
+   .field-hint-icon (40px no valor, 28px no rótulo) continuam cobrindo. */
+/* `img` no seletor para vencer o `.field > .field-hint-icon` (16px), que
+   é declarado bem depois neste arquivo. */
+.cemig-form .field > img.field-cal-icon {
+  right: 6px;
+}
+.cemig-form .field-cal-icon {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+}
+/* ============================================================
+   Campo mês/ano (.mesano-*) — seletor próprio, ver shared/js/mesano.js
+   ------------------------------------------------------------
+   Campo único e fechado, com o ícone de calendário à direita: mostra
+   "Mês/Ano" enquanto vazio e "Março/2028" depois de escolhido. Substitui o
+   input[type=month] nativo, cujo placeholder ("--------- de ----") nenhum
+   atributo ou CSS remove e cujo seletor só abre pelo indicador.
+   Usado pelo MT (Início de Uso, dentro das tabelas — a métrica de 40px vem
+   de formulario-mt.css) e pelo Loteamento (Data de entrada de carga, dentro
+   de um .field de 56px).
+   ============================================================ */
+.cemig-form .mesano-campo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 22px var(--cmg-space-4) 4px;
+  min-height: 54px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+  text-align: left;
+  cursor: pointer;
+}
+/* Foco: mesma convenção dos demais campos — só a borda escurece para
+   neutra/600, sem sombra (ver bloco de :focus dos campos). */
+.cemig-form .mesano-campo:focus-visible {
+  outline: none;
+  border-color: var(--cmg-neutral-600);
+  box-shadow: none;
+}
+/* Sem valor o texto é o placeholder do campo — neutra/600, a mesma cor do
+   rótulo em estado placeholder nos demais campos (spec Figma). Dentro de um
+   .field o rótulo flutuante já ocupa a célula, então o "Mês/Ano" do botão
+   seria duplicata — some (o do MT, em tabela, não tem rótulo e fica). */
+.cemig-form .mesano-campo-txt.is-vazio {
+  color: var(--cmg-neutral-600);
+}
+.cemig-form .field .mesano-campo-txt.is-vazio {
+  visibility: hidden;
+}
+/* Estado "placeholder": quem sinaliza "vazio" aqui é o .is-vazio do texto (um
+   botão não tem :placeholder-shown), e ele entra como terceira alternativa no
+   gatilho do rótulo flutuante — mesma regra dos demais campos, acima.
+   Vazio, a caixa mostra só o rótulo centralizado: o "Mês/Ano" está oculto
+   (duplicaria o rótulo) e sobra o ícone, que perde a reserva de 22px do valor
+   para centralizar junto. Com valor, a geometria volta a ser a do campo
+   preenchido (rótulo flutuado em cima, "Março/2028" embaixo). */
+:is(.cemig-form, .cemig-lote)
+  .field:has(.mesano-campo-txt.is-vazio):not(:focus-within)
+  .mesano-campo {
+  padding-top: 4px;
+}
+/* Ícone: o arquivo (imgs/calendar.svg) é o slot de 40×40 do Figma com o
+   desenho de 18×20 ao centro — renderizado a 20px, o desenho encolhia para
+   ~9px. Vai no tamanho natural, e o recuo óptico à direita (17px até o traço)
+   sai dos 6px de folga + os 11px de transparência do próprio arquivo. */
+.cemig-form .mesano-campo-icone {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  object-fit: contain;
+}
+/* Dentro de um .field o slot de 40px não caberia entre o rótulo flutuado e o
+   valor: o ícone sai do fluxo e ancora à direita da caixa, como o (i) de ajuda
+   e o calendário do input[type=date] (.field-hint-icon). */
+.cemig-form .field .mesano-campo-icone {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+/* Dentro de um .field o botão herda a caixa do campo (borda/fundo/56px vêm do
+   .field), como acontece com input/select. O recuo à direita reserva o espaço
+   do ícone ancorado — mesma medida do (i) de ajuda (.field-hint-icon), para
+   que nem o valor nem o rótulo passem por baixo dele. */
+.cemig-form .field .mesano-campo {
+  background: transparent;
+  border: none;
+  padding-right: 44px;
+}
+.cemig-form .field:has(.mesano-campo) > label {
+  padding-right: 28px;
+}
+/* ---- Painel do seletor ----
+   Fica no <body> (position:fixed) porque as tabelas do MT usam overflow-x:auto
+   e recortariam um painel ancorado dentro da célula. z-index abaixo da topbar
+   sticky (100) não serve — o painel precisa cobrir o conteúdo ao redor —,
+   então usa 90, acima das tabelas e abaixo de modais. */
+.mesano-painel {
+  position: fixed;
+  z-index: 90;
+  width: 232px;
+  padding: 8px;
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-neutral-200);
+  border-radius: var(--cmg-radius);
+  box-shadow: var(--cmg-shadow-elevated);
+}
+.mesano-painel[hidden] {
+  display: none;
+}
+.mesano-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.mesano-nav-ano {
+  font-size: 14px;
+  font-weight: var(--cmg-fw-bold);
+  color: var(--cmg-neutral-600);
+}
+.mesano-nav-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--cmg-neutral-600);
+  cursor: pointer;
+}
+.mesano-nav-btn:hover:not(:disabled) {
+  background: var(--cmg-surface-accent);
+}
+.mesano-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+/* 12 meses em 3 colunas (abreviados: Jan, Fev, …). */
+.mesano-grade {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.mesano-mes {
+  height: 34px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-family: var(--cmg-font-family);
+  font-size: 13px;
+  color: var(--cmg-neutral-600);
+  cursor: pointer;
+}
+.mesano-mes:hover {
+  background: var(--cmg-surface-accent);
+}
+.mesano-mes.is-sel {
+  background: var(--cmg-green-600);
+  color: var(--cmg-neutral-0);
+}
+/* Enquanto o rótulo ocupa a célula, esconde o placeholder nativo do input
+   e o texto da opção placeholder do select (evita duplicação). */
+.cemig-form .field--float input::placeholder {
+  color: var(--cmg-text-muted);
+}
+.cemig-form
+  .field--float:has(input:placeholder-shown):not(:focus-within)
+  input::placeholder,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select):has(
+    input:placeholder-shown
+  ):not(:focus-within)
+  input::placeholder {
+  color: transparent;
+}
+.cemig-form
+  .field--float:has(select option[value=""]:checked):not(:focus-within)
+  select,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select):has(
+    select option[value=""]:checked
+  ):not(:focus-within)
+  select {
+  color: transparent;
+}
+.cemig-form .field--float input:focus,
+.cemig-form .field--float select:focus,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select)
+  input:focus,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select)
+  select:focus {
+  border: none;
+  box-shadow: none;
+}
+.cemig-form .field--float:focus-within,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select):focus-within {
+  /* mesma regra de foco do Padrão A (acima): só a borda muda, sem sombra */
+  border-color: var(--cmg-neutral-600);
+  box-shadow: none;
+}
+.cemig-form .field--float:has(input:disabled),
+.cemig-form .field--float:has(select:disabled),
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input:disabled),
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(select:disabled) {
+  background: var(--cmg-surface-disabled);
+}
+/* supporting-text (texto de apoio): nos campos de rótulo flutuante o .field
+   É a própria caixa, então o hint precisa sair dela — posicionado logo
+   abaixo (absoluto), dentro do row-gap do grid. */
+.cemig-form .field--float .field-hint,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"])):has(input, select)
+  .field-hint {
+  position: absolute;
+  left: 0;
+  bottom: -20px;
+  margin: 0;
+}
+/* Campos revelados por etapa (.empr-detalhe): o endereço da obra divide o grid
+   com os campos de identificação do empreendimento (para o gap ficar uniforme),
+   mas só aparece depois de cliente + documento + ART. Nascem ocultos aqui para
+   não haver flash antes do onEmprGate; o JS mostra/esconde por style inline,
+   que vence esta regra. */
+.cemig-form .field.empr-detalhe {
+  display: none;
+}
+/* Campo somente-leitura (.readonly-val) no MESMO visual do Padrão B: como
+   não há <input>/<select>, a heurística :has(input,select) não o alcança —
+   aqui replicamos a caixa flutuante para um valor fixo (ex.: "Nº Predial"
+   herdado, "Demanda futura"). O rótulo fica sempre no topo (valor sempre
+   "preenchido"); o .readonly-val vira o corpo transparente da caixa, com o
+   mesmo padding-topo que os inputs para não colidir com o rótulo. Bloco
+   auto-contido — não depende dos seletores :has(input,select) acima. */
+:is(.cemig-form, .cemig-lote) .field:not(.field--plain):has(> .readonly-val) {
+  box-sizing: border-box;
+  display: block;
+  position: relative;
+  min-height: 56px;
+  padding: 0;
+  background: var(--cmg-surface-disabled);
+  border: 1px solid var(--cmg-neutral-400);
+  border-radius: 4px;
+}
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):has(> .readonly-val)
+  > label {
+  position: absolute;
+  left: var(--cmg-space-4);
+  right: var(--cmg-space-4);
+  top: 7px;
+  margin: 0;
+  pointer-events: none;
+  font-family: var(--cmg-font-family);
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):has(> .readonly-val)
+  > .readonly-val {
+  min-height: 54px;
+  padding: 22px var(--cmg-space-4) 4px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600);
+  align-items: flex-start;
+}
+/* hint do somente-leitura sai da caixa, como nos campos flutuantes. */
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):has(> .readonly-val)
+  .field-hint {
+  position: absolute;
+  left: 0;
+  bottom: -20px;
+  margin: 0;
+}
+/* Somente-leitura AINDA SEM valor (ex.: "Potência total calculada", que só
+   existe depois da quantidade × potência nominal): o bloco acima fixa o visual
+   de campo PREENCHIDO, mas enquanto o valor não chega o campo é um campo vazio
+   como qualquer outro — fundo branco e rótulo ocupando a célula. Repete o
+   estado "placeholder" do rótulo flutuante; a borda é a mesma nos dois estados,
+   por isso só fundo e rótulo mudam aqui. */
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):has(> .readonly-val:empty) {
+  background: var(--cmg-surface);
+}
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):has(> .readonly-val:empty)
+  > label {
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--cmg-neutral-600);
+}
+/* "(opcional)" no rótulo — peso menor e itálico (ver componente Field). */
+.cemig-form .field label .opt {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--cmg-text-muted);
+}
+/* ============================================================
+   Resultado das cargas (BT Individual) — dois cards de valor
+   (carga instalada / demanda calculada) + card de seleção do
+   disjuntor por radio. Spec Figma: cards brancos, borda neutra/200
+   (#D1D4D3), radius 8px; coluna esquerda com 2 cards empilhados,
+   coluna direita com o card do disjuntor (radios verticais). A
+   lógica/opções do disjuntor não mudam — só a apresentação.
+   ============================================================ */
+.cemig-form .resultado-cargas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cmg-space-4);
+  /* stretch: o card do disjuntor acompanha a altura da coluna de KPIs
+     ao lado (Carga total + Demanda das UCs + o gap entre eles), em vez
+     de encolher conforme o nº de opções/dispensa/hint. */
+  align-items: stretch;
+  margin-top: var(--cmg-space-3);
+}
+/* As 2 colunas (KPIs à esquerda, disjuntor à direita) só valem quando os dois
+   estão presentes. Se faltar qualquer um — uma torre ou agrupamento que
+   dispensa o disjuntor geral (só os KPIs, card oculto) — o conteúdo que resta
+   ocupa a largura toda, sem sobrar meia coluna vazia. */
+.cemig-form .resultado-cargas:not(:has(.resultado-kpis)),
+.cemig-form .resultado-cargas:not(:has(.resultado-disjuntor)) {
+  grid-template-columns: 1fr;
+}
+.cemig-form .resultado-kpis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-4);
+}
+/* Variante lado a lado: cards de mesma largura numa única linha (usada pelos
+   totais de "Carga/Demanda total de todas as torres", etapa Dados do projeto).
+   Empilha de novo no mobile. */
+.cemig-form .resultado-kpis--linha {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.cemig-form .resultado-kpis--linha > .resultado-card {
+  flex: 1 1 0;
+  min-width: 220px;
+}
+.cemig-form .resultado-card {
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-neutral-200);
+  border-radius: var(--cmg-radius);
+  padding: var(--cmg-space-4) var(--cmg-space-6);
+}
+/* Estados de validação do card: a borda acompanha a cor do aviso exibido
+   dentro do card (erro/500 quando há .cmg-aviso--error; alerta/500 quando
+   há .cmg-aviso--warn), como na referência do Figma. */
+.cemig-form .resultado-card--error {
+  border-color: var(--cmg-error-500);
+}
+.cemig-form .resultado-card--warn {
+  border-color: var(--cmg-warning-500);
+}
+.cemig-form .resultado-card-label {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+}
+.cemig-form .resultado-card-valor {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-subtitle);
+  line-height: 26px;
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+  margin-top: var(--cmg-space-1);
+}
+/* Disjuntor: card mais alto e radios empilhados (vertical). O card não é um
+   .field, então a regra .field:has(.toggle-group) não o alcança; daí a margem
+   explícita, pela mesma invariante ("baseline do rótulo → centro da forma =
+   32px"). Aqui o rótulo é 14px/24px, que deixa 6.6px de leading abaixo da
+   baseline: 32 − 6.6 − 16 ≈ 9. Os rótulos seguem o peso padrão (400): o
+   destaque em bold que havia aqui contrariava o spec e o princípio de
+   comunicar a seleção só pelo círculo. */
+.cemig-form .resultado-disjuntor .resultado-card-label {
+  margin-bottom: 9px;
+}
+.cemig-form .resultado-disjuntor .toggle-group {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--cmg-space-4);
+}
+@media (max-width: 720px) {
+  .cemig-form .resultado-cargas {
+    grid-template-columns: 1fr;
+  }
+}
+/* ============================================================
+   Seletor de equipamentos (BT Individual) — busca + acordeões por
+   grupo. Spec Figma: campo de busca com lupa; cada grupo é um
+   acordeão de borda verde (fechado: rótulo verde + badge lime +
+   chevron; aberto: cabeçalho verde sólido + texto branco). A
+   contagem (badge) é a soma de quantidades do grupo. O corpo lista
+   as linhas .carga-row (mantidas). Calcular/somar não muda.
+   ============================================================ */
+.cemig-form .carga-busca {
+  position: relative;
+  margin-top: var(--cmg-space-3);
+}
+.cemig-form .carga-busca > svg {
+  position: absolute;
+  left: var(--cmg-space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  color: var(--cmg-text-muted);
+  pointer-events: none;
+}
+.cemig-form .carga-busca input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 56px;
+  border: 1px solid var(--cmg-neutral-400);
+  border-radius: 8px;
+  padding: 0 var(--cmg-space-4) 0 52px;
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600);
+  background: var(--cmg-surface);
+}
+.cemig-form .carga-busca input::placeholder {
+  color: var(--cmg-text-muted);
+}
+.cemig-form .carga-busca input:focus {
+  outline: none;
+  border-color: var(--cmg-neutral-600);
+  box-shadow: none;
+}
+.cemig-form .carga-acc-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-3);
+  margin-top: var(--cmg-space-3);
+}
+.cemig-form .carga-acc {
+  border: 1px solid var(--cmg-green-600);
+  border-radius: 8px;
+  background: var(--cmg-surface);
+  overflow: hidden;
+}
+.cemig-form .carga-acc-head {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cmg-space-3);
+  min-height: 44px;
+  padding: var(--cmg-space-2) var(--cmg-space-4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-700);
+  text-align: left;
+}
+.cemig-form .carga-acc.is-open .carga-acc-head {
+  background: var(--cmg-green-600);
+  color: #fff;
+}
+.cemig-form .carga-acc-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-3);
+  flex: 0 0 auto;
+}
+.cemig-form .carga-acc-badge {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0 7px;
+  box-sizing: border-box;
+  min-width: 24px;
+  height: 24px;
+  background: #c4ff3f;
+  color: var(--cmg-neutral-700);
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: var(--cmg-fw-bold);
+}
+.cemig-form .carga-acc-chevron {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform 0.15s ease;
+}
+.cemig-form .carga-acc.is-open .carga-acc-chevron {
+  transform: rotate(180deg);
+}
+/* Corpo do acordeão: linhas .carga-row (ver formulario-bt.css). Ajustes
+   de altura/tamanho do nome p/ bater com o Figma, sem borda extra de topo
+   na primeira linha (o cabeçalho já separa). */
+.cemig-form .carga-acc-body .carga-row {
+  padding: var(--cmg-space-3) var(--cmg-space-4);
+  border-top: 1px solid var(--cmg-neutral-200);
+}
+.cemig-form .carga-acc-body .carga-row:first-child {
+  border-top: none;
+}
+.cemig-form .carga-acc-body .carga-row .nome {
+  font-size: 16px;
+  color: var(--cmg-neutral-600);
+}
+/* ============================================================
+   Bloco colapsável "Unidade consumidora N" (BT Individual).
+   Envolve o seletor de equipamentos + o resultado de cada UC. O
+   cabeçalho traz o título e um chevron (reaproveita o desenho de
+   .carga-acc-chevron via máscara). Fechado o chevron aponta para
+   baixo; aberto, para cima (mesma convenção do .carga-acc).
+   ============================================================ */
+/* Todo o bloco da UC (cabeçalho + corpo) é a caixa cinza #F4F5F4 arredondada;
+   a busca e os acordeões ficam como cartões brancos por cima. O corpo é
+   renderizado só quando aberto (React), então fechado a caixa tem só os 56px
+   do cabeçalho. */
+.cemig-form .uc-colapsavel {
+  background: var(--cmg-neutral-50);
+  border-radius: var(--cmg-radius);
+  padding: 0 var(--cmg-space-4);
+}
+.cemig-form .uc-colapsavel + .uc-colapsavel {
+  margin-top: var(--cmg-space-6);
+}
+.cemig-form .uc-colapsavel-head {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cmg-space-3);
+  min-height: 56px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.cemig-form .uc-colapsavel-titulo {
+  font-family: var(--cmg-font-family);
+  font-size: 20px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+}
+/* Cabeçalho da UC com endereço (spec Figma: caixa cinza #F4F5F4, título
+   neutra/700, rótulo "Endereço" neutra/600 pequeno, valor em negrito).
+   O bloco empilha título + endereço; o chevron continua à direita. */
+.cemig-form .uc-head-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--cmg-space-3) 0;
+  text-align: left;
+}
+.cemig-form .uc-head-endereco-label {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-caption); /* 12px */
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text); /* #364B46 */
+  margin-top: var(--cmg-space-2);
+}
+.cemig-form .uc-head-endereco {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body); /* 14px */
+  line-height: var(--cmg-lh-body);
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text-strong); /* #041E18 */
+}
+.cemig-form .uc-colapsavel-chevron {
+  color: var(--cmg-text);
+}
+.cemig-form .uc-colapsavel.is-open .uc-colapsavel-chevron {
+  transform: rotate(180deg);
+}
+.cemig-form .uc-colapsavel-corpo {
+  padding-bottom: var(--cmg-space-4);
+}
+/* Eyebrow do card ("Torre N" acima de "Unidade consumidora") */
+.cemig-form .uc-head-eyebrow {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-green-600);
+}
+/* Endereço readonly no corpo do card (torres/unidades do condomínio) —
+   reusa a tipografia do cabeçalho de UC (rótulo pequeno + valor bold). */
+.cemig-form .endereco-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--cmg-space-4);
+}
+/* Linha de ação centrada dentro do card (replicar torre / excluir unidade) */
+.cemig-form .acao-central {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--cmg-space-6);
+}
+/* "Replicar dados para todas unidades de todas as torres" (etapa "Dados das
+   unidades"): alinhado à ESQUERDA logo abaixo dos chips de torre. A ação abre a
+   etapa e vale para o empreendimento inteiro — não é uma ação de fim de card
+   como as de .acao-central, daí não ser centrada. */
+.cemig-form .unidades-replicar-acao {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: var(--cmg-space-6);
+}
+@media (max-width: 720px) {
+  /* Estreito: o rótulo é longo e o botão passa a ocupar a linha inteira. */
+  .cemig-form .unidades-replicar-acao > .btn {
+    width: 100%;
+  }
+}
+/* Ação ao lado de um campo do grid ("Replicar dados para todas as torres" ao
+   lado de "Quantidade de torres"). O campo permanece na 1ª coluna com a largura
+   padrão dos demais fields (1fr do .grid-2); esta é a 2ª célula. A célula ocupa
+   a altura da linha, deixando o botão de 40px alinhado ao MEIO do campo de 56px
+   (spec Figma: align-items center) e não pela base. Na horizontal o botão
+   encosta no INÍCIO da coluna (flex-start), logo após o gap do grid.
+   Largura do botão: 304px da spec, limitada à coluna em telas menores. */
+.cemig-form .field-acao-lateral {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  /* `.cemig-form .grid` usa align-items:start (cada campo guarda seus 56px).
+     Herdando isso, esta célula encolheria para os 40px do botão e ficaria no
+     TOPO da linha — o botão subia ~8px em relação ao campo. O align-self
+     devolve a altura da linha só a esta célula, sem mexer na regra do grid,
+     e aí o align-items:center centra o botão na altura do campo. */
+  align-self: stretch;
+}
+.cemig-form .field-acao-lateral > .btn {
+  width: 304px;
+  max-width: 100%;
+}
+@media (max-width: 720px) {
+  /* Grid empilhado: o botão deixa de ficar "ao lado" e ocupa a linha. */
+  .cemig-form .field-acao-lateral > .btn {
+    width: 100%;
+  }
+}
+/* Ferramentas da torre acima da lista de unidades (gerar complementos,
+   replicar UC 1) */
+.cemig-form .unidades-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: var(--cmg-space-4);
+}
+/* ============================================================
+   Chips de torre (etapa "Dados das unidades" — múltiplas torres):
+   pílulas horizontais roláveis; a ativa fica verde sólida.
+   ============================================================ */
+.cemig-form .torre-chips {
+  display: flex;
+  gap: var(--cmg-space-3);
+  overflow-x: auto;
+  padding-bottom: var(--cmg-space-2);
+  margin-bottom: var(--cmg-space-4);
+}
+.cemig-form .torre-chips:empty {
+  display: none;
+}
+/* Envolvida pela fita rolável (setas ‹ ›, fade nas bordas e barra desenhada —
+   ver a seção "Fitas roláveis"), a lista entrega o espaçamento de baixo ao
+   invólucro: o `padding-bottom` era espaço para a barra do sistema, que agora
+   fica escondida, e a margem precisa vir DEPOIS da barra desenhada. */
+.cemig-form .trilha--torres {
+  margin-bottom: var(--cmg-space-4);
+}
+.cemig-form .trilha--torres .torre-chips {
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+/* Sem torres a lista fica vazia: o invólucro some junto, senão sobraria a
+   margem de um bloco invisível. */
+.cemig-form .trilha--torres:has(> .torre-chips:empty) {
+  display: none;
+}
+.cemig-form .torre-chip {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 var(--cmg-space-6);
+  border: 1px solid var(--cmg-neutral-400);
+  border-radius: var(--cmg-radius-pill);
+  background: var(--cmg-surface);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+  color: var(--cmg-text-strong);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cemig-form .torre-chip:hover:not(.on) {
+  border-color: var(--cmg-green-600);
+}
+.cemig-form .torre-chip.on {
+  background: var(--cmg-green-600);
+  border-color: var(--cmg-green-600);
+  color: #fff;
+  font-weight: var(--cmg-fw-bold);
+}
+/* ============================================================
+   Paginação (listas de torres/unidades): « ‹ [n] de N › »
+   ============================================================ */
+.cemig-form .paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cmg-space-2);
+  margin-top: var(--cmg-space-6);
+}
+.cemig-form .paginacao-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--cmg-radius-sm);
+  font-family: var(--cmg-font-family);
+  font-size: 18px;
+  color: var(--cmg-text);
+  cursor: pointer;
+}
+.cemig-form .paginacao-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.cemig-form .paginacao-btn:hover:not(:disabled) {
+  background: var(--cmg-surface-accent);
+  color: var(--cmg-green-600);
+}
+.cemig-form .paginacao-input {
+  width: 64px;
+  height: 44px;
+  box-sizing: border-box;
+  text-align: center;
+  border: 1px solid var(--cmg-neutral-400);
+  border-radius: var(--cmg-radius-sm);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  color: var(--cmg-text-strong);
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.cemig-form .paginacao-input::-webkit-outer-spin-button,
+.cemig-form .paginacao-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.cemig-form .paginacao-total {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  letter-spacing: 0.2px;
+  color: var(--cmg-text-strong);
+  margin-right: var(--cmg-space-2);
+}
+/* Ícone "i" dos KPIs da torre (tooltip nativo via title) */
+.cemig-form .resultado-card-info {
+  float: right;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--cmg-text);
+  border-radius: 50%;
+  font-family: var(--cmg-font-family);
+  font-size: 12px;
+  font-style: italic;
+  font-weight: var(--cmg-fw-bold);
+  color: var(--cmg-text);
+  cursor: help;
+}
+/* Quando o KPI usa a imagem (info.svg) — que já é o círculo com "i" — o span
+   deixa de desenhar o próprio círculo (sem borda/tipografia). A imagem herda o
+   tamanho fixo de .field-info. */
+.cemig-form .resultado-card-info:has(.field-info) {
+  border: 0;
+}
+.cemig-form .resultado-card-info .field-info {
+  margin: 0;
+  cursor: help;
+}
+/* ============================================================
+   Dica (tooltip) customizada — .cmg-hint[data-hint]
+   Balão flutuante (verde neutra/600) exibido no hover/foco de
+   ícones de ajuda: (i) do "Primeiro complemento" e dos KPIs de
+   Carga/Demanda da torre. Substitui o tooltip nativo (title).
+   ============================================================ */
+.cemig-form .cmg-hint {
+  position: relative;
+  cursor: help;
+  outline: none;
+}
+.cemig-form .cmg-hint::after {
+  content: attr(data-hint);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 325px;
+  box-sizing: border-box;
+  padding: 16px;
+  background: var(--cmg-neutral-600); /* #364B46 */
+  color: #fff;
+  border-radius: 8px;
+  /* Tipografia corpo/pequeno (12/20), como no Figma. */
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-caption);
+  font-weight: var(--cmg-fw-regular);
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-tight);
+  text-align: left;
+  white-space: normal;
+  box-shadow: 0 4px 8px 3px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  z-index: 60;
+  pointer-events: none;
+}
+/* Seta apontando para o ícone */
+.cemig-form .cmg-hint::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--cmg-neutral-600);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  z-index: 60;
+  pointer-events: none;
+}
+.cemig-form .cmg-hint:hover::after,
+.cemig-form .cmg-hint:focus-visible::after,
+.cemig-form .cmg-hint:hover::before,
+.cemig-form .cmg-hint:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+}
+/* Tooltip dos cards de resultado (Carga/Demanda total da torre e do
+   empreendimento): texto CENTRALIZADO no balão. O ícone fica no canto direito
+   do card, então o balão ancora pela direita — centralizá-lo sobre o ícone o
+   jogaria para fora do card. */
+.cemig-form .resultado-card-info.cmg-hint::after {
+  text-align: center;
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.cemig-form .resultado-card-info.cmg-hint::before {
+  left: auto;
+  right: 6px;
+  transform: none;
+}
+/* Variante ancorada à direita: usada quando o ícone fica no canto direito
+   do campo (ex.: (i) do "Primeiro complemento"). Centralizar o balão sobre
+   o ícone o jogaria para fora da coluna/tela — aqui ele abre para a esquerda,
+   alinhando a borda direita do balão com a do ícone.
+   Vale tanto para o (i) que ficou DENTRO do rótulo (markup estático) quanto
+   para o extraído dele por _campo() (bt-core.js), que vira filho direto do
+   .field com a classe .field-hint-icon — nas ilhas dinâmicas (cards de torre)
+   é sempre esse o caso, e sem o segundo seletor o balão abria centralizado e
+   vazava para fora da coluna. */
+.cemig-form .field label .cmg-hint::after,
+.cemig-form .field > .cmg-hint.field-hint-icon::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.cemig-form .field label .cmg-hint::before,
+.cemig-form .field > .cmg-hint.field-hint-icon::before {
+  left: auto;
+  right: 8px;
+  transform: none;
+}
+/* O ícone dentro do wrapper não deve interceptar o foco/hover isolado. */
+.cemig-form .cmg-hint .field-info {
+  display: block;
+  margin: 0;
+  cursor: help;
+}
+/* ============================================================
+   Radio de seleção (○ vazio / ● preenchido) — componente único
+   (spec Figma). Substitui a antiga "pílula" .toggle-btn. Vale
+   tanto para os componentes React (BT, Micro, Mini) quanto para os
+   cards vanilla de MT/Loteamento/Desistência — todos sob
+   `.cemig-form`. O círculo é desenhado via ::before; o texto do
+   <button> é o próprio rótulo — por isso a conversão não exige
+   mudança de markup além de role/aria-checked. Seleção única por
+   grupo continua governada pela classe .on (value === o.v).
+   ============================================================ */
+.cemig-form .toggle-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cmg-space-4);
+}
+/* Rótulo → opções: 16px no Figma, 10px aqui. Lá o text box vem recortado na
+   cap height (16px/24px → caixa de ~11px), então o gap mede da baseline; a
+   line box do CSS ainda põe 5.8px de leading abaixo dela. A invariante que
+   sobra é "baseline do rótulo → centro da forma = 32px" (16 do gap + 16 de
+   meia caixa do ícone): 32 − 5.8 − 16 ≈ 10.
+   O teste :has(.toggle-group) é o mesmo usado pelo motor de rótulo flutuante e
+   cobre os três invólucros em que o grupo nasce: div[data-toggle]
+   (BT/Micro/Mini), div#cardsX (MT/Mini/Desistência) e o próprio .toggle-group
+   (etapa "Dados do projeto" e campos montados por cmgCampo). align-items segue
+   em stretch — no .field é o que dá largura inteira a inputs, hints e avisos. */
+.cemig-form .field:has(.toggle-group) {
+  gap: 10px;
+}
+/* O hint passa a herdar o mesmo passo do container, sem somar margem própria. */
+.cemig-form .field:has(.toggle-group) > .field-hint {
+  margin-top: 0;
+}
+.cemig-form .toggle-btn {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  /* 4px medidos a partir da caixa de 32×32 do ícone (ver ::before), como no
+     Figma → 10px visuais entre a forma de 20px e o rótulo. */
+  gap: 4px;
+  /* opção = 32px de altura (a própria caixa do ícone); sem padding extra —
+     aqui a linha inteira, círculo + rótulo, já é clicável. */
+  padding: 0;
+  min-height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--cmg-font-family);
+  /* rótulo único para todos os grupos — binários Sim/Não e opções
+     enumeradas: corpo/grande regular, 0.5px. */
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-loose);
+  color: var(--cmg-neutral-600);
+  text-align: left;
+  transition: color 0.15s ease;
+}
+/* A variante .toggle-group--opcoes rebaixava as opções enumeradas para 14px;
+   foi aposentada — o spec do Figma pede 16px em todo texto de toggle. A classe
+   segue sendo emitida pelos renderizadores, mas não tem mais estilo próprio:
+   não reintroduzir tamanho aqui. */
+
+/* Forma vazia — mesma do rádio nativo (`.cemig-form input[type="radio"]`,
+   adiante neste arquivo): 20×20, borda 2px neutra/500, miolo transparente.
+   A margem de 6px faz a caixa do ícone ocupar os 32×32 do frame do Figma
+   (`rect 32×32 rx=16`) sem trocar a borda por gradiente — o que preservaria
+   o tracejado de .toggle-btn-destaque. Esses mesmos 6px são o spread do
+   state layer no hover, então os dois coincidem exatamente. */
+.cemig-form .toggle-btn::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin: 6px;
+  box-sizing: border-box;
+  border: 2px solid var(--cmg-neutral-500);
+  border-radius: var(--cmg-radius-pill);
+  background: transparent;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.cemig-form .toggle-btn:hover:not(:disabled):not(.on) {
+  color: var(--cmg-green-600);
+}
+.cemig-form .toggle-btn:hover:not(:disabled):not(.on)::before {
+  border-color: var(--cmg-green-600);
+}
+/* state layer 32×32 no hover (spread de 6px sobre a forma de 20px) — mesmos
+   rgba do rádio nativo. Não entra no foco: ali o indicador é o outline em
+   volta do botão inteiro, que é o alvo clicável de verdade. */
+.cemig-form .toggle-btn:hover:not(:disabled)::before {
+  box-shadow: 0 0 0 6px rgba(87, 104, 100, 0.12);
+}
+.cemig-form .toggle-btn.on:hover:not(:disabled)::before {
+  box-shadow: 0 0 0 6px rgba(15, 108, 88, 0.14);
+}
+/* selecionado: anel verde + ponto central de 10px, com o vão entre os dois
+   transparente (o radial-gradient evita SVG e, ao contrário do antigo anel
+   branco por dentro, não vaza branco sobre fundos coloridos). Idêntico ao
+   estado :checked do rádio nativo. O peso/tamanho do rótulo NÃO muda ao
+   selecionar — o estado é comunicado apenas pelo círculo. */
+.cemig-form .toggle-btn.on::before {
+  border-color: var(--cmg-green-600);
+  background-image: radial-gradient(
+    circle,
+    var(--cmg-green-600) 0 5px,
+    transparent 6px
+  );
+}
+.cemig-form .toggle-btn:focus-visible {
+  outline: 2px solid var(--cmg-green-600);
+  outline-offset: 3px;
+  border-radius: var(--cmg-radius-sm);
+}
+/* desabilitado / bloqueado (mantém toggle-disabled e is-locked) */
+.cemig-form .toggle-btn:disabled,
+.cemig-form .toggle-group.is-locked .toggle-btn:not(.on),
+.cemig-form .toggle-group.toggle-disabled .toggle-btn:not(.on) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* variante "destaque" (opção de opt-out, ex.: "Não informar"):
+   contorno tracejado quando vazio, sólido ao marcar. */
+.cemig-form .toggle-btn-destaque::before {
+  border-style: dashed;
+}
+.cemig-form .toggle-btn-destaque.on::before {
+  border-style: solid;
+}
+/* Variante empilhada (uma opção por linha) — usada em perguntas de escolha
+   única com rótulos longos, ex.: "Onde a energia deverá ser disponibilizada"
+   na etapa "Dados do projeto". Os binários Sim/Não seguem no padrão em linha. */
+.cemig-form .toggle-group--stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--cmg-space-4);
+}
+.cemig-form .subbox-title,
+.cemig-form .uc-block-title,
+.cemig-form .uc-mini-head {
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: var(--cmg-ls-wide);
+  color: var(--cmg-text);
+}
+/* Múltiplas UCs (Individual): cabeçalho colapsável + ações (remover/indicador)
+   e botão "+ Adicionar unidade". */
+.cemig-form .uc-block-head.is-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+.cemig-form .uc-block-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-2);
+}
+.cemig-form .uc-remove {
+  border: none;
+  background: transparent;
+  color: var(--cmg-danger-500);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.cemig-form .uc-remove:hover {
+  background: #fdecea;
+}
+.cemig-form .uc-collapse-ind {
+  color: var(--cmg-text-muted);
+  font-size: 12px;
+}
+.cemig-form .uc-add {
+  margin-top: var(--cmg-space-1);
+}
+.cemig-form .divider {
+  border-top: 1px solid var(--cmg-divider);
+  margin-top: var(--cmg-space-8);
+  padding-top: var(--cmg-space-8);
+}
+.cemig-form .subbox,
+.cemig-form .uc-block,
+.cemig-form .uc-mini,
+.cemig-form .dashed-box {
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-divider);
+  border-radius: var(--cmg-radius);
+}
+.cemig-form .dashed-box {
+  border-style: dashed;
+  border-color: var(--cmg-border);
+}
+.cemig-form .geral-box {
+  background: var(--cmg-surface);
+  border: 2px solid var(--cmg-green-600);
+  border-radius: var(--cmg-radius);
+}
+.cemig-form .badge,
+.cemig-form .uc-mini-tag,
+.cemig-form .carga-resumo-chip {
+  background: var(--cmg-surface-accent);
+  color: var(--cmg-green-600);
+  border-radius: var(--cmg-radius-pill);
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: var(--cmg-ls-tight);
+}
+.cemig-form .alert {
+  border-radius: var(--cmg-radius);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  letter-spacing: var(--cmg-ls-tight);
+  padding: var(--cmg-space-4) var(--cmg-space-6);
+}
+.cemig-form .alert-ok {
+  background: var(--cmg-surface-accent);
+  color: var(--cmg-green-600);
+  border: 1px solid var(--cmg-green-500);
+}
+.cemig-form .alert-warn {
+  background: #fdecea;
+  color: var(--cmg-danger-500);
+  border: 1px solid var(--cmg-danger-500);
+}
+.cemig-form .alert-info {
+  background: var(--cmg-surface);
+  color: var(--cmg-text);
+  border: 1px solid var(--cmg-warning-500);
+  border-radius: var(--cmg-radius);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  letter-spacing: var(--cmg-ls-tight);
+  padding: var(--cmg-space-4) var(--cmg-space-6);
+}
+/* The BT orientações/gerador notes that used `.callout` now use the canonical
+   `.cmg-aviso` banner (defined above). The `.cemig-form .callout` rules were
+   removed — no `.cemig-form` markup uses that class anymore. */
+
+/* ---- Mapa de localização (Leaflet) — todos os formulários ----
+   Orientação ACIMA do mapa (spec Figma corpo/grande: 16/26 regular,
+   letter-spacing 0.2px, neutra/600) e legenda das restrições ambientais
+   ABAIXO (inserida por geo.js SÓ quando o pin cai em restrição; cada item
+   usa a MESMA cor do contorno desenhado no mapa). A grade de coordenadas
+   fica logo abaixo do bloco do mapa. */
+.cemig-form .mapa-hint {
+  display: block;
+  margin: 0 0 var(--cmg-space-2);
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-regular);
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600);
+}
+.cemig-form .mapa-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cmg-space-2) var(--cmg-space-4);
+  margin-top: var(--cmg-space-2);
+}
+.cemig-form .mapa-legenda-item {
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-2);
+}
+.cemig-form .mapa-legenda-cor {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+/* Rótulo da restrição — spec Figma corpo/médio: 14/22 regular,
+   letter-spacing 0.25px, neutra/500. */
+.cemig-form .mapa-legenda-rotulo {
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-regular);
+  font-size: var(--cmg-fs-body);
+  line-height: 22px;
+  letter-spacing: 0.25px;
+  color: var(--cmg-neutral-500);
+}
+/* A grade de coordenadas sob o mapa usa o MESMO respiro vertical do gap de
+   linha do .grid (32px). Antes eram 16px — o gutter de COLUNA aplicado na
+   vertical, que deixava o vão do mapa menor que o de qualquer outra linha. */
+.cemig-form .mapa-obra + .grid {
+  margin-top: var(--cmg-space-8);
+}
+
+/* ============================================================
+   8. Tables — data/entry (migrated form roots `.cemig-form`)
+   ============================================================ */
+.cemig-form .prev-table-wrap,
+.cemig-form .carga-box {
+  border: 1px solid var(--cmg-divider);
+  border-radius: var(--cmg-radius);
+}
+.cemig-form .prev-table,
+.cemig-form .motores-table {
+  font-family: var(--cmg-font-family);
+}
+/* ---- Tabela técnica (.tbl) — base compartilhada Loteamento/MT ----
+   Cada página mantém só os próprios extras (grade, altura de linha,
+   campos) em formulario-loteamento.css / formulario-mt.css. */
+.cemig-form .tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--cmg-font-family);
+  color: var(--cmg-neutral-600);
+}
+.cemig-form .tbl-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--cmg-neutral-200);
+  border-radius: 8px;
+}
+/* ---- Cabeçalho canônico de tabela (spec Figma "tabela cabeçalho") ----
+   Faixa neutra/200 de 44px REAIS (10px de padding vertical + linha de
+   24px), texto 14/24 bold neutra/600. Fonte única para as tabelas
+   técnicas (.tbl do Loteamento e do MT) e para a previsão de carga do
+   coletivo/múltiplas torres (.prev-table). A identificação das UCs
+   (.uc-ident-table) não tem linha de cabeçalho — os rótulos vivem
+   dentro das células. */
+.cemig-form .tbl th,
+.cemig-form .prev-table th {
+  background: var(--cmg-neutral-200);
+  color: var(--cmg-neutral-600);
+  font-weight: var(--cmg-fw-bold);
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  text-align: left;
+  padding: 10px 12px;
+  height: 44px;
+}
+.cemig-form .carga-group-title {
+  background: var(--cmg-surface-accent);
+  color: var(--cmg-green-600);
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: var(--cmg-ls-tight);
+}
+.cemig-form .motores-table thead th {
+  background: var(--cmg-neutral-200);
+  color: var(--cmg-text);
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: var(--cmg-ls-tight);
+}
+.cemig-form .prev-table td,
+.cemig-form .motores-table tbody td,
+.cemig-form .carga-row {
+  border-top: 1px solid var(--cmg-divider);
+}
+.cemig-form .motores-table tbody td {
+  border-top: none;
+  border-bottom: 1px solid var(--cmg-divider);
+}
+.cemig-form .prev-table tbody tr:nth-child(even) {
+  background: var(--cmg-surface);
+}
+/* No coletivo/múltiplas torres a ilha de cargas (montarCargasBT) é injetada
+   dentro de um td da tabela de UCs (.motores-table.uc-ident-table); os
+   inputs da busca (.carga-busca, lupa com padding-left próprio) e dos
+   contadores (.qtd-ctrl) mantêm o próprio visual — por isso os :not()
+   abaixo. A .motores-table interna da ilha (motores) segue valendo. */
+.cemig-form .prev-table input,
+.cemig-form .prev-table select,
+.cemig-form .motores-table input:not(.carga-busca input, .qtd-ctrl input),
+.cemig-form .motores-table select,
+.cemig-form .qtd-ctrl input {
+  border: 1px solid var(--cmg-border);
+  border-radius: 4px;
+  background: var(--cmg-surface);
+  font-family: var(--cmg-font-family);
+  color: var(--cmg-text-strong);
+}
+.cemig-form .prev-table input:focus,
+.cemig-form .prev-table select:focus,
+.cemig-form .motores-table input:focus:not(.carga-busca input, .qtd-ctrl input),
+.cemig-form .motores-table select:focus {
+  outline: none;
+  border-color: var(--cmg-neutral-600);
+  box-shadow: none;
+}
+.cemig-form .prev-table .col-demanda {
+  background: var(--cmg-surface-accent);
+  border-left: 2px solid var(--cmg-green-600);
+}
+.cemig-form .prev-table input.demanda-prev {
+  border-color: var(--cmg-green-600);
+  font-weight: var(--cmg-fw-bold);
+  color: var(--cmg-green-600);
+}
+.cemig-form .prev-table tfoot td {
+  border-top: 2px solid var(--cmg-green-600);
+  font-weight: var(--cmg-fw-bold);
+  background: var(--cmg-surface-accent);
+}
+.cemig-form .prev-table tfoot .total-dem {
+  color: var(--cmg-green-600);
+}
+/* Motores e cargas especiais — células brancas com borda #8C9895, valores
+   escuros à esquerda, total à direita (valor em negrito) e botão "Adicionar
+   motor" em pílula centralizada; remover é uma lixeira vermelha. */
+.cemig-form .motores-table select,
+.cemig-form .motores-table input:not(.carga-busca input, .qtd-ctrl input) {
+  min-height: 44px;
+  padding: 0 var(--cmg-space-3);
+  border-radius: var(--cmg-radius);
+}
+.cemig-form .motores-table td.num {
+  text-align: left;
+  color: var(--cmg-text-strong);
+}
+.cemig-form .motores-total {
+  text-align: right;
+  color: var(--cmg-text-muted);
+  padding: var(--cmg-space-3) 0;
+}
+.cemig-form .motores-total strong {
+  color: var(--cmg-text-strong);
+  font-weight: var(--cmg-fw-bold);
+}
+.cemig-form .motores-add {
+  display: flex;
+  justify-content: center;
+  /* Espaço igual acima e abaixo do botão. */
+  padding: var(--cmg-space-4) 0;
+}
+/* Separador full-width acima do botão só quando há conteúdo acima (tabela +
+   total). Sem motores, o botão fica sozinho e não recebe borda. */
+.cemig-form .motores-add:not(:first-child) {
+  border-top: 1px solid var(--cmg-neutral-200);
+}
+.cemig-form .motores-add-btn {
+  border-radius: var(--cmg-radius-pill);
+}
+.cemig-form .motor-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--cmg-danger-500);
+  cursor: pointer;
+}
+.cemig-form .motor-del:hover {
+  background: rgba(192, 57, 43, 0.08);
+}
+/* Identificação das UCs (múltiplas torres) — rótulo dentro da célula no
+   skin Figma: mesma tipografia dos títulos de coluna das tabelas. */
+.cemig-form .uc-ident-table .cell-label {
+  font-family: var(--cmg-font-family);
+  color: var(--cmg-text-muted);
+  letter-spacing: var(--cmg-ls-tight);
+}
+/* MOTORES / CARGAS ESPECIAIS — os cards verticais são exclusivos do MT e
+   vivem em css/formulario-mt.css (escopo .cemig-mtform, tokens --cmg-*).
+   O antigo bloco .cemig-mt daqui foi removido na migração do MT para o
+   shell canônico .cemig-form. */
+/* Botões +/− dos equipamentos: somente ícone (sem contorno/preenchimento),
+   conforme o Figma. Alvo de toque mantido pelo tamanho do botão (28px em
+   formulario-bt.css); hover só um tint sutil, sem preenchimento sólido. */
+.cemig-form .qtd-ctrl button {
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--cmg-neutral-700);
+}
+.cemig-form .qtd-ctrl button.plus {
+  background: transparent;
+  border-color: transparent;
+  color: var(--cmg-neutral-700);
+}
+.cemig-form .qtd-ctrl button:hover {
+  background: var(--cmg-surface-accent);
+}
+
+/* ============================================================
+   9. Form page composition (migrated form roots `.cemig-form`)
+   ============================================================ */
+.cemig-form {
+  color: var(--cmg-text);
+}
+.cemig-form .layout {
+  /* `width:100%` is required: as a flex-column child, `max-width + margin-
+     inline:auto` alone makes the layout SHRINK-TO-FIT its content and re-
+     centre at a content-dependent width — so the whole block (side-panel +
+     body) drifts right of the topbar by a variable amount. Filling to the
+     same frame as the topbar keeps the two vertical axes continuous:
+     side-panel left = logo left, body left = title left. */
+  width: 100%;
+  max-width: var(--cmg-area-max);
+  margin-inline: auto;
+  padding: var(--cmg-space-8) var(--cmg-space-8) var(--cmg-space-15);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cmg-space-4);
+}
+.cemig-form .sidebar {
+  flex: none;
+  width: 204px;
+  position: sticky;
+  /* O vão até o header tem de ser o MESMO parado e rolando: aqui o espaço é
+     `--cmg-space-8` porque é ele o `padding-top` do `.layout` logo acima. Com
+     um valor menor a trilha "pulava" a diferença no instante em que grudava.
+     Quem mexer no padding do `.layout` mexe neste `top` junto. */
+  top: calc(var(--cmg-header-height) + var(--cmg-space-8));
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-4);
+}
+.cemig-form .sidebar-title {
+  display: none;
+}
+/* ============================================================
+   Fitas roláveis (`.trilha`) — invólucro montado por
+   shared/js/trilha-etapas.js em volta das listas que rolam na horizontal e
+   cortam conteúdo nas bordas: a trilha de etapas no mobile (`.sidebar`) e os
+   chips de torre (`.torre-chips`, roláveis em qualquer largura).
+
+   Uma única célula de grade empilha a fita e as setas (que flutuam sobre as
+   bordas, com os itens passando por baixo); a barra desenhada fica na linha
+   de baixo. Assim nenhuma seta precisa de altura fixa: `align-self: stretch`
+   as iguala à altura da fita, seja ela chip de 40px ou de 44px.
+
+   As classes de estado (.rolavel / .tem-ini / .tem-fim) são do JS: sem elas
+   — inclusive sem JS nenhum — some tudo e a fita rola sozinha, como antes.
+   ============================================================ */
+.cemig-form .trilha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--cmg-space-2);
+}
+/* A trilha de etapas só é fita no mobile: aqui o invólucro se dissolve e a
+   .sidebar volta a ser a coluna fixa do .layout, como se ele não existisse. */
+.cemig-form .trilha--etapas {
+  display: contents;
+}
+.cemig-form .trilha-fita {
+  grid-area: 1 / 1;
+  /* Faixa reservada às setas em cada ponta — é o comprimento do fade e também
+     o recuo em que as setas encostam o primeiro item da página seguinte (o JS
+     lê esta variável, então os dois nunca saem de sincronia). */
+  --trilha-recuo: 64px;
+  /* Cada seta ocupa 32px na borda: o item trazido pelo navegador (foco por
+     Tab, `scrollIntoView`) não pode parar embaixo delas. */
+  scroll-padding-inline: 32px;
+  /* Barra nativa fora de cena — o indicador é desenhado (.trilha-barra),
+     porque no mobile a barra do sistema é overlay e some sozinha. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.cemig-form .trilha-fita::-webkit-scrollbar {
+  display: none;
+}
+/* Fade das bordas: o item que sai da tela se dissolve em vez de ser
+   guilhotinado no meio da palavra. Só existe enquanto a fita rola, e cada
+   borda só acende quando ainda há conteúdo escondido daquele lado.
+
+   A metade externa do fade é transparência plena, não rampa: é a faixa onde a
+   seta fica, e ela precisa de fundo limpo para não ser lida por cima de um
+   item meio apagado. A rampa mora na metade de dentro. */
+.cemig-form .trilha.rolavel .trilha-fita {
+  --trilha-fade-ini: 0px;
+  --trilha-fade-fim: 0px;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(var(--trilha-fade-ini) / 2),
+    #000 var(--trilha-fade-ini),
+    #000 calc(100% - var(--trilha-fade-fim)),
+    transparent calc(100% - var(--trilha-fade-fim) / 2),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(var(--trilha-fade-ini) / 2),
+    #000 var(--trilha-fade-ini),
+    #000 calc(100% - var(--trilha-fade-fim)),
+    transparent calc(100% - var(--trilha-fade-fim) / 2),
+    transparent 100%
+  );
+}
+.cemig-form .trilha.tem-ini .trilha-fita {
+  --trilha-fade-ini: var(--trilha-recuo);
+}
+.cemig-form .trilha.tem-fim .trilha-fita {
+  --trilha-fade-fim: var(--trilha-recuo);
+}
+/* Arrastar a fita com o mouse (o toque já rola sozinho). Enquanto arrasta, o
+   cursor vale para os chips também — senão o `pointer` do <button> venceria — e
+   a seleção de texto fica desligada para o gesto não virar "selecionar". */
+.cemig-form .trilha.arrastando .trilha-fita,
+.cemig-form .trilha.arrastando .trilha-fita * {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Setas ‹ › — aparecem só do lado que ainda tem item escondido. Ficam FORA da
+   fita (irmãs, não filhas): dentro do container rolável elas rolariam junto
+   com os itens. */
+.cemig-form .trilha-seta {
+  grid-area: 1 / 1;
+  z-index: 1;
+  align-self: stretch;
+  display: none;
+  place-items: center;
+  width: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--cmg-green-600);
+  cursor: pointer;
+}
+.cemig-form .trilha.tem-ini .trilha-seta--ini,
+.cemig-form .trilha.tem-fim .trilha-seta--fim {
+  display: grid;
+}
+.cemig-form .trilha-seta--ini {
+  justify-self: start;
+}
+.cemig-form .trilha-seta--fim {
+  justify-self: end;
+}
+/* Mesmo desenho SVG mascarado do check/acordeão: independe do glifo da fonte
+   e herda a cor por currentColor. */
+.cemig-form .trilha-seta::before {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+.cemig-form .trilha-seta--ini::before {
+  transform: rotate(180deg);
+}
+/* Barra de rolagem desenhada: diz quanto da fita está à vista e onde. O trilho
+   é fixo; quem anda é o polegar, 1px mais alto de cada lado para se destacar
+   dele (daí o trilho não recortar o que passa por cima). */
+.cemig-form .trilha-barra {
+  grid-area: 2 / 1;
+  display: none;
+  position: relative;
+  height: 4px;
+  border-radius: var(--cmg-radius-pill);
+  background: var(--cmg-neutral-200);
+}
+.cemig-form .trilha.rolavel .trilha-barra {
+  display: block;
+}
+.cemig-form .trilha-barra span {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  left: 0;
+  border-radius: var(--cmg-radius-pill);
+  background: var(--cmg-neutral-400);
+}
+/* O antigo botão "VOLTAR" (.form-back) da sidebar foi removido: o retorno ao
+   portal agora é pela LOGO da topbar (.logo-link, seção 3). */
+/* ---- Canonical step rail (single source for BT/Micro/Mini AND
+   MT/Loteamento/Desistência — all render under `.cemig-form`). Markup is
+   canonical everywhere: `.vstep > .vstep-num + .vstep-label`. ---- */
+/* O atributo [hidden] precisa vencer o `display` das classes abaixo: um
+   `.vstep`/`.page` marcado como oculto (ex.: etapas de um fluxo que não está
+   ativo) senão continuaria visível, porque `display:flex` tem a mesma
+   especificidade e vem depois. */
+.cemig-form [hidden] {
+  display: none !important;
+}
+.cemig-form .vstep {
+  display: flex;
+  align-items: center;
+  gap: var(--cmg-space-2);
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 10px var(--cmg-space-4) 10px var(--cmg-space-3);
+  border-radius: var(--cmg-radius-pill);
+  font-family: var(--cmg-font-family);
+  transition: background 0.15s ease;
+  /* Promove a linha a camada própria: sem isso, animar o fundo re-rasteriza o
+     label a cada frame (texto "tremendo" durante os 150ms da transição). */
+  will-change: background;
+}
+.cemig-form .vstep + .vstep {
+  margin-top: 0;
+}
+.cemig-form .vstep:hover {
+  background: var(--cmg-surface-accent);
+}
+.cemig-form .vstep:not(:last-child)::before {
+  display: none;
+}
+.cemig-form .vstep-num {
+  /* Layout — centralização estável por flexbox (não depende de line-height) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Size — quadrado fixo de inteiros (sem min/max/padding variável, que
+     mudava a caixa em números de 2 dígitos e caía em meio-pixel → borrão).
+     20px comporta "10"/"11" centralizado sem subpixel. */
+  width: 20px;
+  height: 20px;
+  flex: none;
+  flex-shrink: 0;
+
+  /* Appearance */
+  background: var(--cmg-success-600, #576864);
+  border: none;
+  border-radius: 100px;
+
+  /* Typography — line-height igual à altura da caixa evita render fracionário */
+  font-family: var(--cmg-font-family);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: 0.2px;
+  color: #fff;
+}
+.cemig-form .vstep-label {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  font-family: var(--cmg-font-family);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  /* Estado "futuro" (nem active nem done) — cinza-esverdeado do Figma. */
+  color: #576864;
+  flex: none;
+
+  /* Anti-"tremor" entre estados: o peso já é fixo (600 em futuro/active/done),
+     mas só a linha .active ganha fundo (--cmg-step-active-bg). Texto sobre
+     fundo transparente vs. pintado é rasterizado por caminhos diferentes, e o
+     glifo muda de espessura ao trocar de passo. Antialiasing em escala de cinza
+     tira o subpixel da equação, deixando o desenho idêntico nos três estados. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.cemig-form .vstep.active {
+  background: var(--cmg-step-active-bg);
+}
+.cemig-form .vstep.active .vstep-num {
+  background: var(--cmg-green-600);
+  border-color: var(--cmg-green-600);
+  color: var(--cmg-neutral-0);
+}
+.cemig-form .vstep.active .vstep-label {
+  /* peso constante (= inativo): diferencia só por cor, evitando a mudança
+     de largura do texto (vibração) entre estados. */
+  font-weight: 600;
+  color: var(--cmg-green-600);
+}
+.cemig-form .vstep.done .vstep-num {
+  background: var(--cmg-green-600);
+  border-color: var(--cmg-green-600);
+  color: var(--cmg-neutral-0);
+  /* O texto é zerado pelo JS (goTo); o check vem do ::after mascarado abaixo,
+     garantindo o mesmo desenho SVG do Figma em qualquer navegador (sem depender
+     do glifo "✓" da fonte). Mesma técnica do .carga-acc-chevron. */
+  position: relative;
+}
+.cemig-form .vstep.done .vstep-num::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 13l4 4L19 7' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 14px 14px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 13l4 4L19 7' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 14px 14px no-repeat;
+}
+.cemig-form .vstep.done .vstep-label {
+  /* Mesma tipografia do estado futuro; muda só a cor (verde concluído). */
+  font-weight: 600;
+  color: #0f6c58;
+}
+/* Loteamento/MT/Desistência/Micro/Minigeração ONLY (páginas vanilla): their
+   step numbers are static HTML and are never rewritten to a check by JS (the
+   React forms swap the text directly). So the "done" check is rendered via CSS
+   here. Justified exception — it is a delivery mechanism for the same visual,
+   not a duplicated style. */
+:is(.cemig-lote, .cemig-mtform, .cemig-desist, .cemig-microgd, .cemig-minigd)
+  .vstep.done
+  .vstep-num {
+  font-size: 0;
+}
+:is(.cemig-lote, .cemig-mtform, .cemig-desist, .cemig-microgd, .cemig-minigd)
+  .vstep.done
+  .vstep-num::after {
+  content: "✓";
+  font-size: 11px;
+}
+.cemig-form .main-col {
+  flex: 0 1 var(--cmg-content-max);
+  max-width: var(--cmg-content-max);
+  min-width: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-8);
+}
+.cemig-form .form-header {
+  max-width: none;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-4);
+}
+.cemig-form .form-header h1 {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-title);
+  line-height: var(--cmg-lh-title);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+  color: var(--cmg-text-strong);
+}
+.cemig-form .form-header p {
+  margin: 0;
+  max-width: none;
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text);
+}
+.cemig-form .flow-badge {
+  align-self: flex-start;
+  margin-top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cmg-space-1);
+  background: var(--cmg-surface-accent);
+  color: var(--cmg-green-600);
+  border-radius: var(--cmg-radius-pill);
+  padding: var(--cmg-space-1) var(--cmg-space-3);
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  font-weight: var(--cmg-fw-bold);
+  letter-spacing: var(--cmg-ls-tight);
+}
+.cemig-form .card {
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-neutral-200);
+  border-radius: var(--cmg-radius);
+  box-shadow: none;
+  padding: var(--cmg-space-4) var(--cmg-space-4) var(--cmg-space-8);
+  margin-bottom: 0;
+}
+.cemig-form .card + .card {
+  margin-top: var(--cmg-space-8);
+}
+.cemig-form .section-eyebrow {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-tight);
+  text-transform: none;
+  color: var(--cmg-green-600);
+}
+.cemig-form .card-title {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-subtitle-lg, 26px);
+  line-height: var(--cmg-lh-subtitle-lg, 38px);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+  color: var(--cmg-text-strong);
+  margin-bottom: var(--cmg-space-2);
+}
+/* Cabeçalho SECUNDÁRIO dentro do card (Figma "subtítulo/médio", 22/32):
+   um degrau abaixo do .card-title (26/38), para blocos como "Dados do
+   Proprietário" / "Dados do Responsável Técnico" que dividem uma mesma
+   etapa. Combine com .divider para a linha separadora acima. */
+.cemig-form .card-subtitle {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-subtitle-md, 22px);
+  line-height: var(--cmg-lh-subtitle-md, 32px);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+  color: var(--cmg-text-strong);
+  margin-bottom: var(--cmg-space-2);
+}
+.cemig-form .card-sub {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text);
+  margin-bottom: var(--cmg-space-6);
+}
+.cemig-form .grid {
+  gap: var(--cmg-space-8) var(--cmg-space-4);
+  /* Gap de coluna desta casca (16px) — mantém o recorte do .row-solo com a
+     largura exata de 1 track. */
+  --grid-col-gap: var(--cmg-space-4);
+  /* Cada campo mantém a própria altura (56px no padrão flutuante): sem isso,
+     um .field--float na mesma linha de um vizinho alto (toggle, campo com
+     hint) estica e fica visivelmente maior que os demais. */
+  align-items: start;
+}
+.cemig-form .nav-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cmg-space-4);
+  margin-top: 0;
+}
+/* Quando há só o botão de avançar (etapas sem "Voltar", ex.: Orientações),
+   ele mantém a MESMA posição das demais etapas: alinhado à direita (como o
+   "Avançar" quando há um "Voltar" à esquerda via space-between). margin-left
+   auto empurra p/ a direita, idêntico habilitado/desabilitado — sem salto. */
+.cemig-form .nav-bottom > .btn:only-child {
+  margin-left: auto;
+}
+.cemig-form .nav-step-info {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  color: var(--cmg-text-muted);
+}
+.cemig-form .fade-in {
+  animation: fadeIn 0.25s ease;
+}
+/* ---- Troca de etapas (.page/.page.show) — shells vanilla ----
+   Cada .page reproduz o fluxo do main-col (cards + nav-bottom em coluna),
+   exibida uma por vez. Movido do CSS do MT para o shared: micro/mini/BT
+   individual usam o mesmo mecanismo. Na impressão, só a etapa ativa sai. */
+.cemig-form .page {
+  display: none;
+}
+.cemig-form .page.show {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-8);
+  animation: fadeIn 0.25s ease;
+}
+@media print {
+  .cemig-form .page {
+    display: none !important;
+  }
+  .cemig-form .page.show {
+    display: block !important;
+  }
+  /* Enfeites de rolagem das fitas (trilha de etapas e chips de torre): no
+     papel não há o que rolar. Vale para as duas — a folha impressa é estreita
+     (~794px), então as regras de mobile também alcançam a trilha. */
+  .cemig-form .trilha-seta,
+  .cemig-form .trilha-barra {
+    display: none !important;
+  }
+}
+
+/* ---- Esqueleto da primeira etapa ----
+   As etapas são fragmentos buscados por fetch (shared/js/etapas-loader.js),
+   então entre o primeiro paint e a chegada do fragmento a área do formulário
+   ficava vazia. Este bloco mora DENTRO da <section class="page show"> na
+   marcação e é descartado sozinho: o loader faz `sec.innerHTML = <fragmento>`,
+   que substitui o esqueleto pelo conteúdo real — nenhuma classe a remover. */
+.cemig-form .etapa-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cemig-form .sk-linha {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--cmg-neutral-50) 25%,
+    var(--cmg-neutral-0) 50%,
+    var(--cmg-neutral-50) 75%
+  );
+  background-size: 400% 100%;
+  animation: skeletonBrilho 1.4s ease-in-out infinite;
+}
+.cemig-form .sk-titulo {
+  height: 22px;
+  width: 42%;
+  margin-bottom: 6px;
+}
+.cemig-form .sk-curta {
+  width: 65%;
+}
+@keyframes skeletonBrilho {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
+}
+/* Respeita quem pediu menos movimento: o esqueleto continua visível, parado. */
+@media (prefers-reduced-motion: reduce) {
+  .cemig-form .sk-linha {
+    animation: none;
+  }
+}
+/* Prévia & PDF: o conteúdo (cards) e os botões vivem dentro de #previaWrap,
+   que é o único filho da .page — então o gap de 32px da .page não os separa.
+   Reproduzimos aqui o mesmo layout em coluna (cards + nav-bottom) para manter
+   o espaçamento de 32px entre o conteúdo e os botões, igual às demais etapas. */
+.cemig-form #previaWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cmg-space-8);
+}
+/* O gap do #previaWrap já separa os cards em 32px; sem isto o
+   `.card + .card { margin-top: 32px }` somaria e daria 64px entre os cards. */
+.cemig-form #previaWrap .card + .card {
+  margin-top: 0;
+}
+/* ---- Checkbox canônico (spec Figma do Aceite das Orientações) ----
+   TODO checkbox dos formulários segue esta forma; os contextos
+   (.aceite-orient, .restricao-aceite, .doc-item, …) definem apenas o
+   layout do rótulo. Spec:
+     • estado (anel hover/foco): círculo 32×32 (radius 100px);
+     • forma: 18×18, borda 2px neutra/500 (#576864), radius 2px.
+   Marcado → preenche em verde (green/600) com o "check" branco.
+   min-height/padding zerados para vencer o controle genérico
+   `.cemig-form .field input` (mesma especificidade, esta regra vem
+   depois no arquivo). */
+.cemig-form input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #576864;
+  border-radius: 2px;
+  background: transparent no-repeat center;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+/* estado (anel hover/foco): círculo 32×32 ao redor da forma, via box-shadow
+   (radius 100px) — não altera o layout, então não há salto. */
+.cemig-form input[type="checkbox"]:hover,
+.cemig-form input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 7px rgba(87, 104, 100, 0.12);
+  border-radius: 2px;
+}
+/* marcado: forma preenchida em verde + "check" branco (SVG inline). */
+.cemig-form input[type="checkbox"]:checked {
+  border-color: var(--cmg-green-600, #0f6c58);
+  background-color: var(--cmg-green-600, #0f6c58);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-size: 12px 12px;
+}
+.cemig-form input[type="checkbox"]:checked:hover,
+.cemig-form input[type="checkbox"]:checked:focus-visible {
+  box-shadow: 0 0 0 7px rgba(15, 108, 88, 0.14);
+}
+/* ---- Rádio canônico (spec Figma do "botão de opção") ----
+   Spec: área de toque 32×32 (radius 100px) com ícone 24×24 recuado
+   8.33% → forma de 20×20, borda 2px neutra/500 (#576864). O 32×32 é o
+   anel de estado (hover/foco), desenhado com box-shadow para não ocupar
+   caixa — assim o gap de 4px até o rótulo mede a partir da forma, como
+   no Figma. Marcado → anel verde com ponto central.
+   min-height/padding zerados para vencer o controle genérico
+   `.cemig-form .field input` (width:100%, min-height:48px, padding), que
+   sem isto transforma o rádio num oval ocupando a linha inteira. */
+.cemig-form input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #576864;
+  border-radius: 50%;
+  background: transparent no-repeat center;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+/* anel de estado 32×32 ao redor da forma de 20×20 → spread de 6px. */
+.cemig-form input[type="radio"]:hover,
+.cemig-form input[type="radio"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 6px rgba(87, 104, 100, 0.12);
+}
+/* marcado: anel verde + ponto central de 10px (radial-gradient evita SVG). */
+.cemig-form input[type="radio"]:checked {
+  border-color: var(--cmg-green-600, #0f6c58);
+  background-image: radial-gradient(
+    circle,
+    var(--cmg-green-600, #0f6c58) 0 5px,
+    transparent 6px
+  );
+}
+.cemig-form input[type="radio"]:checked:hover,
+.cemig-form input[type="radio"]:checked:focus-visible {
+  box-shadow: 0 0 0 6px rgba(15, 108, 88, 0.14);
+}
+
+/* Aceite das Orientações ("Declaro que li…") — layout do rótulo. O
+   `margin-top` é o GAP do fim do card: mesma medida que separa a última
+   divisória da lista do aviso (ver `.orient-list + .cmg-aviso`). */
+.cemig-form .aceite-orient {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--cmg-space-6);
+  cursor: pointer;
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body-lg, 16px);
+  line-height: var(--cmg-lh-body-lg, 24px);
+  color: var(--cmg-neutral-600, #364b46);
+}
+/* margem lateral compõe a área de toque 32×32 sem desalinhar o texto; o
+   clique também funciona pelo <label> que envolve o checkbox. */
+.cemig-form .aceite-orient input[type="checkbox"] {
+  margin: 0 7px 0 0;
+}
+
+/* ---- Orientation numbered list (single source for ALL forms) ----
+   Centralises what used to be duplicated per page stylesheet, in two markups:
+     • form shells (BT/Micro/Mini): li.orient-item > span.orient-num + p
+     • MT family (MT/Loteamento/Desistência): li > span.bullet + div
+   The marker is a large dark-green number (no badge), top-aligned with the
+   item text. Every item sits BETWEEN dividers (Figma spec): the top one comes
+   from the item itself — the first one included — and the last item closes the
+   list with a bottom one. The visible number is a CSS counter
+   (decimal-leading-zero → 01, 02…) so it is zero-padded without touching the
+   JS/HTML; the original digit in the span is hidden via font-size:0 and
+   restored on the ::before. Open Sans is loaded on every form page and is the
+   --cmg-font-family. */
+.cemig-form .orient-list {
+  counter-reset: orient;
+  list-style: none;
+  margin-top: var(--cmg-space-2);
+}
+.cemig-form .orient-item {
+  counter-increment: orient;
+  display: flex;
+  align-items: flex-start; /* number top-aligned with the text (no badge) */
+  gap: var(--cmg-space-4);
+  padding: var(--cmg-space-2) 0;
+  border: none; /* drop the MT card border/background */
+  border-top: 1px solid var(--cmg-divider);
+  border-radius: 0;
+  background: transparent;
+}
+.cemig-form .orient-item:last-child {
+  border-bottom: 1px solid var(--cmg-divider);
+}
+/* Closing divider → aviso → aceite: the gap lives HERE because `.cmg-aviso` is
+   global and keeps `margin:0` (the surrounding container always owns the
+   spacing). Same measure as the `.aceite-orient` margin-top, so the tail of the
+   card reads evenly on the forms that carry the banner (Micro, Mini,
+   Desistência) and on the ones that go straight from the last divider to the
+   checkbox (BT, MT, Loteamento). */
+.cemig-form .orient-list + .cmg-aviso {
+  margin-top: var(--cmg-space-6);
+}
+.cemig-form .orient-num {
+  flex: none;
+  width: 42px;
+  height: auto; /* spec lists 26px, but line-height:46px would clip it */
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--cmg-font-family); /* Open Sans */
+  font-weight: var(--cmg-fw-bold); /* 700 */
+  font-size: 0; /* hides the JS/HTML digit; the counter renders below */
+  line-height: 46px;
+  letter-spacing: var(--cmg-ls-wide); /* 0.4px */
+  color: var(--cmg-green-600); /* #0F6C58 */
+}
+.cemig-form .orient-num::before {
+  content: counter(orient, decimal-leading-zero);
+  font-size: 36px;
+}
+.cemig-form .orient-item p {
+  /* Figma: corpo/grande — 16px / 26px / 0.2px, neutra/600. */
+  font-size: var(--cmg-fs-body-lg);
+  line-height: var(--cmg-lh-body-lg);
+  letter-spacing: var(--cmg-ls-tight);
+  color: var(--cmg-text);
+}
+/* Link inline em texto corrido (orientações e subtítulos de card): verde
+   institucional em negrito, sem sublinhado — o parágrafo em volta mantém
+   o peso 400 de corpo/grande. */
+.cemig-form .orient-item a,
+.cemig-form .card-sub a {
+  color: var(--cmg-green-600);
+  font-weight: var(--cmg-fw-bold);
+}
+
+/* ---- Cabeçalho que abre cada grupo de orientações (single source) ----
+   Rótulo acima de uma `.orient-list` ("Antes de começar, tenha em mãos",
+   "Documentação a anexar", "Atendimento individual ou agrupamento…").
+   A referência é o SVG de spec da etapa 1: lá o grupo é um cabeçalho de
+   SEÇÃO no mesmo degrau do `.card-title` — as alturas de caixa alta medidas
+   nos paths batem com os tokens (eyebrow 12px/verde-600, título 26px/#041E18,
+   corpo 16px), e o rótulo do grupo renderiza do mesmo tamanho do título do
+   card. Não é o 14px/negrito/verde que o BT trazia em `style=` inline, nem o
+   `.subbox-title` (12px, neutra) que Micro e Mini reusavam — aquele é o
+   título dos SUBBOXES de carga/demanda.
+   Repete o ramo do `.card-title` em vez de reusá-lo porque a caixa é outra:
+   aqui o cabeçalho precisa da margem SUPERIOR que separa um grupo do
+   anterior. O `margin-bottom` de 8px colapsa com o `margin-top` da
+   `.orient-list`, que é o mesmo valor. */
+.cemig-form .orient-subtitulo {
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-subtitle-lg, 26px);
+  line-height: var(--cmg-lh-subtitle-lg, 38px);
+  font-weight: var(--cmg-fw-regular);
+  letter-spacing: var(--cmg-ls-wide);
+  color: var(--cmg-text-strong);
+  margin: var(--cmg-space-6) 0 var(--cmg-space-2);
+}
+/* Primeiro grupo do card: quem dá o respiro é o margin-bottom do `.card-sub`. */
+.cemig-form .card-sub + .orient-subtitulo {
+  margin-top: 0;
+}
+
+@media (max-width: 1024px) {
+  .cemig-form .layout {
+    gap: var(--cmg-space-6);
+  }
+}
+/* ---- Mobile: trilha de etapas em rail horizontal (spec do Figma) ----
+   A coluna fixa vira uma fita de chips que rola na horizontal, entre o
+   cabeçalho e o card da etapa. Como o `.form-header` mora DENTRO do
+   `.main-col`, dissolvemos a coluna com `display: contents`: cabeçalho e
+   `.page`s viram irmãos diretos do `.layout` e a trilha pode ser posicionada
+   entre os dois por `order`.
+
+   O invólucro `.trilha` (setas, fade e barra) é montado em tempo de execução
+   por shared/js/trilha-etapas.js e está descrito na seção "Fitas roláveis" —
+   o HTML dos 7 formulários continua com a `<aside class="sidebar">` sozinha.
+   Sem JS o rail rola igual, só sem os enfeites. */
+@media (max-width: 900px) {
+  .cemig-form .layout {
+    flex-direction: column;
+    /* Com o .main-col dissolvido, são os filhos promovidos que se alinham
+       aqui; sem `stretch` eles encolheriam para a largura do conteúdo. */
+    align-items: stretch;
+    /* Reproduz o respiro que era do .main-col (gap: --cmg-space-8) entre
+       cabeçalho, trilha e card — o gap do .layout é o único que resta. */
+    gap: var(--cmg-space-8);
+  }
+  .cemig-form .main-col {
+    display: contents;
+  }
+  .cemig-form .main-col > .form-header {
+    order: 1;
+  }
+  .cemig-form .main-col > .page {
+    order: 3;
+    /* Herdeiro do `min-width: 0` do .main-col: sem ele, um conteúdo largo
+       (tabela da prévia) esticaria o item de flex e vazaria a viewport. */
+    min-width: 0;
+  }
+
+  /* Só a trilha de ETAPAS muda de forma aqui: o invólucro deixa de se
+     dissolver e vira a grade (fita + setas + barra) descrita na seção das
+     fitas roláveis, entre o cabeçalho e o card. */
+  .cemig-form .trilha--etapas {
+    order: 2;
+    display: grid;
+  }
+  .cemig-form .sidebar {
+    /* `order` também aqui: sem o JS a trilha entra crua no .layout e precisa
+       cair no mesmo lugar (entre cabeçalho e card). */
+    order: 2;
+    position: static;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--cmg-space-2);
+    overflow-x: auto;
+  }
+  /* Chip: largura do próprio rótulo, numa linha só. */
+  .cemig-form .vstep {
+    width: auto;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 600px) {
+  .cemig-form .layout {
+    padding: var(--cmg-space-6) var(--cmg-space-3) var(--cmg-space-12);
+  }
+  .cemig-form .form-header h1 {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
+/* ============================================================
+   10. Shells vanilla (Loteamento/MT/Desistência) — MIGRADOS para o
+   shell canônico `.cemig-form` (body `class="cemig-form cemig-lote"`,
+   `"cemig-form cemig-mtform"` e `"cemig-form cemig-desist"`). Toda a
+   casca (topbar, layout/sidebar, form-header, cards, campos Padrão B,
+   nav-bottom, prévia, avisos) vem do escopo `.cemig-form` acima; os
+   escopos de página guardam apenas os extras em css/formulario-*.css.
+   O antigo restyle `.cemig-mt` foi removido — nenhum formulário usa
+   mais esse escopo.
+   ============================================================ */
+
+/* ============================================================
+   11. Campos com ícone de ajuda (.field-info, imagem) e campo com
+   botão de ação DENTRO da célula (.field--com-acao: rótulo + valor
+   à esquerda, botão "Customizar" à direita, numa única caixa).
+   Usados nos cards de agrupamento do BT (torre/coletivo).
+   ============================================================ */
+/* Rótulo com ícone (i) à direita: vira linha e empurra o ícone p/ o fim.
+   Só quando o label realmente contém um .field-info. */
+.cemig-form .field label:has(.field-info) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--cmg-space-2);
+}
+/* O rótulo flutuante tem `overflow: hidden` + altura fixa (p/ o text-overflow
+   do texto). Isso recortava o balão da dica (que sobe acima do ícone) e ele
+   nunca aparecia. Quando o rótulo carrega o (i), liberamos o overflow para o
+   balão escapar. O texto do rótulo aqui é curto (usa flex), então o ellipsis
+   não é necessário. A regra do ellipsis (`> label`) é bem específica, por isso
+   repetimos o mesmo formato para vencê-la. */
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):not(:has(.toggle-group)):not(
+    :has([type="checkbox"])
+  ):not(:has([type="radio"]))
+  > label:has(.field-info) {
+  overflow: visible;
+}
+/* Ícone envolto no wrapper de dica (.cmg-hint): o wrapper é quem vai ao fim.
+   O <label> flutuante é `pointer-events: none` (p/ não bloquear o input); por
+   isso o (i) precisa reativar os eventos, senão o hover nunca dispara e o
+   balão nunca aparece. z-index/relative garantem que ele fique acima do input
+   e receba o mouse. */
+.cemig-form .field label .cmg-hint {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+}
+.cemig-form .field label .cmg-hint .field-info {
+  margin-left: 0;
+}
+/* Ícone de ajuda: a própria imagem (imgs/info.svg) já é o círculo com "i".
+   Sempre centralizada, tamanho fixo, alinhada à direita do rótulo. */
+.cemig-form .field-info {
+  margin-left: auto;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  object-position: center;
+  cursor: help;
+}
+/* Ícone de ajuda extraído do rótulo (ver _campo): ancorado ao .field, sempre
+   no centro vertical, à direita — não sobe com o rótulo flutuante. Fica acima
+   do input para receber o hover/foco (o rótulo é pointer-events:none). */
+.cemig-form .field > .field-hint-icon {
+  position: absolute;
+  top: 50%;
+  right: var(--cmg-space-4);
+  transform: translateY(-50%);
+  margin: 0;
+  z-index: 2;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+}
+.cemig-form .field > .field-hint-icon .field-info,
+.cemig-form .field > img.field-hint-icon {
+  margin: 0;
+}
+/* O balão da dica sobe ACIMA do ícone, que está ancorado ao .field. O .field
+   flutuante é a própria caixa do campo (56px, com borda), então qualquer
+   recorte ali comeria o balão. Com o (i) extraído do rótulo por _campo(), o
+   `overflow: visible` que existia só para `> label:has(.field-info)` deixa de
+   valer — o rótulo já não contém o ícone. Libera no .field. */
+.cemig-form .field:has(> .cmg-hint.field-hint-icon) {
+  overflow: visible;
+}
+/* Com o (i) ancorado ao campo, nem o rótulo nem o valor digitado podem passar
+   por baixo dele: reserva o espaço à direita em ambos. */
+.cemig-form .field:has(> .field-hint-icon) > label {
+  padding-right: 28px;
+}
+.cemig-form .field:has(> .field-hint-icon) > input,
+.cemig-form .field:has(> .field-hint-icon) > select {
+  padding-right: 40px;
+}
+/* Campo com ação: uma única caixa (borda/altura como um .field), rótulo+valor
+   à esquerda e botão à direita. field--plain já tira o rótulo flutuante auto. */
+.cemig-form .field--com-acao {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--cmg-space-3);
+  min-height: 48px;
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-border);
+  border-radius: 4px;
+  padding: 6px var(--cmg-space-4);
+}
+.cemig-form .field--com-acao:focus-within {
+  border-color: var(--cmg-neutral-600);
+}
+/* Corpo esquerdo: rótulo flutuante (encolhido) por cima do valor. */
+.cemig-form .field--com-acao .field-acao-corpo {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.cemig-form .field--com-acao .field-acao-label {
+  margin: 0;
+  font-family: var(--cmg-font-family);
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+/* Input do valor: sem borda/padding próprios (a caixa é o .field--com-acao). */
+.cemig-form .field--com-acao .field-acao-input {
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body-lg);
+  color: var(--cmg-text);
+}
+.cemig-form .field--com-acao .field-acao-input:focus {
+  outline: none;
+  box-shadow: none;
+  border: 0;
+}
+/* Botão "Customizar" à direita, dentro da célula. */
+.cemig-form .field-acao-btn {
+  flex: none;
+  align-self: center;
+  height: 36px;
+  padding: 0 18px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cmg-space-2);
+}
+/* Ícone do botão: imagem (imgs/edit.svg, lápis), sempre centralizada. */
+.cemig-form .field-acao-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ============================================================
+   12. Modal "Composição por pavimento" (botão Customizar)
+   Overlay + caixa de diálogo (spec Figma: 750px, sombra, radius
+   12px) com a tabela de faixas de andares. Montado no <body>
+   (dentro de .cemig-form) por abrirComposicaoPavimento().
+   ============================================================ */
+.cemig-form .cmg-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cmg-space-4);
+  background: rgba(4, 30, 24, 0.45);
+}
+.cemig-form .cmg-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 750px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: var(--cmg-surface);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px 3px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+/* Enquanto um multiselect está aberto o diálogo não pode recortar: o painel é
+   absoluto e passa da última linha da tabela. Some com a rolagem enquanto durar
+   a seleção — o painel tem max-height de 240px e fica logo abaixo do campo,
+   então cabe no diálogo em vez de vazar. */
+.cemig-form .cmg-modal:has(.cmg-multi.is-aberto) {
+  overflow: visible;
+}
+.cemig-form .cmg-modal-fechar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--cmg-text-strong, #041e18);
+  cursor: pointer;
+  border-radius: 8px;
+}
+.cemig-form .cmg-modal-fechar:hover {
+  background: var(--cmg-neutral-100, #e6e9e8);
+}
+.cemig-form .cmg-modal-conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cmg-space-6, 24px);
+  padding: 40px 24px 24px;
+}
+.cemig-form .cmg-modal-titulo {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-family: var(--cmg-font-family);
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 38px;
+  letter-spacing: 0.4px;
+  color: var(--cmg-green-600, #0f6c58);
+}
+.cemig-form .cmg-modal-desc {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+/* Tabela de faixas */
+.cemig-form .cmg-pav-tabela {
+  width: 100%;
+  border: 1px solid var(--cmg-border, #d1d4d3);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.cemig-form .cmg-pav-linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 44px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--cmg-border, #d1d4d3);
+}
+.cemig-form .cmg-pav-head {
+  background: var(--cmg-neutral-200, #d1d4d3);
+  padding: 16px 12px;
+}
+.cemig-form .cmg-pav-head .cmg-pav-cel {
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-bold, 700);
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+.cemig-form .cmg-pav-cel {
+  min-width: 0;
+}
+.cemig-form .cmg-pav-cel input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 4px 16px;
+  border: 1px solid var(--cmg-neutral-400, #8c9895);
+  border-radius: 4px;
+  background: var(--cmg-surface);
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  color: var(--cmg-text);
+}
+.cemig-form .cmg-pav-cel input:focus {
+  outline: none;
+  border-color: var(--cmg-neutral-600, #364b46);
+}
+/* Célula com <select> (ex.: coluna "Disjuntor" das prumadas em "Dados do
+   projeto"): mesma caixa dos inputs, com a seta padrão do campo do formulário. */
+.cemig-form .cmg-pav-cel select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 4px 40px 4px 16px;
+  border: 1px solid var(--cmg-neutral-400, #8c9895);
+  border-radius: 4px;
+  background-color: var(--cmg-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%23364b46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  color: var(--cmg-text);
+  cursor: pointer;
+}
+.cemig-form .cmg-pav-cel select:focus {
+  outline: none;
+  border-color: var(--cmg-neutral-600, #364b46);
+}
+/* Prumadas: rótulo/aviso sob a tabela (faixa de torres incompleta, sobreposta
+   ou hierarquia inválida) fica junto da própria caixa da tabela. */
+.cemig-form .cmg-pav-linha--invalida {
+  background: var(--cmg-danger-50, #fdecec);
+}
+/* Resumo do preenchimento (UCs somadas × total da torre) abaixo da tabela */
+.cemig-form .cmg-pav-resumo {
+  margin: 12px 0 0;
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+.cemig-form .cmg-pav-cel-acao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cemig-form .cmg-pav-remover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--cmg-neutral-500, #5b6b67);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.cemig-form .cmg-pav-remover:hover {
+  background: var(--cmg-neutral-100, #e6e9e8);
+  color: var(--cmg-text-strong, #041e18);
+}
+.cemig-form .cmg-pav-adicionar-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 16px 12px;
+}
+.cemig-form .cmg-pav-mais {
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+}
+/* Rodapé: Cancelar | Salvar */
+.cemig-form .cmg-modal-rodape {
+  display: flex;
+  justify-content: center;
+  gap: var(--cmg-space-4, 16px);
+  padding: 0 24px 24px;
+}
+.cemig-form .cmg-modal-rodape .btn {
+  min-width: 200px;
+}
+@media (max-width: 640px) {
+  .cemig-form .cmg-pav-linha {
+    grid-template-columns: 1fr 1fr 1fr 36px;
+    gap: 8px;
+  }
+  .cemig-form .cmg-modal-rodape {
+    flex-direction: column-reverse;
+  }
+  .cemig-form .cmg-modal-rodape .btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* ------------------------------------------------------------
+   Modal "Replicar dados" — gerenciador de replicações entre torres
+   Variante do .cmg-modal com duas telas (lista das regras e o
+   formulário origem/destinos). Montado por
+   abrirGerenciadorReplicacao() em bt/js/coletivo-app.js.
+   ------------------------------------------------------------ */
+/* Largura: o spec do Figma dá 750px de diálogo (702px de conteúdo dentro do
+   padding lateral de 24px), que é o mesmo max-width do .cmg-modal base — daí
+   não haver override aqui. */
+/* Lista das replicações já configuradas — mesma caixa da tabela de faixas. */
+.cemig-form .cmg-replic-lista {
+  width: 100%;
+  border: 1px solid var(--cmg-border, #d1d4d3);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.cemig-form .cmg-replic-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--cmg-text-strong, #041e18);
+}
+.cemig-form .cmg-replic-linha + .cmg-replic-linha {
+  border-top: 1px solid var(--cmg-border, #d1d4d3);
+}
+.cemig-form .cmg-replic-rotulo {
+  min-width: 0;
+}
+/* ============================================================
+   Tabela de replicações entre torres (spec Figma "tabela"): cabeçalho
+   neutra/200, células de 64px mín. com divisória neutra/200, e por linha
+   origem (select) → seta → destinos (multiselect) → excluir.
+   As regras abaixo ficam ESCOPADAS em .cmg-replic-tabela porque
+   .cmg-replic-linha continua servindo à lista do modal de UNIDADES.
+   ============================================================ */
+/* width:100% porque .cmg-modal-conteudo alinha os filhos ao centro
+   (align-items:center), o que encolheria a tabela ao tamanho do conteúdo em
+   vez dos 702px do spec. Mesma razão do width em .cmg-replic-lista.
+   SEM overflow:hidden aqui — ele recortaria o painel do multiselect de
+   destinos, que é absoluto e ultrapassa a última linha. Os cantos são
+   arredondados nas pontas (cabeçalho e última linha) em vez de recortados. */
+.cemig-form .cmg-replic-tabela {
+  width: 100%;
+  border: 1px solid var(--cmg-neutral-200, #d1d4d3);
+  border-radius: 8px;
+}
+.cemig-form .cmg-replic-cab:first-child {
+  border-radius: 8px 8px 0 0;
+}
+.cemig-form .cmg-replic-cab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 12px;
+  background: var(--cmg-neutral-200, #d1d4d3);
+}
+/* As duas colunas do cabeçalho acompanham a largura das células da linha:
+   origem (163px) + gap (12px) + seta (24px) = 199px antes dos destinos. */
+.cemig-form .cmg-replic-cab-rotulo {
+  font-family: var(--cmg-font-family);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+.cemig-form .cmg-replic-cab-rotulo:first-child {
+  flex: none;
+  width: 199px;
+}
+.cemig-form .cmg-replic-tabela .cmg-replic-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  min-height: 64px;
+  background: var(--cmg-neutral-0, #fff);
+  border-bottom: 1px solid var(--cmg-neutral-200, #d1d4d3);
+}
+.cemig-form .cmg-replic-tabela .cmg-replic-cel {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+/* 187px de coluna no spec, menos o padding de 12px da linha e o gap de 12px
+   até a seta. */
+.cemig-form .cmg-replic-cel--origem {
+  flex: none;
+  width: 163px;
+}
+.cemig-form .cmg-replic-cel--seta {
+  flex: none;
+  width: 24px;
+  justify-content: center;
+  color: var(--cmg-neutral-700, #041e18);
+}
+.cemig-form .cmg-replic-cel--destinos {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cemig-form .cmg-replic-cel--acao {
+  flex: none;
+  width: 48px;
+  justify-content: center;
+}
+/* ---- Variante de UNIDADES (.cmg-replic-tabela--uc) ----
+   Mesma tabela do gerenciador de torres com uma coluna a mais entre a origem e
+   a seta: "Unidade de origem". A regra parte de UMA unidade — por isso a torre
+   sozinha não basta para identificá-la. A coluna repete a largura da origem
+   (163px) para as duas caixas ficarem iguais, como no spec. */
+.cemig-form .cmg-replic-cel--uc {
+  flex: none;
+  width: 163px;
+}
+/* Rótulos do cabeçalho alinhados às células: origem (163) + gap (12) = 175px
+   até a unidade, e unidade (163) + gap (12) + seta (24) + gap (12) = 211px até
+   os destinos. O 3º rótulo ocupa o resto (flex padrão). */
+.cemig-form .cmg-replic-tabela--uc .cmg-replic-cab-rotulo:first-child {
+  width: 175px;
+}
+.cemig-form .cmg-replic-tabela--uc .cmg-replic-cab-rotulo:nth-child(2) {
+  flex: none;
+  width: 211px;
+}
+/* A coluna de destinos aqui é ~130px mais estreita que a do gerenciador de
+   torres (a coluna "Unidade de origem" comeu esse espaço). As 3 colunas do
+   painel de checkboxes não cabem mais: "Torre 1" quebraria em duas linhas e a
+   3ª coluna ficaria cortada, com barra horizontal. Duas colunas cabem inteiras,
+   e o painel continua com a LARGURA DO CAMPO (left/right herdados do bloco
+   base) — dropdown mais largo que o próprio campo lê como outro elemento. */
+.cemig-form .cmg-replic-tabela--uc .cmg-multi-grade {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+/* Sem quebrar "Torre 14" em duas linhas dentro da coluna estreita. */
+.cemig-form .cmg-replic-tabela--uc .cmg-multi-item {
+  white-space: nowrap;
+}
+/* O padding de 16px do painel base tira largura útil das 2 colunas; 12px dá o
+   espaço que os rótulos precisam sem alargar o painel além do campo. */
+.cemig-form .cmg-replic-tabela--uc .cmg-multi-painel {
+  padding: 12px;
+}
+/* Select da origem: mesma caixa de 48px do campo padrão, sem rótulo flutuante. */
+.cemig-form .cmg-replic-select {
+  width: 100%;
+  height: 48px;
+  padding: 4px 8px 4px 16px;
+  border: 1px solid var(--cmg-neutral-400, #8c9895);
+  border-radius: 4px;
+  background: var(--cmg-neutral-0, #fff);
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  line-height: 26px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+.cemig-form .cmg-replic-select:focus {
+  outline: none;
+  border-color: var(--cmg-neutral-600, #364b46);
+}
+/* Excluir: icon button 40px, ícone erro/600. */
+.cemig-form .cmg-replic-excluir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--cmg-danger-600, #c8303f);
+  cursor: pointer;
+}
+.cemig-form .cmg-replic-excluir:hover {
+  background: var(--cmg-danger-50, #fdecea);
+}
+/* Linha do "Adicionar replicação": sem divisória (é a última da tabela) e
+   fechando os cantos de baixo, conforme o spec. */
+.cemig-form .cmg-replic-add-linha {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  background: var(--cmg-neutral-0, #fff);
+  border-radius: 0 0 8px 8px;
+}
+/* 205px no spec; como min-width para o rótulo não cortar se a fonte crescer. */
+.cemig-form .cmg-replic-add-linha .cmg-pav-adicionar {
+  min-width: 205px;
+}
+/* ---- Multiselect de destinos ---- */
+.cemig-form .cmg-multi {
+  position: relative;
+  width: 100%;
+}
+.cemig-form .cmg-multi-campo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 48px;
+  padding: 4px 8px 4px 16px;
+  border: 1px solid var(--cmg-neutral-400, #8c9895);
+  border-radius: 4px;
+  background: var(--cmg-neutral-0, #fff);
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  line-height: 26px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600, #364b46);
+  text-align: left;
+  cursor: pointer;
+}
+.cemig-form .cmg-multi.is-aberto .cmg-multi-campo {
+  border-color: var(--cmg-neutral-600, #364b46);
+}
+.cemig-form .cmg-multi-texto {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cemig-form .cmg-multi-texto.is-placeholder {
+  color: var(--cmg-neutral-500, #6b7a76);
+}
+.cemig-form .cmg-multi-seta {
+  flex: none;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+}
+.cemig-form .cmg-multi.is-aberto .cmg-multi-seta {
+  transform: rotate(180deg);
+}
+/* Painel: sobreposto (não empurra a linha de baixo), 3 opções por linha. */
+.cemig-form .cmg-multi-painel {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% - 1px);
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: var(--cmg-neutral-0, #fff);
+  border: 1px solid var(--cmg-neutral-600, #364b46);
+  border-radius: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.cemig-form .cmg-multi-grade {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 16px;
+}
+.cemig-form .cmg-multi-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+  color: var(--cmg-neutral-600, #364b46);
+  cursor: pointer;
+}
+.cemig-form .cmg-multi-item--todas {
+  margin-bottom: 12px;
+}
+.cemig-form .cmg-multi-chk {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 7px;
+  accent-color: var(--cmg-green-600, #0f6c58);
+  cursor: pointer;
+}
+.cemig-form .cmg-multi-vazio {
+  margin: 0;
+  font-size: 14px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+@media (max-width: 720px) {
+  /* Estreito: a linha vira bloco e os destinos ocupam a largura toda. */
+  .cemig-form .cmg-replic-tabela .cmg-replic-linha {
+    flex-wrap: wrap;
+  }
+  .cemig-form .cmg-replic-cel--destinos {
+    flex: 1 1 100%;
+  }
+  /* Os 163px do spec são de desktop: aqui a origem divide a primeira faixa
+     com a seta e o excluir em vez de forçar a largura fixa. */
+  .cemig-form .cmg-replic-cel--origem,
+  .cemig-form .cmg-replic-cel--uc {
+    flex: 1 1 auto;
+    width: auto;
+  }
+  /* Com a linha quebrada em blocos, os rótulos fixos do cabeçalho da variante
+     de unidades deixam de corresponder às células — voltam a ser fluidos. */
+  .cemig-form .cmg-replic-tabela--uc .cmg-replic-cab-rotulo:first-child,
+  .cemig-form .cmg-replic-tabela--uc .cmg-replic-cab-rotulo:nth-child(2) {
+    flex: 1 1 auto;
+    width: auto;
+  }
+  .cemig-form .cmg-replic-add-linha .cmg-pav-adicionar {
+    min-width: 0;
+    width: 100%;
+  }
+  .cemig-form .cmg-multi-grade {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* Replicação de UNIDADES: a regra ocupa duas linhas — a UC modelo e, abaixo,
+   o que ela faz (completar a torre de origem + torres de destino). */
+.cemig-form .cmg-replic-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cemig-form .cmg-replic-alvos {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+.cemig-form .cmg-replic-acoes {
+  display: flex;
+  flex: none;
+  gap: 4px;
+}
+/* Editar / Excluir: links de ação compactos, sem a caixa do .btn. */
+.cemig-form .cmg-replic-acao {
+  min-width: 0;
+  min-height: 0;
+  padding: 4px 8px;
+  font-size: 14px;
+  line-height: 24px;
+  text-decoration: underline;
+}
+.cemig-form .cmg-replic-vazio {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+/* Formulário de adicionar/editar: Origem (select) + Destinos (checkboxes) */
+.cemig-form .cmg-replic-campo {
+  width: 100%;
+}
+.cemig-form .cmg-replic-campo + .cmg-replic-campo {
+  margin-top: var(--cmg-space-4, 16px);
+}
+.cemig-form .cmg-replic-label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--cmg-font-family);
+  font-weight: var(--cmg-fw-bold, 700);
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-neutral-600, #364b46);
+}
+.cemig-form .cmg-replic-campo select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 4px 40px 4px 16px;
+  border: 1px solid var(--cmg-neutral-400, #8c9895);
+  border-radius: 4px;
+  background-color: var(--cmg-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%23364b46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  color: var(--cmg-text);
+  cursor: pointer;
+}
+.cemig-form .cmg-replic-campo select:focus {
+  outline: none;
+  border-color: var(--cmg-neutral-600, #364b46);
+}
+/* Destinos: grade de checkboxes rolável (empreendimentos com muitas torres). */
+.cemig-form .cmg-replic-destinos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 16px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 12px 16px;
+  border: 1px solid var(--cmg-border, #d1d4d3);
+  border-radius: 8px;
+}
+.cemig-form .cmg-replic-destino {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  cursor: pointer;
+  font-family: var(--cmg-font-family);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--cmg-text-strong, #041e18);
+}
+/* Torre que já é destino de outra replicação: marcação bloqueada. */
+.cemig-form .cmg-replic-destino.is-ocupada {
+  cursor: not-allowed;
+  color: var(--cmg-neutral-500, #5b6b67);
+}
+.cemig-form .cmg-replic-destino.is-ocupada input[type="checkbox"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+/* Conflito de destino / regra sem destino, acima do rodapé. */
+.cemig-form .cmg-replic-erro {
+  margin: 0;
+  width: 100%;
+  min-height: 24px;
+  font-family: var(--cmg-font-family);
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-danger-500, #c0392b);
+}
+@media (max-width: 640px) {
+  .cemig-form .cmg-replic-linha {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .cemig-form .cmg-replic-acoes {
+    margin-left: -8px;
+  }
+}
+
+/* ============================================================
+   13. Modal "PDF exportado com sucesso!"
+   Variante estreita do .cmg-modal, exibida após o download do PDF
+   (shared/js/pdf-sucesso.js). Ícone de confirmação + orientação e
+   os dois links do portal no rodapé.
+   ============================================================ */
+/* 500px de largura = 452px de conteúdo + 24px de respiro em cada lado.
+   O padding lateral vem do .cmg-modal-conteudo base; aqui só o gap muda. */
+.cemig-form .cmg-modal-sucesso {
+  max-width: 500px;
+}
+.cemig-form .cmg-modal-sucesso .cmg-modal-conteudo {
+  gap: var(--cmg-space-4, 16px);
+}
+.cemig-form .cmg-modal-check {
+  display: flex;
+  justify-content: center;
+  color: var(--cmg-green-600, #0f6c58);
+}
+.cemig-form .cmg-modal-sucesso .cmg-modal-rodape {
+  padding: 8px 24px 32px;
+}
+/* Links do rodapé usam .btn: alinha a altura do texto ao dos botões. */
+.cemig-form .cmg-modal-rodape a.btn {
+  min-width: 0;
+  flex: 1;
+}
+@media (max-width: 640px) {
+  .cemig-form .cmg-modal-rodape a.btn {
+    width: 100%;
+  }
+}
+/* O MT exporta por window.print(): um diálogo aberto nunca deve sair
+   na folha caso o usuário acione a impressão novamente. */
+@media print {
+  .cemig-form .cmg-modal-overlay {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   14. Ramo de atividade — lista com filtro de digitação
+   (shared/js/ramo-atividade.js; BT individual/coletivo e MT)
+   O campo mostra só a descrição — o código CNAE fica no valor
+   guardado e aparece apenas no PDF.
+   ============================================================ */
+.cemig-form .ramo-ativ-lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 120;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-top: 2px;
+  background: var(--cmg-surface);
+  border: 1px solid var(--cmg-border);
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+.cemig-form .ramo-ativ-item {
+  padding: 10px var(--cmg-space-4);
+  font-family: var(--cmg-font-family);
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  color: var(--cmg-text-strong);
+  cursor: pointer;
+}
+.cemig-form .ramo-ativ-item + .ramo-ativ-item {
+  border-top: 1px solid var(--cmg-border);
+}
+.cemig-form .ramo-ativ-item.is-ativo,
+.cemig-form .ramo-ativ-item:hover {
+  background: var(--cmg-surface-disabled);
+}
+
+/* ============================================================
+   15. Erro de FORMATO (data-fmt) — mensagem específica abaixo do campo
+   ------------------------------------------------------------
+   O ::after genérico da seção de campos escreve "Campo obrigatório" para
+   qualquer .is-invalid; quando o erro é de formato (ex.: número de
+   instalação/UC fora do padrão da REN 1.095/2024) a mensagem vem do JS
+   neste span, que por ser .field-hint já desliga aquele ::after.
+   ============================================================ */
+.cemig-form .field .field-err-fmt {
+  display: block;
+  font-family: var(--cmg-font-family);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.2px;
+  color: var(--cmg-error-500);
+  margin-top: var(--cmg-space-1);
+}
+/* Status do CPF/CNPJ (#cnpjStatus): mensagem de erro na mesma cor/tamanho da
+   supporting-text de erro. O span vive num .field-hint irmão do input, então já
+   herda o posicionamento abaixo da caixa. */
+.cemig-form .cnpj-status-err {
+  color: var(--cmg-error-500);
+}
+/* Campo com rótulo flutuante: o span entra DENTRO do container do campo,
+   então precisa sair da caixa de 56px para não empurrar o valor. */
+.cemig-form .field--float .field-err-fmt,
+:is(.cemig-form, .cemig-lote)
+  .field:not(.field--plain):not(:has(textarea)):has(input, select)
+  .field-err-fmt {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -20px;
+  padding: 0 var(--cmg-space-4);
+  margin-top: 0;
+}

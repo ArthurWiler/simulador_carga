@@ -1,84 +1,92 @@
 /* ============================================================
-   Homepage do Simulador de Carga — o portal do aplicativo.
+   Sidebar do Portal PE — a navegação do site.
 
-   A página é gerada a partir de um CATÁLOGO declarativo (ITENS
-   abaixo): acrescentar uma ferramenta, uma norma ou um link é
-   acrescentar um objeto ali — o layout se vira sozinho.
+   Gerada a partir de um CATÁLOGO declarativo (ITENS abaixo):
+   acrescentar uma ferramenta, uma norma ou um atalho é
+   acrescentar um objeto ali — o resto se vira sozinho.
 
-   Nada aqui decide O QUE abrir. O clique envia ao processo main
-   apenas a CHAVE do item (tipo + alvo); quem traduz chave ->
-   janela/arquivo/URL são as allowlists ROTAS, DOCUMENTOS e SITES
-   do main.js. Isso existe porque este arquivo é baixado da
-   internet pelo updater: se um dia ele for adulterado, o estrago
-   possível continua limitado ao que a casca já autoriza.
+   Dois comportamentos, decididos por qual campo o item tem:
 
-   Sem window.api (aberto no navegador, via Live Server) a página
-   cai no campo `href` de cada item — mesma degradação que o
-   index.html faz no "modo manual". Ver preload.js.
+   - `aba`  → é uma FERRAMENTA. Vira <button class="aba-btn"
+     data-aba="…">, que é exatamente o que ativarAba() do core.js
+     já consome: a troca de painel acontece dentro deste mesmo
+     documento, sem recarregar nada.
+   - `href` → é uma NORMA ou um ATALHO. Vira uma âncora com
+     target="_blank" e sai para uma aba nova do navegador.
+
+   Nenhum item tem os dois: é um ou outro, e é isso que decide se
+   ele troca de painel ou navega para fora.
    ============================================================ */
 
-/* ===== Catálogo =====
-   grupo    : título da seção. Sem grupo = card em destaque no topo.
-   tipo/alvo: a chave enviada ao main. tipo ∈ janela | pdf | site.
-   href     : caminho equivalente, usado SÓ no modo navegador. O item
-              do tipo "site" não tem href de propósito — a URL mora
-              apenas no main.js, para não haver duas fontes da verdade. */
 const ITENS = [
+  /* ---- Ferramentas: trocam o painel aqui mesmo ---- */
   {
+    grupo: "Ferramentas",
     titulo: "Simulação de Carga",
-    desc: "Dimensionamento de transformador, disjuntores e queda de tensão.",
     icone: "⚡",
-    tipo: "janela",
-    alvo: "simulador",
-    href: "index.html?aba=simulador",
+    aba: "simulador",
+    dica: "Dimensionamento de transformador, disjuntores e queda de tensão.",
   },
   {
+    grupo: "Ferramentas",
     titulo: "Análise Ambiental",
-    desc: "Restrições da obra por coordenada — Sisema, SICAR e AgroTag.",
     icone: "🌿",
-    tipo: "janela",
-    alvo: "ambiental",
-    href: "index.html?aba=ambiental",
+    aba: "ambiental",
+    dica: "Restrições da obra por coordenada — Sisema, SICAR e AgroTag.",
   },
   {
+    grupo: "Ferramentas",
     titulo: "Textos Padrão",
-    desc: "Indeferimento e pendência: busca e cópia com um clique.",
     icone: "📝",
-    tipo: "janela",
-    alvo: "textos",
-    href: "textos.html",
+    aba: "textos",
+    dica: "Indeferimento e pendência: busca e cópia com um clique.",
   },
 
-  /* ---- Normas de Distribuição ----
-     Para acrescentar uma ND: coloque o PDF em docs/, registre o caminho
-     em DOCUMENTOS (main.js), copie um dos blocos abaixo e rode
-     `npm run manifest`. Ver docs/README.md. */
+  /* ---- Normas: PDF em docs/, aberto no visualizador do navegador.
+     Para acrescentar uma ND: ponha o PDF em docs/ e copie um bloco. ---- */
   {
     grupo: "Normas de Distribuição",
     titulo: "ND-5.1",
-    desc: "Fornecimento em tensão secundária — rede aérea, edificações individuais. Rev. MAR/2026.",
     icone: "📄",
-    tipo: "pdf",
-    alvo: "nd-5-1",
     href: "docs/ND-5.1.pdf",
+    dica: "Tensão secundária, rede aérea — edificações individuais. Rev. MAR/2026.",
   },
   {
     grupo: "Normas de Distribuição",
     titulo: "ND-5.2",
-    desc: "Fornecimento em tensão secundária — rede aérea, edificações coletivas. Rev. MAR/2026.",
     icone: "📄",
-    tipo: "pdf",
-    alvo: "nd-5-2",
     href: "docs/ND-5.2.pdf",
+    dica: "Tensão secundária, rede aérea — edificações coletivas. Rev. MAR/2026.",
   },
 
+  /* ---- Atalhos: sistemas externos ---- */
   {
-    grupo: "Ferramentas",
+    grupo: "Atalhos",
     titulo: "Distribuição de notas",
-    desc: "Distribuição de notas para técnicos, painel e prazos.",
     icone: "📊",
-    tipo: "site",
-    alvo: "principal",
+    href: "https://carga-ad8b9.firebaseapp.com/",
+    dica: "Distribuição de notas para técnicos, painel e prazos.",
+  },
+  {
+    grupo: "Atalhos",
+    titulo: "CEMIG ON — Produção",
+    icone: "🟢",
+    href: "https://cemig-on-prod.cemig.com.br/",
+    dica: "Ambiente de produção.",
+  },
+  {
+    grupo: "Atalhos",
+    titulo: "CEMIG ON — QA",
+    icone: "🟡",
+    href: "https://cemig-on-qa.cemig.com.br/",
+    dica: "Ambiente de homologação.",
+  },
+  {
+    grupo: "Atalhos",
+    titulo: "CEMIG ON — Dev",
+    icone: "🔵",
+    href: "https://cemig-on-dev.cemig.com.br/",
+    dica: "Ambiente de desenvolvimento.",
   },
 ];
 
@@ -87,121 +95,61 @@ function _esc(s) {
   return String(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-/* Faixa de mensagem no topo do conteúdo. Reaproveita alertHTML() do
-   core.js — mesmo banner .cmg-aviso usado no simulador e na ambiental. */
-function _aviso(tipo, html) {
-  const el = document.getElementById("homeAviso");
-  if (el) el.innerHTML = tipo ? alertHTML(tipo, html) : "";
-}
+/* ===== Render =====
+   O botão de ferramenta nasce sem .on: quem marca o ativo é o
+   ativarAba() do core.js, chamado logo após desenhar. */
+function _itemHTML(item) {
+  const icone = `<span class="sb-icone" aria-hidden="true">${_esc(item.icone || "▸")}</span>`;
+  const rotulo = `<span class="sb-rotulo">${_esc(item.titulo)}</span>`;
+  const dica = item.dica ? ` title="${_esc(item.dica)}"` : "";
 
-/* ===== Abertura de um item ===== */
-async function abrirItem(item) {
-  if (window.api && window.api.abrir) {
-    let r;
-    try {
-      r = await window.api.abrir(item.tipo, item.alvo);
-    } catch (e) {
-      r = { ok: false, motivo: e.message };
-    }
-    if (r && r.ok) return _aviso(null);
-    // Falhar em silêncio aqui seria pior que o normal: o usuário clicou e
-    // a tela não mudou. Ele precisa saber por quê.
-    return _aviso(
-      "warn",
-      `Não foi possível abrir <strong>${_esc(item.titulo)}</strong>: ` +
-        `${_esc((r && r.motivo) || "erro desconhecido")}.`,
-    );
+  if (item.aba) {
+    return `<button type="button" class="sb-item aba-btn" data-aba="${_esc(item.aba)}"${dica}>${icone}${rotulo}</button>`;
   }
-
-  // Modo navegador: sem ponte com o main.
-  if (item.href) return void window.open(item.href, "_blank", "noopener");
-  _aviso(
-    "warn",
-    `<strong>${_esc(item.titulo)}</strong> só abre pelo aplicativo.`,
-  );
+  return `<a class="sb-item sb-externo" href="${_esc(item.href)}" target="_blank" rel="noopener"${dica}>${icone}${rotulo}<span class="sb-seta" aria-hidden="true">↗</span></a>`;
 }
 
-/* ===== Render ===== */
-function _cardHTML(item, indice) {
-  return `<button type="button" class="home-card" data-item="${indice}">
-      <span class="home-card-icone" aria-hidden="true">${_esc(item.icone || "▸")}</span>
-      <span class="home-card-titulo">${_esc(item.titulo)}</span>
-      <span class="home-card-desc">${_esc(item.desc || "")}</span>
-    </button>`;
-}
-
-/* Itens sem `grupo` viram a faixa de destaque do topo; o resto é
-   agrupado na ordem em que aparece no catálogo (Map preserva inserção).
-   Grupo sem item não gera seção vazia. */
-function renderizar() {
-  const alvo = document.getElementById("homeConteudo");
+function renderizarSidebar() {
+  const alvo = document.getElementById("sidebarConteudo");
   if (!alvo) return;
 
-  const destaque = [];
+  // Map preserva a ordem de inserção: os grupos saem na ordem em que
+  // aparecem no catálogo, sem precisar de índice.
   const grupos = new Map();
-  ITENS.forEach((item, i) => {
-    if (!item.grupo) return void destaque.push(i);
+  for (const item of ITENS) {
     if (!grupos.has(item.grupo)) grupos.set(item.grupo, []);
-    grupos.get(item.grupo).push(i);
-  });
-
-  const secao = (titulo, indices, extra = "") =>
-    `<section class="home-secao">
-      ${titulo ? `<h2>${_esc(titulo)}</h2>` : ""}
-      <div class="home-grid${extra}">
-        ${indices.map((i) => _cardHTML(ITENS[i], i)).join("")}
-      </div>
-    </section>`;
-
-  const html = [];
-  if (destaque.length) html.push(secao(null, destaque, " home-grid--destaque"));
-  for (const [titulo, indices] of grupos) html.push(secao(titulo, indices));
-  alvo.innerHTML = html.join("");
-
-  alvo
-    .querySelectorAll(".home-card")
-    .forEach((btn) =>
-      btn.addEventListener("click", () => abrirItem(ITENS[+btn.dataset.item])),
-    );
-}
-
-/* ===== Rodapé: versão e status da atualização =====
-   window.api.versao() e aoAtualizar() já eram expostos pelo preload e
-   não tinham consumidor — o update:estado enviado pelo main caía no
-   vazio. É aqui que ele vira informação visível. */
-function _rodape() {
-  const el = document.getElementById("homeVersao");
-  if (!el) return;
-
-  if (!window.api || !window.api.versao) {
-    el.textContent = "modo navegador";
-    return;
+    grupos.get(item.grupo).push(item);
   }
 
-  window.api
-    .versao()
-    .then((v) => {
-      el.textContent = `Aplicativo v${v.app} · conteúdo v${v.conteudo || "?"}`;
-    })
-    .catch(() => {
-      el.textContent = "";
-    });
+  const html = [];
+  for (const [titulo, itens] of grupos) {
+    html.push(`<nav class="sb-grupo" aria-label="${_esc(titulo)}">
+      <h2 class="sb-grupo-titulo">${_esc(titulo)}</h2>
+      ${itens.map(_itemHTML).join("")}
+    </nav>`);
+  }
+  alvo.innerHTML = html.join("");
 
-  if (!window.api.aoAtualizar) return;
-  window.api.aoAtualizar((estado) => {
-    if (!estado || estado.status !== "pronta") return;
-    _aviso(
-      "ok",
-      `Atualização <strong>v${_esc(estado.versao)}</strong> baixada — ` +
-        `será aplicada quando você reabrir o aplicativo.`,
+  // Os botões são .aba-btn, mas o listener que o core.js instala roda no
+  // DOMContentLoaded — antes destes botões existirem. Ligamos aqui.
+  alvo
+    .querySelectorAll(".aba-btn")
+    .forEach((btn) =>
+      btn.addEventListener("click", () => ativarAba(btn.dataset.aba)),
     );
-  });
 }
 
+/* A sidebar é desenhada depois do core.js, que já resolveu qual painel
+   nasce ativo (o ?aba= da URL, ou o primeiro). Reaplicamos essa aba para
+   que o botão recém-criado receba o .on — sem isto a sidebar abriria com
+   um painel visível e nenhum item marcado. */
 document.addEventListener("DOMContentLoaded", () => {
-  renderizar();
-  _rodape();
+  renderizarSidebar();
+  const painel = document.querySelector(".aba-painel.show");
+  if (painel && typeof ativarAba === "function")
+    ativarAba(painel.id.replace(/^aba-/, ""));
 });
