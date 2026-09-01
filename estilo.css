@@ -1436,7 +1436,9 @@ button.sb-item.on:hover:not(:disabled) {
 
 .tx-contagem {
   flex: none;
-  font-size: 13px;
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-tight);
   color: var(--cmg-text-muted);
   white-space: nowrap;
 }
@@ -1456,13 +1458,19 @@ button.sb-item.on:hover:not(:disabled) {
   margin-bottom: var(--cmg-space-3);
 }
 
+/* Subgrupo é rótulo de agrupamento, não título de conteúdo: fica no
+   corpo/pequeno (12/20) do sistema, em vez dos 13px + 0.6px que havia
+   aqui — dois valores que não existem em lugar nenhum da escala. O
+   caixa-alta e o peso ficam: são o que separa o rótulo do texto ao
+   redor agora que o tamanho é o mesmo do corpo/pequeno. */
 .tx-sub > h3 {
   margin: var(--cmg-space-4) 0 var(--cmg-space-2);
   color: var(--cmg-text-muted);
-  font-size: 13px;
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
   font-weight: var(--cmg-fw-bold);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: var(--cmg-ls-loose);
 }
 
 .tx-item {
@@ -1491,9 +1499,12 @@ button.tx-toggle {
   border: none;
   border-radius: 0;
   color: var(--cmg-text-strong);
-  font-size: 14px;
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
   font-weight: var(--cmg-fw-bold);
-  letter-spacing: normal;
+  /* corpo/médio traz --cmg-ls-tight; o `normal` que havia aqui zerava
+     o tracking do sistema em vez de trocar o do botão-pílula. */
+  letter-spacing: var(--cmg-ls-tight);
   box-shadow: none;
 }
 
@@ -1514,13 +1525,23 @@ button.tx-toggle[aria-expanded="true"]::before {
   transform: rotate(90deg);
 }
 
+/* A largura é FIXA de propósito. O rótulo troca para "Copiado!" (ou
+   "Falhou") por 1,6s a cada clique; sem uma largura reservada o botão
+   cresce e encolhe junto, empurrando a própria linha do título — o
+   "tremido" na hora de copiar. `ch` acompanha a fonte, então a reserva
+   continua certa se a escala mudar. O maior rótulo é "Copiado!": 56px
+   de glifos em Open Sans 700 + 28px de padding = 84px, e 13ch dão 89px
+   (1ch = 6,86px a 12px) — folga suficiente sem sobrar. */
 button.tx-copiar {
   flex: none;
   align-self: center;
   min-height: 0;
   margin-right: var(--cmg-space-3);
   padding: 6px 14px;
-  font-size: 13px;
+  width: 13ch;
+  font-size: var(--cmg-fs-caption);
+  line-height: var(--cmg-lh-caption);
+  letter-spacing: var(--cmg-ls-loose);
 }
 
 button.tx-copiar.tx-copiado:not(:disabled) {
@@ -1543,8 +1564,9 @@ button.tx-copiar.tx-falhou:not(:disabled) {
   margin-top: 0;
   padding-top: var(--cmg-space-3);
   white-space: pre-wrap;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--cmg-fs-body);
+  line-height: var(--cmg-lh-body);
+  letter-spacing: var(--cmg-ls-tight);
   color: var(--cmg-text);
 }
 
