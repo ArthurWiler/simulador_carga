@@ -519,8 +519,8 @@ function _htmlResultadoAmb(lat, lng, res, car) {
     );
   }
   html += _htmlCAR(car);
-  // Chips só das camadas relevantes (interseção ou erro) — com as APPs
-  // hídricas por URFBio a lista completa passa de 20 camadas.
+  // Chips só das camadas relevantes (interseção ou erro) — a lista completa
+  // polui o bloco sem acrescentar informação ao atendente.
   const chips = []
     .concat(
       dentros.map(

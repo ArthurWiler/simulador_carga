@@ -53,72 +53,6 @@ function _nomeFeicaoSicar(p) {
   return partes.length ? partes.join(" ") : null;
 }
 
-const URFBIO_APP_HIDRICA = [
-  ["ne", "da URFBio Nordeste"],
-  ["amsf", "na URFBio Alto Médio São Francisco"],
-  ["ap", "na URFBio Alto Paranaíba"],
-  ["cnor", "na URFBio Centro-Norte"],
-  ["co", "na URFBio Centro-Oeste"],
-  ["cs", "na URFBio Centro-Sul"],
-  ["jeq", "na URFBio Jequitinhonha"],
-  ["mata", "na URFBio Mata"],
-  ["cm", "na URFBio Metropolitana"],
-  ["nor", "na URFBio Noroeste"],
-  ["no", "na URFBio Norte"],
-  ["riodoce", "na URFBio Rio Doce"],
-  ["sul", "na URFBio Sul"],
-  ["tm", "na URFBio Triângulo"],
-];
-
-// APPs (FBDS) por CIRCUNSCRIÇÃO HIDROGRÁFICA — 42 camadas com typeName no
-// padrão IDE:ide_240905_<suf>_apps_fbds_pol. [sufixo, nome da circunscrição].
-// O `nome` entra na frase como "APP: <nome>".
-const FBDS_APP_CIRCUNSCRICAO = [
-  ["gd2", "Vertentes do rio Grande"],
-  ["jq1", "Alto rio Jequitinhonha"],
-  ["sf1", "Alto rio São Francisco"],
-  ["gd8", "Baixo rio Grande"],
-  ["pn3", "Baixo rio Paranaíba"],
-  ["sf4", "Entorno da Represa de Três Marias"],
-  ["gd3", "Entorno do Reservatório de Furnas"],
-  ["jq3", "Médio e Baixo rio Jequitinhonha"],
-  ["gd7", "Médio rio Grande"],
-  ["pn2", "rio Araguari"],
-  ["jq2", "rio Araçuaí"],
-  ["bu1", "rio Buranhém"],
-  ["do5", "rio Caratinga"],
-  ["pn1", "rio Dourados e Alto rio Paranaíba"],
-  ["ib1", "rio Itabapoana"],
-  ["in1", "rio Itanhém"],
-  ["ip1", "rio Itapemirim"],
-  ["iu1", "rio Itaúnas"],
-  ["ju1", "rio Jucuruçu"],
-  ["do6", "rio Manhuaçu"],
-  ["mu1", "rio Mucuri"],
-  ["sf9", "rio Pandeiros"],
-  ["sf7", "rio Paracatu"],
-  ["sf3", "rio Paraopeba"],
-  ["pa1", "rio Pardo"],
-  ["sf2", "rio Pará"],
-  ["pe1", "rio Peruípe"],
-  ["do2", "rio Piracicaba"],
-  ["do1", "rio Piranga"],
-  ["do3", "rio Santo Antônio"],
-  ["gd5", "rio Sapucaí"],
-  ["do4", "rio Suaçuí Grande"],
-  ["sm1", "rio São Mateus"],
-  ["sf8", "rio Urucuia"],
-  ["gd4", "rio Verde"],
-  ["sf10", "rio Verde Grande"],
-  ["sf5", "rio das Velhas"],
-  ["gd1", "Afluentes Mineiros do Alto rio Grande"],
-  ["sf6", "rios Jequitaí e Pacuí"],
-  ["gd6", "rios Mogi-Guaçu e Pardo"],
-  ["pj1", "rios Piracicaba e Jaguari"],
-  ["ps2", "rios Pompa e Muriaé"],
-  ["ps1", "rios Preto e Paraibuna"],
-];
-
 const DOC_INTRO =
   "Para que o cliente obtenha ligação de energia elétrica, é necessário anexar os seguintes documentos:";
 /* ---- Área de Preservação Permanente (APP) — texto de indeferimento ----
@@ -320,33 +254,6 @@ const SISEMA_CAMADAS = [
       return t || null;
     },
   },
-
-  ...URFBIO_APP_HIDRICA.map(([suf, regiao]) => ({
-    id: "apph_" + suf,
-    rotulo: "APPs hídricas " + regiao,
-    typeName: `IDE:ide_210603_mg_hid_app_hidrica_mapcar_${suf}_pol`,
-    tipoNome: "APP hídrica",
-    documentos: DOC_APP,
-    nomeFeicao: (p) => {
-      const c = p && p.categoria != null ? String(p.categoria).trim() : "";
-      return c ? "faixa " + c.replace(/\bAte\b/g, "até") : null;
-    },
-  })),
-
-  // APPs (FBDS) por circunscrição hidrográfica — 42 camadas geradas.
-  // O nome da circunscrição vira o rótulo/nome da área; a categoria (quando
-  // presente na feição) refina o rótulo como "faixa …".
-  ...FBDS_APP_CIRCUNSCRICAO.map(([suf, nome]) => ({
-    id: "appfbds_" + suf,
-    rotulo: "APPs (FBDS) — " + nome,
-    typeName: `IDE:ide_240905_${suf}_apps_fbds_pol`,
-    tipoNome: "Área de Preservação Permanente",
-    documentos: DOC_APP,
-    nomeFeicao: (p) => {
-      const c = p && p.categoria != null ? String(p.categoria).trim() : "";
-      return c ? "faixa " + c.replace(/\bAte\b/g, "até") : nome;
-    },
-  })),
 
   {
     id: "rppn",
