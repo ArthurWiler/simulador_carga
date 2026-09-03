@@ -108,528 +108,500 @@
     </aside>
 
     <main class="conteudo">
-
-    <div id="aba-simulador" class="aba-painel show">
-      <div class="page-layout">
-        <div class="wrap">
-          <!-- Top - Transformador / Meta -->
-          <div class="card">
-            <h2>Dados do Transformador</h2>
-            <!-- Transformador | Tipo | Queda lado a lado (three-col:
+      <div id="aba-simulador" class="aba-painel show">
+        <div class="page-layout">
+          <div class="wrap">
+            <!-- Top - Transformador / Meta -->
+            <div class="card">
+              <h2>Dados do Transformador</h2>
+              <!-- Transformador | Tipo | Queda lado a lado (three-col:
                  vira 2 colunas <1200px e 1 coluna <900px) -->
-            <div class="three-col" style="margin-top: 8px">
-              <div>
-                <label>Transformador</label>
-                <input id="trafo" type="text" placeholder="Ex: 18759-3-45" />
-              </div>
+              <div class="three-col" style="margin-top: 8px">
+                <div>
+                  <label>Transformador</label>
+                  <input id="trafo" type="text" placeholder="Ex: 18759-3-45" />
+                </div>
 
-              <div>
-                <label>Tipo de Transformador</label>
-                <select id="tipo_TRF">
-                  <option value="">Convencional</option>
-                  <option value="1">Autoprotegido</option>
-                </select>
-              </div>
+                <div>
+                  <label>Tipo de Transformador</label>
+                  <select id="tipo_TRF">
+                    <option value="">Convencional</option>
+                    <option value="1">Autoprotegido</option>
+                  </select>
+                </div>
 
-              <div>
-                <label>Queda de tensão (%)</label>
-                <input
-                  id="queda_tensao"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  placeholder="Ex: 4.5"
-                />
-              </div>
+                <div>
+                  <label>Queda de tensão (%)</label>
+                  <input
+                    id="queda_tensao"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    placeholder="Ex: 4.5"
+                  />
+                </div>
 
-              <!-- Zona e Município moram AQUI (gate do cálculo automático:
+                <!-- Zona e Município moram AQUI (gate do cálculo automático:
                    podeCalcular exige Zona+Município+Transformador — juntos,
                    o resultado aparece sem rolar até o fim da página). O card
                    "Local de atendimento" fica só com coordenadas/extensão. -->
-              <div>
-                <label>Zona</label>
-                <select id="zona">
-                  <!-- opção vazia: sem pré-preenchimento — o gate
+                <div>
+                  <label>Zona</label>
+                  <select id="zona">
+                    <!-- opção vazia: sem pré-preenchimento — o gate
                        (podeCalcular) só libera com a zona escolhida -->
-                  <option value=""></option>
-                  <option value="urbana">Área Urbana</option>
-                  <option value="rural">Área Rural</option>
-                </select>
-              </div>
+                    <option value=""></option>
+                    <option value="urbana">Área Urbana</option>
+                    <option value="rural">Área Rural</option>
+                  </select>
+                </div>
 
-              <div>
-                <label>Município</label>
-                <!-- Combobox com BUSCA: digite para filtrar (sem acentos/
+                <div>
+                  <label>Município</label>
+                  <!-- Combobox com BUSCA: digite para filtrar (sem acentos/
                      maiúsculas — normalizeStr). A lista (combo-lista) é
                      montada por initComboMunicipio(); o gate (podeCalcular)
                      só aceita município que exista na lista. -->
-                <div class="combo-municipio">
-                  <input
-                    id="municipio"
-                    type="text"
-                    autocomplete="off"
-                    placeholder="Digite para pesquisar…"
-                  />
-                  <div id="municipio_lista" class="combo-lista" hidden></div>
+                  <div class="combo-municipio">
+                    <input
+                      id="municipio"
+                      type="text"
+                      autocomplete="off"
+                      placeholder="Digite para pesquisar…"
+                    />
+                    <div id="municipio_lista" class="combo-lista" hidden></div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Potência (kVA): derivada automaticamente da 3ª parte do
+              <!-- Potência (kVA): derivada automaticamente da 3ª parte do
                  código do transformador. OCULTA para o usuário, mas o campo
                  permanece no DOM — calcular() e plotCurve() leem #pottr
                  normalmente. -->
-            <div hidden>
-              <label>Potência do transformador (kVA)</label>
-              <input id="pottr" type="number" value="" step="1" readonly />
-            </div>
+              <div hidden>
+                <label>Potência do transformador (kVA)</label>
+                <input id="pottr" type="number" value="" step="1" readonly />
+              </div>
 
-            <!-- Demandas e consumidores POR CLASSE em tabela (mesmos ids
+              <!-- Demandas e consumidores POR CLASSE em tabela (mesmos ids
                  dos antigos campos soltos — o cálculo não muda). A linha
                  Total é informativa, atualizada por atualizarTotaisClasses().
                  Iluminação Pública não tem contagem de consumidores (—). -->
-            <div class="tabela-classes-wrap">
-              <table class="tabela-classes">
-                <thead>
-                  <tr>
-                    <th>Classe</th>
-                    <th>Demanda (kVA)</th>
-                    <th>Consumidores</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Residencial</td>
-                    <td>
-                      <input
-                        id="demanda_residencial"
-                        type="number"
-                        value=""
-                        step="0.01"
-                      />
-                    </td>
-                    <td>
-                      <input id="uc_residencial" type="number" value="" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Comercial</td>
-                    <td>
-                      <input
-                        id="demanda_comercial"
-                        type="number"
-                        value=""
-                        step="0.01"
-                      />
-                    </td>
-                    <td><input id="uc_comercial" type="number" value="" /></td>
-                  </tr>
-                  <tr>
-                    <td>Industrial</td>
-                    <td>
-                      <input
-                        id="demanda_industrial"
-                        type="number"
-                        value=""
-                        step="0.01"
-                      />
-                    </td>
-                    <td><input id="uc_industrial" type="number" value="" /></td>
-                  </tr>
-                  <tr>
-                    <td>Rural</td>
-                    <td>
-                      <input
-                        id="demanda_rural"
-                        type="number"
-                        value=""
-                        step="0.01"
-                      />
-                    </td>
-                    <td><input id="uc_rural" type="number" value="" /></td>
-                  </tr>
-                  <tr>
-                    <td>Outros</td>
-                    <td>
-                      <input
-                        id="demanda_outros"
-                        type="number"
-                        value=""
-                        step="0.01"
-                      />
-                    </td>
-                    <td><input id="uc_outros" type="number" value="" /></td>
-                  </tr>
-                  <tr>
-                    <td>Iluminação Pública</td>
-                    <td>
-                      <input
-                        id="demanda_iluminação"
-                        type="number"
-                        value=""
-                        step="0.01"
-                      />
-                    </td>
-                    <td class="tabela-nd">—</td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td>Total</td>
-                    <td id="demanda_total">0</td>
-                    <td id="uc_total">0</td>
-                  </tr>
-                </tfoot>
-              </table>
+              <div class="tabela-classes-wrap">
+                <table class="tabela-classes">
+                  <thead>
+                    <tr>
+                      <th>Classe</th>
+                      <th>Demanda (kVA)</th>
+                      <th>Consumidores</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Residencial</td>
+                      <td>
+                        <input
+                          id="demanda_residencial"
+                          type="number"
+                          value=""
+                          step="0.01"
+                        />
+                      </td>
+                      <td>
+                        <input id="uc_residencial" type="number" value="" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Comercial</td>
+                      <td>
+                        <input
+                          id="demanda_comercial"
+                          type="number"
+                          value=""
+                          step="0.01"
+                        />
+                      </td>
+                      <td>
+                        <input id="uc_comercial" type="number" value="" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Industrial</td>
+                      <td>
+                        <input
+                          id="demanda_industrial"
+                          type="number"
+                          value=""
+                          step="0.01"
+                        />
+                      </td>
+                      <td>
+                        <input id="uc_industrial" type="number" value="" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Rural</td>
+                      <td>
+                        <input
+                          id="demanda_rural"
+                          type="number"
+                          value=""
+                          step="0.01"
+                        />
+                      </td>
+                      <td><input id="uc_rural" type="number" value="" /></td>
+                    </tr>
+                    <tr>
+                      <td>Outros</td>
+                      <td>
+                        <input
+                          id="demanda_outros"
+                          type="number"
+                          value=""
+                          step="0.01"
+                        />
+                      </td>
+                      <td><input id="uc_outros" type="number" value="" /></td>
+                    </tr>
+                    <tr>
+                      <td>Iluminação Pública</td>
+                      <td>
+                        <input
+                          id="demanda_iluminação"
+                          type="number"
+                          value=""
+                          step="0.01"
+                        />
+                      </td>
+                      <td class="tabela-nd">—</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total</td>
+                      <td id="demanda_total">0</td>
+                      <td id="uc_total">0</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
-          </div>
 
-          <!-- Consumidores: Residencial / Comercial / Industrial -->
-          <div class="card">
-            <h2>Novos Consumidores</h2>
-            <!-- Disjuntores GERAIS também são linhas dinâmicas (rows_ger):
+            <!-- Consumidores: Residencial / Comercial / Industrial -->
+            <div class="card">
+              <h2>Novos Consumidores</h2>
+              <!-- Disjuntores GERAIS também são linhas dinâmicas (rows_ger):
                  começa com 1 e aceita N tipos, como res/com/ind. -->
-            <div class="three-col">
+              <div class="form-two-col">
+                <div>
+                  <h3>Disjuntor Geral</h3>
+                  <div style="margin-top: 10px">
+                    <div class="row">
+                      <div><label>Qtd.</label></div>
+                      <div class="dq"><label>Disjuntor</label></div>
+                      <div></div>
+                    </div>
+                    <div id="rows_ger"></div>
+                    <button type="button" class="add-disj" data-tipo="ger">
+                      + Adicionar disjuntor
+                    </button>
+                  </div>
+                </div>
+              </div>
               <div>
-                <h3>Disjuntor Geral</h3>
+                <h3>Consumidores</h3>
                 <div style="margin-top: 10px">
-                  <div class="row">
+                  <div class="row row-uc">
                     <div><label>Qtd.</label></div>
                     <div class="dq"><label>Disjuntor</label></div>
+                    <div class="dq"><label>Classe de consumo</label></div>
                     <div></div>
                   </div>
-                  <div id="rows_ger"></div>
-                  <button type="button" class="add-disj" data-tipo="ger">
+                  <div id="rows_uc"></div>
+                  <button type="button" class="add-disj" data-tipo="uc">
                     + Adicionar disjuntor
                   </button>
                 </div>
               </div>
-            </div>
-            <div class="three-col">
-              <!-- Linhas de disjuntor DINÂMICAS por tipo (rows_res/com/ind):
-                   o cabeçalho (Qtd. | Disjuntor) é fixo; as linhas são
-                   criadas por criarLinhaDisj() — começa com 3 e o botão
-                   "+ Adicionar disjuntor" acrescenta quantas precisar.
-                   O × remove a linha. Leitura em lerLinhasDisj(). -->
-              <div>
-                <h3>Residencial</h3>
-                <div style="margin-top: 10px">
-                  <div class="row">
-                    <div><label>Qtd.</label></div>
-                    <div class="dq"><label>Disjuntor</label></div>
-                    <div></div>
-                  </div>
-                  <div id="rows_res"></div>
-                  <button type="button" class="add-disj" data-tipo="res">
-                    + Adicionar disjuntor
-                  </button>
-                </div>
-              </div>
-              <div>
-                <h3>Comercial</h3>
-                <div style="margin-top: 10px">
-                  <div class="row">
-                    <div><label>Qtd.</label></div>
-                    <div class="dq"><label>Disjuntor</label></div>
-                    <div></div>
-                  </div>
-                  <div id="rows_com"></div>
-                  <button type="button" class="add-disj" data-tipo="com">
-                    + Adicionar disjuntor
-                  </button>
-                </div>
-              </div>
-              <div>
-                <h3>Industrial</h3>
-                <div style="margin-top: 10px">
-                  <div class="row">
-                    <div><label>Qtd.</label></div>
-                    <div class="dq"><label>Disjuntor</label></div>
-                    <div></div>
-                  </div>
-                  <div id="rows_ind"></div>
-                  <button type="button" class="add-disj" data-tipo="ind">
-                    + Adicionar disjuntor
-                  </button>
+
+              <!-- Bloco Resultado movido para a parte inferior de Novos Consumidores -->
+              <div class="card" style="margin-top: 14px">
+                <h2>Resultado</h2>
+                <div
+                  id="msg"
+                  class="result"
+                  style="margin-top: 14px; margin-bottom: 20px"
+                ></div>
+                <div>
+                  <canvas id="chart" height="230"></canvas>
                 </div>
               </div>
             </div>
 
-            <!-- Bloco Resultado movido para a parte inferior de Novos Consumidores -->
-            <div class="card" style="margin-top: 14px">
-              <h2>Resultado</h2>
-              <div
-                id="msg"
-                class="result"
-                style="margin-top: 14px; margin-bottom: 20px"
-              ></div>
-              <div>
-                <canvas id="chart" height="230"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2>Local de atendimento</h2>
-            <!-- Zona e Município subiram p/ o card "Dados do Transformador"
+            <div class="card">
+              <h2>Local de atendimento</h2>
+              <!-- Zona e Município subiram p/ o card "Dados do Transformador"
                  (gate do cálculo). Aqui ficam coordenadas e extensão. -->
-            <div class="form-two-col" style="margin-top: 8px">
-              <!-- Coluna 1: coordenadas do ponto -->
-              <div>
-                <label>Formato das coordenadas</label>
-                <select id="coord_format">
-                  <option value="decimal">
-                    Graus decimais (ex: -19.924501)
-                  </option>
-                  <option value="gms">
-                    Graus, minutos e segundos (ex: 19°55'28.2"S)
-                  </option>
-                </select>
+              <div class="form-two-col" style="margin-top: 8px">
+                <!-- Coluna 1: coordenadas do ponto -->
+                <div>
+                  <label>Formato das coordenadas</label>
+                  <select id="coord_format">
+                    <option value="decimal">
+                      Graus decimais (ex: -19.924501)
+                    </option>
+                    <option value="gms">
+                      Graus, minutos e segundos (ex: 19°55'28.2"S)
+                    </option>
+                  </select>
 
-                <label style="margin-top: 12px">Latitude</label>
-                <input id="lat_input" type="text" placeholder="-19.924501" />
-                <span class="muted-note" id="lat_hint"
-                  >Formato decimal: -90 a +90</span
-                >
+                  <label style="margin-top: 12px">Latitude</label>
+                  <input id="lat_input" type="text" placeholder="-19.924501" />
+                  <span class="muted-note" id="lat_hint"
+                    >Formato decimal: -90 a +90</span
+                  >
 
-                <label style="margin-top: 8px">Longitude</label>
-                <input id="lon_input" type="text" placeholder="-43.935238" />
-                <span class="muted-note" id="lon_hint"
-                  >Formato decimal: -180 a +180</span
-                >
+                  <label style="margin-top: 8px">Longitude</label>
+                  <input id="lon_input" type="text" placeholder="-43.935238" />
+                  <span class="muted-note" id="lon_hint"
+                    >Formato decimal: -180 a +180</span
+                  >
 
-                <script>
-                  function normalizarEntrada(id) {
-                    const campo = document.getElementById(id);
-                    campo.addEventListener("input", () => {
-                      campo.value = campo.value.replace(",", ".");
-                    });
-                  }
+                  <script>
+                    function normalizarEntrada(id) {
+                      const campo = document.getElementById(id);
+                      campo.addEventListener("input", () => {
+                        campo.value = campo.value.replace(",", ".");
+                      });
+                    }
 
-                  normalizarEntrada("lat_input");
-                  normalizarEntrada("lon_input");
-                </script>
+                    normalizarEntrada("lat_input");
+                    normalizarEntrada("lon_input");
+                  </script>
 
-                <label style="margin-top: 12px">UTM (automático)</label>
-                <input
-                  id="utm_output"
-                  type="text"
-                  readonly
-                  placeholder="Preencha lat/long"
-                />
-                <span class="muted-note">Calculado automaticamente</span>
-              </div>
+                  <label style="margin-top: 12px">UTM (automático)</label>
+                  <input
+                    id="utm_output"
+                    type="text"
+                    readonly
+                    placeholder="Preencha lat/long"
+                  />
+                  <span class="muted-note">Calculado automaticamente</span>
+                </div>
 
-              <!-- Coluna 2: extensão de rede -->
-              <div>
-                <div class="box-extensao">
-                  <div class="box-extensao-head">
-                    <input type="checkbox" id="chk_extensao" />
-                    <label for="chk_extensao">
-                      📏 Necessita extensão de rede
-                    </label>
-                  </div>
-                  <div id="extensao_fields" style="display: none">
-                    <label>Latitude da rede mais próxima</label>
-                    <input
-                      id="lat_rede"
-                      type="text"
-                      placeholder="Mesmo formato acima"
-                    />
+                <!-- Coluna 2: extensão de rede -->
+                <div>
+                  <div class="box-extensao">
+                    <div class="box-extensao-head">
+                      <input type="checkbox" id="chk_extensao" />
+                      <label for="chk_extensao">
+                        📏 Necessita extensão de rede
+                      </label>
+                    </div>
+                    <div id="extensao_fields" style="display: none">
+                      <label>Latitude da rede mais próxima</label>
+                      <input
+                        id="lat_rede"
+                        type="text"
+                        placeholder="Mesmo formato acima"
+                      />
 
-                    <label style="margin-top: 8px"
-                      >Longitude da rede mais próxima</label
-                    >
-                    <input
-                      id="lon_rede"
-                      type="text"
-                      placeholder="Mesmo formato acima"
-                    />
+                      <label style="margin-top: 8px"
+                        >Longitude da rede mais próxima</label
+                      >
+                      <input
+                        id="lon_rede"
+                        type="text"
+                        placeholder="Mesmo formato acima"
+                      />
 
-                    <script>
-                      function normalizarEntrada(id) {
-                        const campo = document.getElementById(id);
-                        campo.addEventListener("input", () => {
-                          campo.value = campo.value.replace(",", ".");
-                        });
-                      }
+                      <script>
+                        function normalizarEntrada(id) {
+                          const campo = document.getElementById(id);
+                          campo.addEventListener("input", () => {
+                            campo.value = campo.value.replace(",", ".");
+                          });
+                        }
 
-                      normalizarEntrada("lat_rede");
-                      normalizarEntrada("lon_rede");
-                    </script>
+                        normalizarEntrada("lat_rede");
+                        normalizarEntrada("lon_rede");
+                      </script>
 
-                    <label style="margin-top: 8px"
-                      >UTM da rede (automático)</label
-                    >
-                    <input
-                      id="utm_rede"
-                      type="text"
-                      readonly
-                      placeholder="Preencha lat/long da rede"
-                    />
-                    <span class="muted-note">Calculado automaticamente</span>
+                      <label style="margin-top: 8px"
+                        >UTM da rede (automático)</label
+                      >
+                      <input
+                        id="utm_rede"
+                        type="text"
+                        readonly
+                        placeholder="Preencha lat/long da rede"
+                      />
+                      <span class="muted-note">Calculado automaticamente</span>
 
-                    <label style="margin-top: 8px">Distância calculada</label>
-                    <input
-                      id="distancia_rede"
-                      type="text"
-                      readonly
-                      placeholder="—"
-                      style="font-weight: 700"
-                    />
-                    <span class="muted-note"
-                      >Calculada automaticamente (metros)</span
-                    >
+                      <label style="margin-top: 8px">Distância calculada</label>
+                      <input
+                        id="distancia_rede"
+                        type="text"
+                        readonly
+                        placeholder="—"
+                        style="font-weight: 700"
+                      />
+                      <span class="muted-note"
+                        >Calculada automaticamente (metros)</span
+                      >
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            <!-- Ajustes e Botões removidos daqui -->
+
+            <footer>Simulador de Carga CEMIG - PE/EM</footer>
           </div>
 
-          <!-- Ajustes e Botões removidos daqui -->
-
-          <footer>Simulador de Carga CEMIG - PE/EM</footer>
+          <!-- Coluna lateral do page-layout -->
+          <div class="sidebar"></div>
         </div>
-
-        <!-- Coluna lateral do page-layout -->
-        <div class="sidebar"></div>
       </div>
-    </div>
 
-    <!-- Aba Análise Ambiental: mapa Leaflet + consulta de restrição
+      <!-- Aba Análise Ambiental: mapa Leaflet + consulta de restrição
          (IDE-Sisema / Reserva Legal do CAR). A legenda
          (.mapa-legenda) é inserida logo após o mapa pelo geo.js. -->
-    <div id="aba-ambiental" class="aba-painel">
-      <div class="wrap-amb">
-        <div class="card">
-          <h2>Análise Ambiental</h2>
-          <!-- Coordenadas da consulta: lat/long (decimal ou GMS) OU UTM.
+      <div id="aba-ambiental" class="aba-painel">
+        <div class="wrap-amb">
+          <div class="card">
+            <h2>Análise Ambiental</h2>
+            <!-- Coordenadas da consulta: lat/long (decimal ou GMS) OU UTM.
                Sincronizadas em duas vias com o pino do mapa e com os campos
                do card "Local de atendimento" da aba Simulador. -->
-          <div class="amb-coords">
-            <div>
-              <label>Latitude</label>
-              <input id="amb_lat" type="text" placeholder="-19.924501" />
-              <span class="muted-note">Decimal ou GMS (19°55'28.2"S)</span>
+            <div class="amb-coords">
+              <div>
+                <label>Latitude</label>
+                <input id="amb_lat" type="text" placeholder="-19.924501" />
+                <span class="muted-note">Decimal ou GMS (19°55'28.2"S)</span>
+              </div>
+              <div>
+                <label>Longitude</label>
+                <input id="amb_lon" type="text" placeholder="-43.935238" />
+                <span class="muted-note">Decimal ou GMS (43°56'6.9"W)</span>
+              </div>
+              <div>
+                <label>UTM (zona easting northing)</label>
+                <input
+                  id="amb_utm"
+                  type="text"
+                  placeholder="23K 611111 7795555"
+                />
+                <span class="muted-note"
+                  >Hemisfério Sul (MG) — preenchido automaticamente a partir de
+                  lat/long</span
+                >
+              </div>
             </div>
-            <div>
-              <label>Longitude</label>
-              <input id="amb_lon" type="text" placeholder="-43.935238" />
-              <span class="muted-note">Decimal ou GMS (43°56'6.9"W)</span>
-            </div>
-            <div>
-              <label>UTM (zona easting northing)</label>
-              <input
-                id="amb_utm"
-                type="text"
-                placeholder="23K 611111 7795555"
-              />
-              <span class="muted-note"
-                >Hemisfério Sul (MG) — preenchido automaticamente a partir de
-                lat/long</span
-              >
-            </div>
-          </div>
-          <!-- Cenário do atendimento: muda a REDAÇÃO do texto de Unidade
+            <!-- Cenário do atendimento: muda a REDAÇÃO do texto de Unidade
                de Conservação (docsUnidadeConservacao no geo.js). Zona inicia
                espelhando o select #zona da aba Simulador; depois é
                independente. Trocar qualquer switch re-renderiza o resultado
                sem refazer a consulta às camadas. -->
-          <!-- Toggles binários (padrão switch: trilho + polegar deslizante).
+            <!-- Toggles binários (padrão switch: trilho + polegar deslizante).
                O estado vive em data-state=checked|unchecked, lido pelo CSS.
                Desligado = Urbana / Rede à porta. O rótulo de cada lado
                acende conforme o estado, p/ o significado não depender só da
                posição do polegar. -->
-          <div
-            class="amb-cenario"
-            role="group"
-            aria-label="Cenário do atendimento"
-          >
-            <div class="amb-switch">
-              <span class="amb-switch-side on" data-amb-off="is-rural"
-                >Urbana</span
-              >
-              <button
-                type="button"
-                role="switch"
-                aria-checked="false"
-                data-state="unchecked"
-                class="switch"
-                id="is-rural"
-                aria-label="Zona rural"
-              >
-                <span class="switch-thumb"></span>
-              </button>
-              <span class="amb-switch-side" data-amb-on="is-rural">Rural</span>
+            <div
+              class="amb-cenario"
+              role="group"
+              aria-label="Cenário do atendimento"
+            >
+              <div class="amb-switch">
+                <span class="amb-switch-side on" data-amb-off="is-rural"
+                  >Urbana</span
+                >
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked="false"
+                  data-state="unchecked"
+                  class="switch"
+                  id="is-rural"
+                  aria-label="Zona rural"
+                >
+                  <span class="switch-thumb"></span>
+                </button>
+                <span class="amb-switch-side" data-amb-on="is-rural"
+                  >Rural</span
+                >
+              </div>
+              <div class="amb-switch">
+                <span class="amb-switch-side on" data-amb-off="is-extensao"
+                  >Rede à porta</span
+                >
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked="false"
+                  data-state="unchecked"
+                  class="switch"
+                  id="is-extensao"
+                  aria-label="Extensão de rede"
+                >
+                  <span class="switch-thumb"></span>
+                </button>
+                <span class="amb-switch-side" data-amb-on="is-extensao"
+                  >Extensão de rede</span
+                >
+              </div>
             </div>
-            <div class="amb-switch">
-              <span class="amb-switch-side on" data-amb-off="is-extensao"
-                >Rede à porta</span
-              >
-              <button
-                type="button"
-                role="switch"
-                aria-checked="false"
-                data-state="unchecked"
-                class="switch"
-                id="is-extensao"
-                aria-label="Extensão de rede"
-              >
-                <span class="switch-thumb"></span>
+            <div class="mapa-toolbar">
+              <button id="btnConsultarAmb" type="button">
+                🌿 Consultar restrição ambiental
               </button>
-              <span class="amb-switch-side" data-amb-on="is-extensao"
-                >Extensão de rede</span
-              >
+              <span id="ambStatus" class="mapa-status"></span>
             </div>
+            <div id="mapAmbiental" class="mapa-canvas"></div>
+            <div id="ambResultado"></div>
           </div>
-          <div class="mapa-toolbar">
-            <button id="btnConsultarAmb" type="button">
-              🌿 Consultar restrição ambiental
-            </button>
-            <span id="ambStatus" class="mapa-status"></span>
-          </div>
-          <div id="mapAmbiental" class="mapa-canvas"></div>
-          <div id="ambResultado"></div>
         </div>
       </div>
-    </div>
 
-    <!-- Aba Textos Padrão: lista, busca e cópia dos textos de indeferimento
+      <!-- Aba Textos Padrão: lista, busca e cópia dos textos de indeferimento
          e pendência. Os dados vivem em textos-dados.js e a interface em
          textos.js. Os textos ambientais trazem {coord} e {unidade}, que são
          preenchidos com o resultado da Análise Ambiental quando há uma
          consulta feita nesta sessão. -->
-    <div id="aba-textos" class="aba-painel">
-      <div class="textos">
-        <header class="home-intro">
-          <h1>Indeferimento e pendência</h1>
-          <p class="lead">
-            Clique no título para ver o texto ou use <strong>Copiar</strong> para
-            mandá-lo direto para a área de transferência.
-          </p>
-        </header>
+      <div id="aba-textos" class="aba-painel">
+        <div class="textos">
+          <header class="home-intro">
+            <h1>Indeferimento e pendência</h1>
+            <p class="lead">
+              Clique no título para ver o texto ou use
+              <strong>Copiar</strong> para mandá-lo direto para a área de
+              transferência.
+            </p>
+          </header>
 
-        <!-- Aviso fixo: os textos trazem dados de exemplo. -->
-        <div id="txAviso"></div>
+          <!-- Aviso fixo: os textos trazem dados de exemplo. -->
+          <div id="txAviso"></div>
 
-        <!-- A busca acompanha a rolagem: a lista é longa e o campo é o
+          <!-- A busca acompanha a rolagem: a lista é longa e o campo é o
              caminho normal para chegar no texto certo. -->
-        <div class="tx-busca">
-          <input
-            id="txBusca"
-            type="search"
-            autocomplete="off"
-            placeholder="Buscar por título ou conteúdo…"
-            aria-label="Buscar texto padrão"
-          />
-          <span id="txContagem" class="tx-contagem" aria-live="polite"></span>
-        </div>
+          <div class="tx-busca">
+            <input
+              id="txBusca"
+              type="search"
+              autocomplete="off"
+              placeholder="Buscar por título ou conteúdo…"
+              aria-label="Buscar texto padrão"
+            />
+            <span id="txContagem" class="tx-contagem" aria-live="polite"></span>
+          </div>
 
-        <div id="txLista"></div>
+          <div id="txLista"></div>
+        </div>
       </div>
-    </div>
-  </main>
+    </main>
 
     <script>
       function podeCalcular() {
@@ -1994,8 +1966,13 @@
          | ×) são criadas aqui — N linhas por tipo, sem limite. A leitura no
          calcular() é feita por lerLinhasDisj(), que varre o container.
          O GERAL começa com 1 linha (é opcional); os demais com 3. */
-      const TIPOS_DISJ = ["res", "com", "ind", "ger"];
-      const LINHAS_DISJ_INICIAIS = { res: 3, com: 3, ind: 3, ger: 1 };
+      const TIPOS_DISJ = ["uc", "ger"];
+      const LINHAS_DISJ_INICIAIS = { uc: 3, ger: 1 };
+      const CLASSES_UC = [
+        ["residencial", "Residencial"],
+        ["comercial", "Comercial"],
+        ["industrial", "Industrial"],
+      ];
 
       function criarLinhaDisj(tipo) {
         const cont = document.getElementById("rows_" + tipo);
@@ -2019,6 +1996,7 @@
 
         const cRm = document.createElement("div");
         const rm = document.createElement("button");
+
         rm.type = "button";
         rm.className = "rm-disj";
         rm.title = "Remover esta linha";
@@ -2033,6 +2011,22 @@
 
         row.appendChild(cQtd);
         row.appendChild(cSel);
+        if (tipo === "uc") {
+          row.classList.add("row-uc");
+          const cCls = document.createElement("div");
+          cCls.className = "dq";
+          const selCls = document.createElement("select");
+          selCls.className = "classe";
+          selCls.innerHTML = '<option value=""></option>';
+          for (const [val, rotulo] of CLASSES_UC) {
+            const opt = document.createElement("option");
+            opt.value = val;
+            opt.text = rotulo;
+            selCls.appendChild(opt);
+          }
+          cCls.appendChild(selCls);
+          row.appendChild(cCls);
+        }
         row.appendChild(cRm);
         cont.appendChild(row);
         return row;
@@ -2046,6 +2040,19 @@
             r.querySelector("select").value || "",
           ],
         );
+      }
+
+      function lerLinhasPorClasse() {
+        const grupos = { residencial: [], comercial: [], industrial: [] };
+        for (const r of document.querySelectorAll("#rows_uc .row")) {
+          const klass = r.querySelector("select.classe")?.value || "";
+          if (!grupos[klass]) continue;
+          grupos[klass].push([
+            parseInt(r.querySelector("input.qtd").value) || 0,
+            r.querySelector("select:not(.classe)").value || "",
+          ]);
+        }
+        return grupos;
       }
 
       // (Re)monta os containers com a quantidade inicial de linhas
@@ -3041,10 +3048,11 @@
         // Combobox: o valor do input É o nome do município
         const municipioNome = document.getElementById("municipio").value.trim();
         // quantidades e nomes — linhas dinâmicas: [ [qtd, disj], ... ] por tipo
-        const paresRes = lerLinhasDisj("res");
-        const paresCom = lerLinhasDisj("com");
-        const paresInd = lerLinhasDisj("ind");
-        // Disjuntores GERAIS: também N linhas dinâmicas
+        const gruposPorClasse = lerLinhasPorClasse();
+        const paresRes = gruposPorClasse.residencial;
+        const paresCom = gruposPorClasse.comercial;
+        const paresInd = gruposPorClasse.industrial;
+        // Disjuntores GERAIS: continuam em bloco próprio
         const paresGer = lerLinhasDisj("ger");
 
         const uc_residencial =

@@ -436,6 +436,10 @@ p.lead {
   align-items: center;
 }
 
+.row-uc {
+  grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1fr) 20px;
+}
+
 .row .qtd {
   width: 100%;
   padding-left: 10px;
@@ -799,6 +803,7 @@ footer {
   .two-col,
   .grid,
   .form-two-col,
+  .row-uc
   .three-col {
     grid-template-columns: 1fr;
   }
