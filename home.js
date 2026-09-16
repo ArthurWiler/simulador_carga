@@ -69,24 +69,10 @@ const ITENS = [
   },
   {
     grupo: "Atalhos",
-    titulo: "CEMIG ON — Produção",
+    titulo: "CEMIG ON",
     icone: "🟢",
-    href: "https://cemig-on-prod.cemig.com.br/",
+    href: "https://cemig-on.cemig.com.br/",
     dica: "Ambiente de produção.",
-  },
-  {
-    grupo: "Atalhos",
-    titulo: "CEMIG ON — QA",
-    icone: "🟡",
-    href: "https://cemig-on-qa.cemig.com.br/",
-    dica: "Ambiente de homologação.",
-  },
-  {
-    grupo: "Atalhos",
-    titulo: "CEMIG ON — Dev",
-    icone: "🔵",
-    href: "https://cemig-on-dev.cemig.com.br/",
-    dica: "Ambiente de desenvolvimento.",
   },
 ];
 
