@@ -74,6 +74,13 @@ const ITENS = [
     href: "https://cemig-on.cemig.com.br/",
     dica: "Ambiente de produção.",
   },
+  {
+    grupo: "Atalhos",
+    titulo: "Treinamentos SAP",
+    icone: "🎓",
+    href: "https://arthurwiler.github.io/sap/",
+    dica: "Site com diversos treinamentos.",
+  },
 ];
 
 /* ===== util ===== */
