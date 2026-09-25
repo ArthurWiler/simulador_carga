@@ -2929,22 +2929,28 @@
         const base_kva = entry.kva || 0.0;
         const amountInt = parseInt(amount) || 0;
         const klass = (consumerClass || "").toString().trim().toLowerCase();
-        // Provisória / estação de carregamento não se dilui com os outros
-        // clientes: o fator é o de 1 cliente só na rede.
-        const provisoria = klass === "provisoria";
+        // Provisória / estação de carregamento: sem diversidade — entra o
+        // valor máximo da norma para o disjuntor (ex.: 3x200 A → 75 kVA).
+        if (klass === "provisoria")
+          return {
+            amount: amountInt,
+            idx,
+            base_kva,
+            factor: 1,
+            div_key: null,
+            demand_kva: base_kva * amountInt,
+          };
 
         // obter fator e chave
         const [factor, div_key] = get_fator_diversidade(
           idx,
-          provisoria ? 1 : total_customers,
+          total_customers,
           consumerClass,
         );
 
         // multiplicador por classe (dummy_factor)
         let dummy_factor = 0.9;
-        if (provisoria) {
-          dummy_factor = 1.0;
-        } else if (
+        if (
           klass === "residencial" ||
           klass === "residential" ||
           klass === "rural"
