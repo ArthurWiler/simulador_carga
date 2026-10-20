@@ -223,6 +223,19 @@ const DOC_TERRA_INDIGENA = {
     "Observação: Caso o processo de demarcação das terras ainda não tenha sido concluído, a solicitação poderá ser protocolada pelo procedimento padrão, como atendimento rural comum, sem enquadramento como comunidade indígena.",
   ],
 };
+/* ---- Área embargada pelo Sisema — auto de infração estadual ----
+   Área autuada pela fiscalização estadual com penalidade de embargo ou
+   suspensão de atividades. Quem libera é o órgão autuante: o cliente
+   precisa trazer o desembargo, e o nº do AI (na frase de localização, via
+   nomeFeicao da camada) é a referência para tratar disso na Semad. */
+const DOC_AREA_EMBARGADA = {
+  bullets: [
+    "Termo de Desembargo ou documento emitido pelo órgão ambiental competente que comprove o levantamento do embargo/suspensão de atividades sobre a área.",
+  ],
+  notas: [
+    "Observação: A regularização da área embargada deve ser tratada pelo requerente diretamente junto à Semad, informando o número do Auto de Infração indicado acima.",
+  ],
+};
 /* ---- Reserva Legal (CAR) — textos por STATUS (nom_tema) ----
    A base AgroTag/Embrapa traz três status de RL no atributo nom_tema:
    "Reserva Legal Averbada", "Reserva Legal Aprovada e não Averbada" e
@@ -302,6 +315,21 @@ const SISEMA_CAMADAS = [
     typeName: "IDE:ide_2003_mg_terras_indigenas_pol",
     tipoNome: "Terra Indígena",
     documentos: DOC_TERRA_INDIGENA,
+  },
+  {
+    // Catálogo IDE-Sisema (Fiscalização Ambiental › Áreas Embargadas (Semad)):
+    // ide_2304_mg_areas_embargadas_sisema_pol, ~11,5 mil polígonos,
+    // atualização mensal. A feição não tem campo de nome — o rótulo é o nº do
+    // auto de infração (num_ai, ex.: "718783/2026").
+    id: "embargo",
+    rotulo: "Área Embargada pelo Sisema",
+    typeName: "IDE:ide_2304_mg_areas_embargadas_sisema_pol",
+    tipoNome: "Área Embargada pelo Sisema",
+    documentos: DOC_AREA_EMBARGADA,
+    nomeFeicao: (p) => {
+      const ai = p && p.num_ai != null ? String(p.num_ai).trim() : "";
+      return ai ? "Auto de Infração nº " + ai : null;
+    },
   },
   {
     id: "rl",
