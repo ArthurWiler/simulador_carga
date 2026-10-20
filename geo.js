@@ -225,15 +225,14 @@ const DOC_TERRA_INDIGENA = {
 };
 /* ---- Área embargada pelo Sisema — auto de infração estadual ----
    Área autuada pela fiscalização estadual com penalidade de embargo ou
-   suspensão de atividades. Quem libera é o órgão autuante: o cliente
-   precisa trazer o desembargo, e o nº do AI (na frase de localização, via
-   nomeFeicao da camada) é a referência para tratar disso na Semad. */
+   suspensão de atividades. É IMPEDITIVA em todos os casos: não há
+   documento a anexar, só a mensagem de recusa (só `notas`, sem `bullets`,
+   como a RL averbada). O nº do AI entra na frase de localização via
+   nomeFeicao da camada. */
 const DOC_AREA_EMBARGADA = {
-  bullets: [
-    "Termo de Desembargo ou documento emitido pelo órgão ambiental competente que comprove o levantamento do embargo/suspensão de atividades sobre a área.",
-  ],
+  bullets: [],
   notas: [
-    "Observação: A regularização da área embargada deve ser tratada pelo requerente diretamente junto à Semad, informando o número do Auto de Infração indicado acima.",
+    "Em atendimento à sua solicitação, identificamos que o ponto para a ligação de energia elétrica encontra-se em área embargada pelo órgão ambiental estadual (Sisema), conforme Auto de Infração indicado acima. Sendo assim não podemos realizar o fornecimento de energia elétrica a essa unidade consumidora.",
   ],
 };
 /* ---- Reserva Legal (CAR) — textos por STATUS (nom_tema) ----
